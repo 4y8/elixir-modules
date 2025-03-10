@@ -14,7 +14,7 @@ let ident = ((['a' - 'z'] | ['A' - 'Z'] | '_' | ['0'-'9'])+)('.' (['a' - 'z'] | 
 
 rule lexer = parse
   | [' ' '\t' '\r' '\n'] { lexer lexbuf }
-  | ("//" [^'\n']*) '\n' { lexer lexbuf }
+  | ("#" [^'\n']*) '\n' { lexer lexbuf }
   | '$' (ident as s) { Utils.SMap.find s dolkw }
   | '.' { DOT }
   | ident as s

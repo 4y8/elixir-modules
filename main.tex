@@ -1,9 +1,9 @@
 \documentclass[a4paper,10pt]{article}
-\usepackage{xcolor}
 %\usepackage[style=numeric]{biblatex}
 %\addbibresource{main.bib}
 \usepackage[T1]{fontenc}
 %\usepackage{ebgaramond}
+\usepackage{subfig}
 \usepackage{mathpartir}
 \usepackage{amsmath}
 \author{Aghilas Y. Boussaa}
@@ -78,6 +78,7 @@ defmodule M do
   [ $param X
   | $param X=t
   | $type X X1 ... Xn=t
+  | $opaque X X1 ... Xn=t
   | @behaviour B
   | def f(X1 : t1, ..., Xn : tn) : t = e
   | defp f(X1 : t1, ..., Xn : tn) : t = e
@@ -89,7 +90,7 @@ end
 \begin{figure}[h]
   \begin{align*}
     D_M^S ::=& \kw{param} X \pipe \kw{param} X = T
-    \pipe \kw{type} X \overline{X} = T \pipe\kw{behaviour} X \\
+    \pipe (\kw{type}|\kw{opaque}) X \overline{X} = T \pipe\kw{behaviour} X \\
     |& \kw{def(p)} X(\overline{X : T}) : T = E \pipe D_M^S; D_M^S \pipe
     \epsilon \\
     M^S ::=& \kw{defmodule} X \kw{do} D_M^S \kw{end}
@@ -118,7 +119,7 @@ module types, with their list of parameters, are given by $\Gamma$.
 
 \begin{figure}[h]
   \begin{align*}
-    D_M ::=& \,\kw{type}X \overline{X}=T
+    D_M ::=& \,(\kw{type}|\kw{opaque})X \overline{X}=T
     \pipe \kw{def(p)} X(\overline{X : T}) : T = E
     \pipe D_M; D_M \pipe \epsilon \\
     M ::=& \kw{param} \overline{X};
@@ -221,23 +222,36 @@ figure~\ref{core-trans}.
     \inferrule{\\}{\epsilon\hookrightarrow_1^B \epsilon}\hfill
     \inferrule{D_B\hookrightarrow_1^B D\\ D_B'\hookrightarrow_1^B D'}
       {D_B;D_B'\hookrightarrow_1^B D;D'}
-    \\
+  \end{mathpar}
+  \caption{Translation rules to the core language}\label{core-trans}
+      \end{figure}
+  \begin{figure}[h]\ContinuedFloat
+    \begin{mathpar}
     \textbf{\emph{Modules}}\\
     \inferrule{\\}{\kw{def} X (\overline{Y:T}): T' = E\hookrightarrow_1^M
       \left(X=\overline{\kw{fun} Y : T\Rightarrow}{E}\right):
       \left(X:\overline{(Y:T)\rightarrow}T'\right)}\\
     \inferrule{\\}{\kw{defp} X (\overline{Y:T}): T' = E\hookrightarrow_1^M
-      \left(X=\overline{\kw{fun} Y : T\Rightarrow}{E}\right):\epsilon}\\
+      \left(X=\overline{\kw{fun} Y : T\Rightarrow}{E}:>\overline{(Y:T)\rightarrow}T'\right):\epsilon}\\
 
     \inferrule{\\}{{\begin{aligned}
         \kw{type} X \overline{Y} = T\hookrightarrow_1^M&
       X=\overline{\kw{fun} Y : \kw{type}\Rightarrow}\kw{type}T:\\
       &X:\overline{(Y : \kw{type})\Rightarrow} [=\kw{type} T]
-    \end{aligned}}\\}\\
+    \end{aligned}}\\\vspace{-\baselineskip}}\\
+\inferrule{\\}{{\begin{aligned}
+        \kw{opaque} X \overline{Y} = T\hookrightarrow_1^M&
+      X=\overline{\kw{fun} Y : \kw{type}\Rightarrow}\kw{type}T:\\
+      &X:\overline{(Y : \kw{type})\Rightarrow} \kw{type}
+    \end{aligned}}\\\vspace{-\baselineskip}}\\
     \inferrule{\\}{\epsilon\hookrightarrow_1^M \epsilon : \epsilon}\hfill
     \inferrule{D_M\hookrightarrow_1^M N:D\\ D_M'\hookrightarrow_1^M N':D'}
       {D_B;D_B'\hookrightarrow_1^M B;B'}
-    \\
+      \end{mathpar}
+  \caption{Translation rules to the core language}\label{core-trans}
+      \end{figure}
+  \begin{figure}[h]\ContinuedFloat
+    \begin{mathpar}
     \textbf{\emph{Programs}}\\
     \inferrule{\\}{\epsilon\hookrightarrow_{1} \epsilon}\\
     \inferrule{D_B\hookrightarrow_{1}^B D}
@@ -252,8 +266,6 @@ figure~\ref{core-trans}.
       M= &\kw{fun} (p: \{\overline{X:\kw{type}}\})
          \Rightarrow\{\overline{X=p.X};N\}:>\\
          & (p: \{\overline{X:\kw{type}}\})\Rightarrow
-         \{\overline{X:[=p.X]};D\} :>\\
-         & (p: \{\overline{X:\kw{type}}\})\Rightarrow
          \{\overline{X:[=p.X]};D\}\cap
          \bigcap\overline{B(\{\overline{X_B=\kw{type}T'_B}\})}
 % latex hack, to fix I guess
@@ -261,9 +273,9 @@ figure~\ref{core-trans}.
   \end{mathpar}
   \caption{Translation rules to the core language}\label{core-trans}
 \end{figure}
-
-We have two sealings in the last rule to take into account the result type given
-by the prorgammer and compare them to the one given by the module types.
+  We add sealings to \texttt{defp} declarations in order to have their return
+  type is checked. Thus \texttt{m.s} can't be replaced by \texttt{list(int)} in
+  the tests of the \texttt{stack\_sharing.ex} example.
 
 %\printbibliography
 \end{document}

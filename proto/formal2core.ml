@@ -51,12 +51,10 @@ let trans_behaviour = function
 
 let trans_module = function
   | F2.MDef (false, x, yt, t', e) ->
-     (x, Seal (List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e,
-               List.fold_right (fun (y, t) t' -> FTy (y, t, t', I)) yt t')),
+     (x, List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e),
      [x, List.fold_right (fun (y, t) t' -> FTy (y, t, t', I)) yt t']
-  | F2.MDef (true, x, yt, t', e) ->
-     (x, Seal (List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e,
-               List.fold_right (fun (y, t) t' -> FTy (y, t, t', I)) yt t')),
+  | F2.MDef (true, x, yt, _, e) ->
+     (x, List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e),
      []
   | F2.MType (x, y, t) ->
      (x, List.fold_right (fun y e -> Fun (y, Type, e)) y (Rei t)),
@@ -88,22 +86,22 @@ let trans_program = function
      let e = if param_type = Sig [] then res else
                Fun (param, param_type, res)
      in
-
+     let sg = Sig (List.map (fun x -> x, Equ (Dot (Var param, x))) m.mparam @ d) in
      let rest =
        List.fold_right
          (fun (b, xbtb) t ->
            let xbtb = List.map (fun (x, t) -> x, Rei t) xbtb in
            Inter (Expr (App (Var b, Struct xbtb)), t))
          xbtb @@
-         Sig (List.map (fun x -> x, Equ (Dot (Var param, x))) m.mparam @ d)
+         sg
      in
      let t = if param_type = Sig [] then
                rest
              else FTy (param, param_type, rest, P)
      in
-     (*
-
-     Seal (Seal (e, Sig (List.map (fun x -> x, Equ (Dot (Var param, x))) m.mparam @ d)), t)
-      *)
-
-     Seal (e, t)
+     let f_seal =
+       if param_type = Sig [] then
+         sg
+       else FTy (param, param_type, sg, P)
+     in
+     Seal (Seal (e, f_seal), t)

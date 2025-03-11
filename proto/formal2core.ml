@@ -51,10 +51,12 @@ let trans_behaviour = function
 
 let trans_module = function
   | F2.MDef (false, x, yt, t', e) ->
-     (x, List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e),
+     (x, Seal (List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e,
+               List.fold_right (fun (y, t) t' -> FTy (y, t, t', I)) yt t')),
      [x, List.fold_right (fun (y, t) t' -> FTy (y, t, t', I)) yt t']
-  | F2.MDef (true, x, yt, _, e) ->
-     (x, List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e),
+  | F2.MDef (true, x, yt, t', e) ->
+     (x, Seal (List.fold_right (fun (y, t) e -> Fun (y, t, e)) yt e,
+               List.fold_right (fun (y, t) t' -> FTy (y, t, t', I)) yt t')),
      []
   | F2.MType (x, y, t) ->
      (x, List.fold_right (fun y e -> Fun (y, Type, e)) y (Rei t)),
@@ -99,4 +101,9 @@ let trans_program = function
                rest
              else FTy (param, param_type, rest, P)
      in
-     Seal (Seal(e, Sig (List.map (fun x -> x, Equ (Dot (Var param, x))) m.mparam @ d)), t)
+     (*
+
+     Seal (Seal (e, Sig (List.map (fun x -> x, Equ (Dot (Var param, x))) m.mparam @ d)), t)
+      *)
+
+     Seal (e, t)

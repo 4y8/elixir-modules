@@ -14,6 +14,7 @@ let rec subst_type m = function
   | Equ e -> Equ (subst_expr m e)
   | Inter (t, t') -> Inter (subst_type m t, subst_type m t')
   | TAtom a -> TAtom a
+  | TTuple l -> TTuple (List.map (subst_type m) l)
 and subst_decl m = function
   | [] -> []
   | (x, t) :: tl ->

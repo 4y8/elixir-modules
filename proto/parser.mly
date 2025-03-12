@@ -34,7 +34,7 @@ typ:
   | t1 = typ ARR t2 = typ { FTy ("_", t1, t2, I) }
   | a = ATOM { add_atom a; TAtom a }
   | PERC LCUR l = separated_list(SCOL, type_decl) RCUR { Sig l }
-  | LCUR l = separated_list(COMMA, expr) RCUR { Expr (Tuple l) }
+  | LCUR l = separated_list(COMMA, typ) RCUR { TTuple l }
 ;
 
 expr_assign: x = IDENT EQ e = expr { x, e } ;

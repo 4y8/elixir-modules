@@ -135,10 +135,7 @@ module types, with their list of parameters, are given by $\Gamma$.
     \inferrule{X\in\text{dom}(\Gamma)}{\Gamma,\mathcal{B}\vdash
       \kw{behaviour} X\hookrightarrow_M
       \kw{param}\emptyset;\kw{behaviour} X \mapsto \{\}; \epsilon}\\
-    \inferrule{\exists!B\in\mathcal{B}.X\in\Gamma(B)}
-     {\Gamma,\mathcal{B}\vdash\kw{param} X\hookrightarrow_M
-      \kw{param} X;\kw{behaviour} B\mapsto\{X=X\}; \epsilon}\\
-    \inferrule{\neg\exists B\in\mathcal{B}.X\in\Gamma(B)}
+    \inferrule{}
      {\Gamma,\mathcal{B}\vdash\kw{param} X\hookrightarrow_M
       \kw{param} X;\kw{behaviour} \emptyset; \epsilon}\\
     \inferrule{\Gamma,\mathcal{B} \vdash D \hookrightarrow_M

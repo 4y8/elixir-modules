@@ -1,7 +1,7 @@
 {
   open Parser
 
-  let dolkw = ["param", PARAM; "opaque", OPAQUE; "type", TYPE]
+  let dolkw = ["param", PARAM; "opaque", OPAQUE; "type", TYPE; "passthrough", PASSTHROUGH; "callback", CALLBACK; "behaviour", BEHAVIOUR]
     |> Utils.smap_of_list
 
   let kw =

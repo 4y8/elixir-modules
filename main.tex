@@ -29,9 +29,9 @@ the beginning of the module type definition.
 \begin{figure}[h]
 \begin{verbatim}
 defmoduletype B do
-  [ $param X
-  | $opaque X X1 ... Xn
-  | $type X X1 ... Xn = t
+  [ $param X(X1, ..., Xn)
+  | $opaque X(X1, ..., Xn)
+  | $type X(X1, ..., Xn) = t
   | callback X : t
   ]*
 end
@@ -39,8 +39,8 @@ end
 \caption{Surface syntax proposal for module types}\label{behaviour-surface}
 \end{figure}
 \begin{figure}[h]
-  \begin{align*}D_B^S ::=& \kw{param} X \pipe \kw{type} X \overline{X} = T
-    \pipe \kw{opaque} X \overline{X} \pipe \kw{callback} X:T \\
+  \begin{align*}D_B^S ::=& \kw{param} X \overline{X} \pipe \kw{type} X
+    \overline{X} = T \pipe \kw{opaque} X \overline{X} \pipe \kw{callback} X:T \\
     |&\, D_B^S ; D_B^S \pipe \epsilon \\
     B^S ::=& \kw{defmoduletype} X \kw{do} D_B^S \kw{end}
   \end{align*}
@@ -49,18 +49,21 @@ end
 \begin{figure}[h]
   \begin{align*}D_B &::= \kw{type} X \overline{X} = T \pipe \kw{opaque} X
   \overline{X} \pipe \kw{callback} X:T \pipe D_B ; D_B \pipe \epsilon \\
-  B &::= \kw{param} \overline{X}; D_B
+  B &::= \kw{param} \overline{X \overline{X}}; D_B
   \end{align*}
   \caption{A second formal syntax for module types}\label{behaviour-formal2}
 \end{figure}
 \begin{figure}[h]
   \begin{mathpar}
-    \inferrule{D\hookrightarrow_B \kw{param} \overline{X};D_M\\
-    D'\hookrightarrow_B \kw{param} \overline{X'};D_M'\\X\cap X' = \emptyset}{
-      D;D'\hookrightarrow_B \kw{param} \overline{X},\overline{X'};(D_M;D_M')}\\
-    \inferrule{\\}{\kw{param} X \hookrightarrow_B \kw{param} X;\epsilon}\hfill
-    \inferrule{D\neq \kw{param} X\\D\neq D_B^S;D_B^S}{D \hookrightarrow_B
-      \kw{param} \emptyset;D}\\
+    \inferrule{D\hookrightarrow_B \kw{param} \overline{X\overline{Y}};D_M\\
+      D'\hookrightarrow_B \kw{param} \overline{X'\overline{Y'}};
+      D_M'\\X\cap X' = \emptyset}{
+      D;D'\hookrightarrow_B \kw{param}
+      \overline{X\overline{Y}},\overline{X'\overline{Y'}};(D_M;D_M')}\\
+    \inferrule{\\}{\kw{param} X \overline{Y} \hookrightarrow_B
+      \kw{param} X \overline{Y};\epsilon}\hfill
+    \inferrule{D\neq \kw{param} X \overline{Y}\\D\neq D_B^S;D_B^S}
+              {D \hookrightarrow_B \kw{param} \emptyset;D}\\
   \end{mathpar}
   \caption{Translation rules between the two formal
     syntaxes for module types}\label{behaviour-formal1to2}
@@ -75,10 +78,10 @@ module types (the second one).
 \begin{figure}[h]
 \begin{verbatim}
 defmodule M do
-  [ $param X
-  | $param X=t
-  | $type X X1 ... Xn=t
-  | $opaque X X1 ... Xn=t
+  [ $param X(X1, ..., Xn)
+  | $param X(X1, ..., Xn)=t
+  | $type X(X1, ..., Xn)=t
+  | $opaque X(X1, ..., Xn)=t
   | @behaviour B
   | def f(X1 : t1, ..., Xn : tn) : t = e
   | defp f(X1 : t1, ..., Xn : tn) : t = e
@@ -89,10 +92,10 @@ end
 \end{figure}
 \begin{figure}[h]
   \begin{align*}
-    D_M^S ::=& \kw{param} X \pipe \kw{param} X = T
-    \pipe (\kw{type}|\kw{opaque}) X \overline{X} = T \pipe\kw{behaviour} X \\
-    |& \kw{def(p)} X(\overline{X : T}) : T = E \pipe D_M^S; D_M^S \pipe
-    \epsilon \\
+    D_M^S ::=& \kw{param} X \overline{X} \pipe \kw{param} X \overline{X} = T
+    \pipe (\kw{type}|\kw{opaque}) X \overline{X} = T \\
+    |&\kw{behaviour} X \pipe\kw{def(p)} X(\overline{X : T}) : T = E
+    \pipe D_M^S; D_M^S \pipe \epsilon \\
     M^S ::=& \kw{defmodule} X \kw{do} D_M^S \kw{end}
   \end{align*}
   \caption{A first formal syntax for modules}\label{module-formal1}
@@ -122,7 +125,7 @@ module types, with their list of parameters, are given by $\Gamma$.
     D_M ::=& \,(\kw{type}|\kw{opaque})X \overline{X}=T
     \pipe \kw{def(p)} X(\overline{X : T}) : T = E
     \pipe D_M; D_M \pipe \epsilon \\
-    M ::=& \kw{param} \overline{X};
+    M ::=& \kw{param} \overline{X\overline{X}};
     \kw{behaviour} X\mapsto\{\overline{X=T}\}; D_M
   \end{align*}
   \caption{A second formal syntax for modules}\label{module-formal2}
@@ -255,9 +258,11 @@ figure~\ref{core-trans}.
     \textbf{\emph{Programs}}\\
     \inferrule{\\}{\epsilon\hookrightarrow_{1} \epsilon}\\
     \inferrule{D_B\hookrightarrow_{1}^B D}
-              {B=\kw{param}\overline{X};D_B\hookrightarrow_{1}^P
-                B=\kw{fun} (p: \{\overline{X:\kw{type}}\})
-      \Rightarrow\kw{type}\{\overline{X:[=p.X]};D\}}\\
+              {{\begin{aligned}B=\kw{param}\overline{X\overline{Y}};D_B
+                    \hookrightarrow_{1}^P B=\kw{fun} &
+                    (p: \{\overline{X:\overline{(Y:\kw{type})\Rightarrow}\kw{type}}\})
+                    \Rightarrow\\&\kw{type}\{\overline{X:[=p.X]};D\}\end{aligned}}\\}
+              \\\vspace{-\baselineskip}
     \inferrule{P= (M=\kw{param}\overline{X};\kw{behaviour}
       \overline{B\mapsto\{\overline{X_B=T_B}\}};D_M)\\
       D_M\hookrightarrow_{1}^M N:D\\

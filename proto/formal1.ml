@@ -1,9 +1,9 @@
 type behaviour =
-  | BParam of string | BType of string * string list * Core.t
+  | BParam of string * string list | BType of string * string list * Core.t
   | BOpaque of string * string list | BCallback of string * Core.t
 
 type modul =
-  | MParam of string | MParamE of string * Core.t
+  | MParam of string * string list | MParamE of string * string list * Core.t
   | MType of string * string list * Core.t
   | MOpaque of string * string list * Core.t
   | MBehaviour of string

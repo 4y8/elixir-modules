@@ -3,9 +3,9 @@ module F2 = Formal2
 
 let rec trans_behaviour = function
   | [] -> F2.{ bparam = [] ; bbody = [] }
-  | F1.BParam x :: tl ->
+  | F1.BParam (x, l) :: tl ->
      let b = trans_behaviour tl in
-     F2.{ b with bparam = x :: b.bparam }
+     F2.{ b with bparam = (x, l) :: b.bparam }
   | F1.BType (x, l, t) :: tl ->
      let b = trans_behaviour tl in
      F2.{ b with bbody = BType (x, l, t) :: b.bbody }
@@ -19,7 +19,7 @@ let rec trans_behaviour = function
 let trans_module env l =
   let rec trans_module b = function
     | [] -> [], Utils.SMap.empty, []
-    | F1.MParamE (x, t) :: tl ->
+    | F1.MParamE (x, l, t) :: tl ->
        let behaviour = Utils.SMap.find x b in
        let mparam, beh, mbody = trans_module b tl in
        let bmap =
@@ -30,14 +30,14 @@ let trans_module env l =
        assert (not Utils.SMap.(mem x bmap));
        let bmap = Utils.SMap.add x t bmap in
        mparam, Utils.SMap.add behaviour bmap beh,
-       (F2.MType (x, [], t)) :: mbody
-    | F1.MParam x :: tl ->
+       (F2.MType (x, l, t)) :: mbody
+    | F1.MParam (x, l) :: tl ->
        let tl = match Utils.SMap.find_opt x b with
          | None -> tl
-         | Some _ -> F1.MParamE (x, Core.(Expr (Var x))) :: tl
+         | Some _ -> F1.MParamE (x, l, Core.(Expr (Var x))) :: tl
        in
        let mparam, beh, mbody = trans_module b tl in
-       x :: mparam, beh, mbody
+       (x, l) :: mparam, beh, mbody
     | F1.MType (x, l, t) :: tl ->
        let mparam, beh, mbody = trans_module b tl in
        mparam, beh, F2.MType (x, l, t) :: mbody
@@ -64,7 +64,8 @@ let trans_program =
     | [] -> []
     | (x, F1.B l) :: tl ->
        let b = trans_behaviour l in
-       (x, F2.B b) :: trans_program (Utils.SMap.add x b.bparam env) tl
+       let labels = fst @@ List.split b.bparam in
+       (x, F2.B b) :: trans_program (Utils.SMap.add x labels env) tl
     | (x, F1.M l) :: tl ->
        let m = trans_module env l in
        (x, F2.M m) :: trans_program env tl

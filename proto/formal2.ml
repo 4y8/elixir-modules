@@ -7,9 +7,9 @@ type mdecl =
   | MOpaque of string * string list * Core.t
   | MDef of bool * string * (string * Core.t) list * Core.t * Core.e
 
-type behaviour = { bparam : string list ; bbody : bdecl list }
+type behaviour = { bparam : (string * string list) list ; bbody : bdecl list }
 
-type modul = { mparam : string list
+type modul = { mparam : (string * string list) list
              ; mbehaviour : Core.d list Utils.SMap.t
              ; mbody : mdecl list}
 

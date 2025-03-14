@@ -61,9 +61,12 @@ expr:
 ;
 
 moduletype_decl:
-  | PARAM x = IDENT { BParam x }
-  | TYPE x = IDENT l = IDENT* EQ t = typ { BType (x, l, t) }
-  | OPAQUE x = IDENT l = IDENT* { BOpaque (x, l) }
+  | PARAM x = IDENT { BParam (x, []) }
+  | PARAM x = IDENT LPAR l = separated_list(COMMA, IDENT) RPAR { BParam (x, l) }
+  | TYPE x = IDENT EQ t = typ { BType (x, [], t) }
+  | TYPE x = IDENT LPAR l = separated_list(COMMA, IDENT) RPAR EQ t = typ { BType (x, l, t) }
+  | OPAQUE x = IDENT { BOpaque (x, []) }
+  | OPAQUE x = IDENT LPAR l = separated_list(COMMA, IDENT) RPAR { BOpaque (x, l) }
   | CALLBACK x = IDENT DCOL t = typ { BCallback (x, t) }
 ;
 
@@ -72,10 +75,18 @@ moduletype: DEFMODTYPE b = IDENT DO l = moduletype_decl* END { b, B l } ;
 arg: x = IDENT DCOL t = typ { x, t };
 
 module_decl:
-  | PARAM x = IDENT { MParam x }
-  | PARAM x = IDENT EQ t = typ { MParamE (x, t) }
-  | TYPE x = IDENT l = IDENT* EQ t = typ { MType (x, l, t) }
-  | OPAQUE x = IDENT l = IDENT* EQ t = typ { MOpaque (x, l, t) }
+  | PARAM x = IDENT { MParam (x, []) }
+  | PARAM x = IDENT LPAR l = separated_list(COMMA, IDENT) RPAR
+    { MParam (x, l) }
+  | PARAM x = IDENT EQ t = typ { MParamE (x, [], t) } 
+  | PARAM x = IDENT LPAR l = separated_list(COMMA, IDENT) RPAR EQ t = typ
+    { MParamE (x, l, t) }
+  | TYPE x = IDENT EQ t = typ { MType (x, [], t) }
+  | TYPE x = IDENT LPAR l = separated_list(COMMA, IDENT) RPAR EQ t = typ
+    { MType (x, l, t) }
+  | OPAQUE x = IDENT EQ t = typ { MOpaque (x, [], t) }
+  | OPAQUE x = IDENT RPAR l = separated_list(COMMA, IDENT) LPAR EQ t = typ
+    { MOpaque (x, l, t) }
   | BEHAVIOUR x = IDENT { MBehaviour x }
   | DEF f = IDENT LPAR x = separated_list(COMMA, arg) RPAR DCOL t = typ EQ
       e = expr { MDef (false, f, x, t, e) }

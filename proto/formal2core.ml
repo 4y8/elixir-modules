@@ -68,26 +68,35 @@ let trans_module = function
 let trans_program = function
   | F2.B b ->
      let d = List.map trans_behaviour b.bbody in
-     let sign = Sig (List.map (fun x -> x, Type) b.bparam) in
+     let sign =
+       Sig (List.map
+              (fun (x, l) ->
+                x, List.fold_right (fun x t -> FTy (x, Type, t, P)) l Type)
+              b.bparam) in
      let param = fresh_name () in
-     let res = List.map (fun x -> x, Equ (Dot (Var param, x))) b.bparam in
+     let res = List.map (fun (x, _) -> x, Equ (Dot (Var param, x))) b.bparam in
      Fun (param, sign, Rei (Sig (res @ d)) )
   | F2.M m ->
      let n, d = List.split (List.map trans_module m.mbody) in
      let d = List.fold_right (@) d [] in
      let param = fresh_name () in
      let ms = Utils.smap_of_list
-               (List.map (fun x -> (x, Dot (Var param, x))) m.mparam) in
+               (List.map (fun (x, _) -> (x, Dot (Var param, x))) m.mparam) in
      let xbtb = Utils.(list_of_smap
                          (SMap.map (subst_decl ms) m.mbehaviour)) in
-     let param_type = Sig (List.map (fun x -> x, Type) m.mparam) in
+     let param_type =
+       Sig (List.map
+              (fun (x, l) ->
+                x, List.fold_right (fun x t -> FTy (x, Type, t, P)) l Type)
+              m.mparam) in
      let res =
-       Struct (List.map (fun x -> (x, Dot (Var param, x))) m.mparam @ n)
+       Struct (List.map (fun (x, _) -> (x, Dot (Var param, x))) m.mparam @ n)
      in
      let e = if param_type = Sig [] then res else
                Fun (param, param_type, res)
      in
-     let sg = Sig (List.map (fun x -> x, Equ (Dot (Var param, x))) m.mparam @ d) in
+     let sg = Sig (List.map
+                     (fun (x, _) -> x, Equ (Dot (Var param, x))) m.mparam @ d) in
      let rest =
        List.fold_right
          (fun (b, xbtb) t ->

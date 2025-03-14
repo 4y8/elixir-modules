@@ -5,7 +5,7 @@
     |> Utils.smap_of_list
 
   let kw =
-    ["do", DO; "end", END; "defmodul", DEFMODULE; "def", DEF; "defp", DEFP;
+    ["do", DO; "end", END; "defmodule", DEFMODULE; "def", DEF; "defp", DEFP;
      "callback", CALLBACK; "defmodtype", DEFMODTYPE]
     |> Utils.smap_of_list
 }

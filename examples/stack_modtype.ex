@@ -23,5 +23,5 @@ defmodule StackGeneric do
 end
 
 defmodule Test do
-  defp x() : _ = StackGeneric(%{a = int}).push(0, StackGeneric(%{a = int}).new([1, 2]))
+  defp x() : _ = StackGeneric[a = int].push(0, StackGeneric[a = int].new([1, 2]))
 end

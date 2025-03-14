@@ -36,6 +36,7 @@ and print_expr fmt = function
      fprintf fmt "fun @[(%s : %a)@]@ =>@ %a" x print_type t print_expr e
   | App (e, e') ->
      fprintf fmt "@[%a@] @[(%a)@]" print_expr e print_expr e'
+  | Rei (Expr e) -> print_expr fmt e
   | Rei t ->
      fprintf fmt "type @[(%a)@]" print_type t
   | Seal (e, t) ->

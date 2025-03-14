@@ -15,7 +15,7 @@ end
 
 # Define a push function generic in the implementation of an integer stack
 defmodule Test do
-  defp push_zero(m : StackT(%{item = int}), st : m.s) : m.s =
+  def push_zero(m : StackT[item = int], st : m.s) : m.s =
     m.push(0, st)
-  defp test() : StackInt.s = push_zero(StackInt, StackInt.new([1]))
+  def test() : StackInt.s = push_zero(StackInt, StackInt.new([1]))
 end

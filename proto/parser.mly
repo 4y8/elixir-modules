@@ -24,10 +24,15 @@ atom_expr_%s = {%s={}};\n" x x x x;
 
 %%
 
-type_decl: x = IDENT DCOL t = typ { x, t }
+type_decl: x = IDENT DCOL t = typ { x, t } ;
+type_assign: x = IDENT EQ t = typ { x, Rei t } ;
+
+modtype:
+  | v = IDENT { Var v }
+  | v = IDENT LSQU l = separated_list(COMMA, type_assign) RSQU { App (Var v, Struct l) }
+;
 
 typ:
-  | v = IDENT { Expr (Var v) }
   | x = IDENT LPAR l = separated_list(COMMA, expr) RPAR 
     { Expr (List.fold_left (fun f x -> App (f, x)) (Var x) l) }
   | LPAR t = typ RPAR { t }
@@ -35,6 +40,8 @@ typ:
   | a = ATOM { add_atom a; TAtom a }
   | PERC LCUR l = separated_list(SCOL, type_decl) RCUR { Sig l }
   | LCUR l = separated_list(COMMA, typ) RCUR { TTuple l }
+  | m = modtype { Expr m }
+  | m = modtype DOT v = IDENT { Expr (Dot (m, v)) }
 ;
 
 expr_assign: x = IDENT EQ e = expr { x, e } ;
@@ -50,6 +57,7 @@ expr:
   | LCUR l = separated_list(COMMA, expr) RCUR { Tuple l }
   | LSQU l = separated_list(COMMA, expr) RSQU
     { List.fold_right (fun x xs -> App (App (Var "List.cons", x), xs)) l (Var "List.nil") }
+  | v = IDENT LSQU l = separated_list(COMMA, type_assign) RSQU { App (Var v, Struct l) }
 ;
 
 moduletype_decl:

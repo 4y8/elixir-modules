@@ -1,0 +1,72 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage{mathpartir}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{inconsolata}
+\usepackage{libertine}
+
+\DeclareMathOperator{\kwdefmt}{\textsf{defmodtype}}
+\DeclareMathOperator{\kwend}{\textsf{end}}
+\DeclareMathOperator{\kwdo}{\textsf{do}}
+\DeclareMathOperator{\kwbvr}{\textsf{\$behaviour}}
+\DeclareMathOperator{\kwprm}{\textsf{\$param}}
+\DeclareMathOperator{\kwdefm}{\textsf{\$defmodule}}
+\DeclareMathOperator{\kwopq}{\textsf{\$opaque}}
+\DeclareMathOperator{\kwtp}{\textsf{\$type}}
+\DeclareMathOperator{\kwmdl}{\textsf{\$module}}
+\DeclareMathOperator{\kwclbk}{\textsf{\$callback}}
+\DeclareMathOperator{\kwfn}{\textsf{fn}}
+\DeclareMathOperator{\kwint}{\textsf{int}}
+
+\author{Aghilas Y. Boussaa}
+\sloppy
+\begin{document}
+\begin{figure}
+  \begin{tabular}{r c l}
+    $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}$ \\
+    $I$ & ::= & $x$ \\
+    & | & $X$ \\
+    $S$ & ::= & $\kwbvr X$ \\
+    & | & $\kwprm x = t$\\
+    $P$ & ::= & $\kwprm x$ \\
+    $B$ & ::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
+    & | & $x = v$\\
+    & | & $\kwtp x = T$ \\
+    & | & $\kwopq x = T$ \\
+    $E$ & ::= & $v$ \\
+    & | & $x$ \\
+    & | & $EE$ \\
+    & | & $\%\left\{\overline{l=E}\right\}$ \\
+    & | & $E.l$ \\
+    & | & $(E\in t)?E:E$ \\
+    & | & ${\color{red} \overline{I\left[\overline{x=t}\right].}}$ \\
+    $v$ & ::= & $c$ \\
+    & | & $\%\left\{\overline{l=v}\right\}$ \\
+    & | & $\$\wedge \overline{t\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
+    & | & {\color{red} $\$\cap \left(\overline{I:T}\right)\rightarrow T \kwfn \overline{I}\rightarrow E$} \\
+    $T$ & ::= & $t$ \\
+    & | & $\left(\overline{I:T}\right)\rightarrow T$ \\
+    & | & $M$ \\
+    $M$ & ::= & $\overline{I\left[\overline{x=t}\right].}$\\
+    & | & $\left\{\overline{D}\right\}$ \\
+    & | & $M\cap M$ \\
+    & | & $M \cup M$ \\
+    $t$ & ::= & $\kwint$ \\
+    & | & $t\rightarrow t$\\
+    & | & $\%\left\{\overline{f}\right\}$ \\
+    & | & $t\vee t$ \\
+    & | & $t\wedge t$ \\
+    & | & $\neg t$\\
+    & | & $\alpha$ \\
+    & | & $\mathbb{O}$ \\
+    & | & $\overline{I\left[\overline{x=t}\right].}x$ \\
+    D & ::= & $\kwmdl X : T$ \\
+    & | & $\kwclbk x : T$ \\
+    & | & $\kwopq x$ \\
+    & | & $\kwtp x = T$
+  \end{tabular}
+  \caption{Syntax of the surface language}
+\end{figure}
+\end{document}

@@ -26,7 +26,7 @@
 \begin{document}
 \begin{figure}
   \begin{tabular}{r c l}
-    $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}$ \\
+    $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm Main \kwdo \overline{B} \kwend$ \\
     $I$ & ::= & $x$ \\
     & | & $X$ \\
     $S$ & ::= & $\kwbvr X$ \\
@@ -38,11 +38,12 @@
     & | & $\kwopq x = t$ \\
     $E$ & ::= & $v$ \\
     & | & $x$ \\
-    & | & $EE$ \\
+    & | & $E(\overline{E,})$ \\
     & | & $\%\left\{\overline{l=E}\right\}$ \\
     & | & $E.l$ \\
     & | & $(E\in t)?E:E$ \\
-    & | & ${\color{red} \overline{I\left[\overline{x=t}\right].}}$ \\
+    & | & ${\color{red} \overline{X\left[\overline{x=t}\right].}x}$ \\
+    & | & ${\color{red} \overline{X\left[\overline{x=t}\right].}X\left[\overline{x=t}\right]}$ \\
     $v$ & ::= & $c$ \\
     & | & $\%\left\{\overline{l=v}\right\}$ \\
     & | & $\$\wedge \overline{t\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
@@ -62,9 +63,9 @@
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & $\overline{I\left[\overline{x=t}\right].}x$ \\
+    & | & $\overline{X\left[\overline{x=t}\right].}x$ \\
     $D$ & ::= & $\kwmdl X : T$ \\
-    & | & $\kwclbk x : T$ \\
+    & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq x$ \\
     & | & $\kwtp x = t$
   \end{tabular}
@@ -74,7 +75,7 @@
   \centering
   \begin{tabular}{c c c c c}
     $\kwmdl X : T$ & $\cap$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cap T'$\\
-    $\kwclbk X : T$ & $\cap$ & $\kwclbk X : T'$ & = & $\kwclbk X : T\cap T'$\\
+    $\kwclbk X :\bigcap\overline{T}$ & $\cap$ & $\kwclbk X : \bigcap\overline{T'}$ & = & $\kwclbk X : \bigcap \overline{T}\,\overline{T'}$\\
     $\kwtp x = t$ & $\cap$ & $\kwtp x = t'$ & = & $\kwtp x = t\cap t'$\\
     $\kwopq x$ & $\cap$ & $\kwopq x$ & = & $\kwopq x$\\
     $\kwopq x$ & $\cap$ & $\kwtp x = t$ & = & $\kwtp x = t$\\
@@ -87,7 +88,7 @@
   \centering
   \begin{tabular}{c c c c c}
     $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
-    $\kwclbk X : T$ & $\cup$ & $\kwclbk X : T'$ & = & $\kwclbk X : T\cup T'$\\
+    $\kwclbk X : \bigcap \overline{T}$ & $\cup$ & $\kwclbk X :\bigcap \overline{T'}$ & = & ?\\
     $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
     $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
     $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
@@ -119,7 +120,7 @@
       {\Sigma,\Gamma\vdash\struct(M\cap M')=\struct(M'\cap M)}\\
     \inferrule[Struct-Assoc]
       {\\}
-      {\Sigma,\Gamma\vdash\struct(M\cap(M'\cap M'')=\struct((M\cap M')\cap M'')}\\
+      {\Sigma,\Gamma\vdash\struct(M\cap(M'\cap M''))=\struct((M\cap M')\cap M'')}\\
     \inferrule[Struct-Declaration]
       {\Sigma,\Gamma\vdash \overline{D}}{\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\right)=
            \left\{\overline{D}\right\}}\\

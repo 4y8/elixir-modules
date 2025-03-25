@@ -19,6 +19,7 @@
 \DeclareMathOperator{\kwclbk}{\textsf{\$callback}}
 \DeclareMathOperator{\kwfn}{\textsf{fn}}
 \DeclareMathOperator{\kwint}{\textsf{int}}
+\DeclareMathOperator{\struct}{\textsf{struct}}
 
 \author{Aghilas Y. Boussaa}
 \sloppy
@@ -33,8 +34,8 @@
     $P$ & ::= & $\kwprm x$ \\
     $B$ & ::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
-    & | & $\kwtp x = T$ \\
-    & | & $\kwopq x = T$ \\
+    & | & $\kwtp x = t$ \\
+    & | & $\kwopq x = t$ \\
     $E$ & ::= & $v$ \\
     & | & $x$ \\
     & | & $EE$ \\
@@ -48,11 +49,11 @@
     & | & {\color{red} $\$\cap \left(\overline{I:T}\right)\rightarrow T \kwfn \overline{I}\rightarrow E$} \\
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{I:T}\right)\rightarrow T$ \\
+    & | & $\star$ \\
     & | & $M$ \\
-    $M$ & ::= & $\overline{I\left[\overline{x=t}\right].}$\\
+    $M$ & ::= & $X\left[\overline{x=t}\right]$\\
     & | & $\left\{\overline{D}\right\}$ \\
     & | & $M\cap M$ \\
-    & | & $M \cup M$ \\
     $t$ & ::= & $\kwint$ \\
     & | & $t\rightarrow t$\\
     & | & $\%\left\{\overline{f}\right\}$ \\
@@ -62,11 +63,82 @@
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & $\overline{I\left[\overline{x=t}\right].}x$ \\
-    D & ::= & $\kwmdl X : T$ \\
+    $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : T$ \\
     & | & $\kwopq x$ \\
-    & | & $\kwtp x = T$
+    & | & $\kwtp x = t$
   \end{tabular}
   \caption{Syntax of the surface language}
+\end{figure}
+\begin{figure}
+  \centering
+  \begin{tabular}{c c c c c}
+    $\kwmdl X : T$ & $\cap$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cap T'$\\
+    $\kwclbk X : T$ & $\cap$ & $\kwclbk X : T'$ & = & $\kwclbk X : T\cap T'$\\
+    $\kwtp x = t$ & $\cap$ & $\kwtp x = t'$ & = & $\kwtp x = t\cap t'$\\
+    $\kwopq x$ & $\cap$ & $\kwopq x$ & = & $\kwopq x$\\
+    $\kwopq x$ & $\cap$ & $\kwtp x = t$ & = & $\kwtp x = t$\\
+    $\kwtp x = t$ & $\cap$ & $\kwopq x$ & = & $\kwtp x = t$\\
+    $D$ & $\cap$ & $D'$ & = & $\epsilon$\\
+  \end{tabular}
+  \caption{Component-wise intersection}
+\end{figure}
+\begin{figure}
+  \centering
+  \begin{tabular}{c c c c c}
+    $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
+    $\kwclbk X : T$ & $\cup$ & $\kwclbk X : T'$ & = & $\kwclbk X : T\cup T'$\\
+    $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
+    $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
+    $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
+    $\kwtp x = t$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
+    $D$ & $\cup$ & $D'$ & = & $\epsilon$\\
+  \end{tabular}
+  \caption{Component-wise union}
+\end{figure}
+\begin{figure}
+  \begin{mathpar}
+    \inferrule[ElEnv-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon}\hfill
+    \inferrule[ElEnv-Expr]{\Sigma,\Gamma\vdash t:\star}{\Sigma,\Gamma\vdash x:t,\Gamma}\hfill
+    \inferrule[ElEnv-Type]{\Sigma,\Gamma\vdash t:\star}{\Sigma,\Gamma\vdash x=t,\Gamma}\\
+    \inferrule[ModEnv-ModuleType]
+      {\Sigma,\Gamma\vdash\left\{\overline{\kwtp x=\alpha};\overline{D}\right\}}
+      {\Sigma,\Gamma\vdash X=\overline{x}\mapsto\overline{D},\Sigma}\hfill
+    \inferrule[ModEnv-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon}\hfill
+    \inferrule[ModEnv-Module]
+      {\Sigma,\Gamma\vdash\left\{\overline{\kwtp x=\alpha};\overline{B}\right\}}
+      {\Sigma,\Gamma\vdash X=\overline{x}\mapsto\overline{B},\Sigma}
+  \end{mathpar}
+  \caption{Formation rules for environments}
+\end{figure}
+\begin{figure}
+  \centering
+  \begin{mathpar}
+    \inferrule[Struct-Com]
+      {\\}
+      {\Sigma,\Gamma\vdash\struct(M\cap M')=\struct(M'\cap M)}\\
+    \inferrule[Struct-Assoc]
+      {\\}
+      {\Sigma,\Gamma\vdash\struct(M\cap(M'\cap M'')=\struct((M\cap M')\cap M'')}\\
+    \inferrule[Struct-Declaration]
+      {\Sigma,\Gamma\vdash \overline{D}}{\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\right)=
+           \left\{\overline{D}\right\}}\\
+    \inferrule[Struct-ModuleType]
+      {X = \left(\overline{x_i}\mapsto \overline{D}\right)\in\Sigma\\
+       \forall i.\Sigma,(x_1=t_1, \ldots, x_i=t_i,\Gamma)\vdash t_{i+1}:\star}
+      {\Sigma,\Gamma\vdash\struct\left(X\left[\overline{x_i=t_i}\right]\right)=
+         \left\{\overline{\kwtp x_i = t_i};\overline{D}\right\}}
+  \end{mathpar}
+  \caption{Erasure of name subtyping}
+\end{figure}
+\begin{figure}
+  \begin{mathpar}
+  \end{mathpar}
+  \caption{Typing rules for declarations}
+\end{figure}
+\begin{figure}
+  \begin{mathpar}
+  \end{mathpar}
+  \caption{Typing rules for the surface language}
 \end{figure}
 \end{document}

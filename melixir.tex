@@ -12,12 +12,13 @@
 \DeclareMathOperator{\kwdo}{\textsf{do}}
 \DeclareMathOperator{\kwbvr}{\textsf{\$behaviour}}
 \DeclareMathOperator{\kwprm}{\textsf{\$param}}
-\DeclareMathOperator{\kwdefm}{\textsf{\$defmodule}}
+\DeclareMathOperator{\kwdefm}{\textsf{defmodule}}
 \DeclareMathOperator{\kwopq}{\textsf{\$opaque}}
 \DeclareMathOperator{\kwtp}{\textsf{\$type}}
 \DeclareMathOperator{\kwmdl}{\textsf{\$module}}
 \DeclareMathOperator{\kwclbk}{\textsf{\$callback}}
 \DeclareMathOperator{\kwfn}{\textsf{fn}}
+\DeclareMathOperator{\kwlike}{\textsf{like}}
 \DeclareMathOperator{\kwint}{\textsf{int}}
 \DeclareMathOperator{\struct}{\textsf{struct}}
 
@@ -26,7 +27,7 @@
 \begin{document}
 \begin{figure}
   \begin{tabular}{r c l}
-    $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm Main \kwdo \overline{B} \kwend$ \\
+    $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\;\kwdefm \text{Main} \kwdo \overline{B} \kwend$ \\
     $I$ & ::= & $x$ \\
     & | & $X$ \\
     $S$ & ::= & $\kwbvr X$ \\
@@ -47,7 +48,7 @@
     $v$ & ::= & $c$ \\
     & | & $\%\left\{\overline{l=v}\right\}$ \\
     & | & $\$\wedge \overline{t\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{red} $\$\cap \left(\overline{I:T}\right)\rightarrow T \kwfn \overline{I}\rightarrow E$} \\
+    & | & {\color{red} $\$\cap \overline{\left(\overline{I:T}\right)\rightarrow T} \kwfn \overline{I}\rightarrow E$} \\
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{I:T}\right)\rightarrow T$ \\
     & | & $\star$ \\
@@ -76,26 +77,13 @@
   \begin{tabular}{c c c c c}
     $\kwmdl X : T$ & $\cap$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cap T'$\\
     $\kwclbk X :\bigcap\overline{T}$ & $\cap$ & $\kwclbk X : \bigcap\overline{T'}$ & = & $\kwclbk X : \bigcap \overline{T}\,\overline{T'}$\\
-    $\kwtp x = t$ & $\cap$ & $\kwtp x = t'$ & = & $\kwtp x = t\cap t'$\\
+    $\kwtp x = t$ & $\cap$ & $\kwtp x = t'$ & = & $\kwtp x = t\wedge t'$\\
     $\kwopq x$ & $\cap$ & $\kwopq x$ & = & $\kwopq x$\\
     $\kwopq x$ & $\cap$ & $\kwtp x = t$ & = & $\kwtp x = t$\\
     $\kwtp x = t$ & $\cap$ & $\kwopq x$ & = & $\kwtp x = t$\\
     $D$ & $\cap$ & $D'$ & = & $\epsilon$\\
   \end{tabular}
   \caption{Component-wise intersection}
-\end{figure}
-\begin{figure}
-  \centering
-  \begin{tabular}{c c c c c}
-    $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
-    $\kwclbk X : \bigcap \overline{T}$ & $\cup$ & $\kwclbk X :\bigcap \overline{T'}$ & = & ?\\
-    $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
-    $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
-    $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
-    $\kwtp x = t$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
-    $D$ & $\cup$ & $D'$ & = & $\epsilon$\\
-  \end{tabular}
-  \caption{Component-wise union}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
@@ -128,9 +116,26 @@
       {X = \left(\overline{x_i}\mapsto \overline{D}\right)\in\Sigma\\
        \forall i.\Sigma,(x_1=t_1, \ldots, x_i=t_i,\Gamma)\vdash t_{i+1}:\star}
       {\Sigma,\Gamma\vdash\struct\left(X\left[\overline{x_i=t_i}\right]\right)=
-         \left\{\overline{\kwtp x_i = t_i};\overline{D}\right\}}
+         \left\{\overline{\kwtp x_i = t_i};\overline{D}\right\}}\\
+    \inferrule[Struct-ModuleTypesIntersection]
+      {\forall i\neq i', j, j'.x^{i}_j \neq x^{i'}_{j'}\\
+       \forall i.\Sigma,\Gamma\vdash\struct\left(\overline{X^i[\overline{x^i_j=t^i_j}]}\right)=\overline{D}^i
+      }
+      {\Sigma,\Gamma\vdash\struct\left(\overline{X^i[\overline{x^i_j=t^i_j}]}\right)=\left\{\overline{{\overline{D}}^i}\right\}}\\
+    \inferrule[Struct-DeclarationIntersection]
+      {\\}
+      {\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\cap M\right)=}
   \end{mathpar}
   \caption{Erasure of name subtyping}
+\end{figure}
+\begin{figure}
+  \begin{mathpar}
+    \inferrule[EqPath-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon\cong\epsilon}\hfill
+    \inferrule[EqPath-Add]
+      {\Sigma,\Gamma\vdash P_1\cong P_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
+      {\Sigma,\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong P_2.X\left[\overline{x_i=t'_i}\right]}
+  \end{mathpar}
+  \caption{Subtyping rules with path}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
@@ -141,5 +146,18 @@
   \begin{mathpar}
   \end{mathpar}
   \caption{Typing rules for the surface language}
+\end{figure}
+\begin{figure}
+  \centering
+  \begin{tabular}{c c c c c}
+    $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
+    $\kwclbk X : \bigcap \overline{T}$ & $\cup$ & $\kwclbk X :\bigcap \overline{T'}$ & = & ?\\
+    $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
+    $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
+    $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
+    $\kwtp x = t$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
+    $D$ & $\cup$ & $D'$ & = & $\epsilon$\\
+  \end{tabular}
+  \caption{Component-wise union}
 \end{figure}
 \end{document}

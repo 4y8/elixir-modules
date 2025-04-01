@@ -73,6 +73,17 @@
   \caption{Syntax of the surface language}
 \end{figure}
 \begin{figure}
+  \begin{tabular}{r c l}
+    $\tau$ & ::= & $t$ \\
+    & | & $\star$ \\
+    & | & $\left(\overline{I:\tau}\right)\rightarrow \tau$ \\
+    & | & $\kwlike\left(\overline{X\left[\overline{x=t}\right].}X\left[\overline{x=t}\right]\right)$ \\
+    & | & $\cap\overline{\tau}$\\
+    & | & $X\left[\overline{x=t}\right]$
+  \end{tabular}
+  \caption{Syntax of surface module types}
+\end{figure}
+\begin{figure}
   \centering
   \begin{tabular}{c c c c c}
     $\kwmdl X : T$ & $\cap$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cap T'$\\
@@ -119,12 +130,12 @@
          \left\{\overline{\kwtp x_i = t_i};\overline{D}\right\}}\\
     \inferrule[Struct-ModuleTypesIntersection]
       {\forall i\neq i', j, j'.x^{i}_j \neq x^{i'}_{j'}\\
-       \forall i.\Sigma,\Gamma\vdash\struct\left(\overline{X^i[\overline{x^i_j=t^i_j}]}\right)=\overline{D}^i
+       \forall i.\Sigma,\Gamma\vdash\struct\left(X^i[\overline{x^i_j=t^i_j}]\right)=\overline{D}^i
       }
-      {\Sigma,\Gamma\vdash\struct\left(\overline{X^i[\overline{x^i_j=t^i_j}]}\right)=\left\{\overline{{\overline{D}}^i}\right\}}\\
+      {\Sigma,\Gamma\vdash\struct\left(\bigcap\overline{X^i[\overline{x^i_j=t^i_j}]}\right)=\left\{\overline{{\overline{D}}^i}\right\}}\\
     \inferrule[Struct-DeclarationIntersection]
       {\\}
-      {\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\cap M\right)=}
+      {\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\cap M\right)=\left\{\overline{D}\right\}}
   \end{mathpar}
   \caption{Erasure of name subtyping}
 \end{figure}
@@ -133,7 +144,11 @@
     \inferrule[EqPath-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon\cong\epsilon}\hfill
     \inferrule[EqPath-Add]
       {\Sigma,\Gamma\vdash P_1\cong P_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
-      {\Sigma,\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong P_2.X\left[\overline{x_i=t'_i}\right]}
+      {\Sigma,\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong
+        P_2.X\left[\overline{x_i=t'_i}\right]}\\
+    \inferrule[Sub-Opaque]
+      {\Sigma,\Gamma\vdash P_1\cong P_2\\ \struct(P_1)=\{\kwopq t;\ldots\}}
+      {\Sigma,\Gamma\vdash P_1.t\preccurlyeq P_2.t}
   \end{mathpar}
   \caption{Subtyping rules with path}
 \end{figure}

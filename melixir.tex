@@ -29,10 +29,9 @@
 \begin{figure}
   \begin{tabular}{r c l}
     $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm \textit{Main} \kwdo \overline{B} \kwend$ \\
-    $I$ & ::= & $x$ \\
+    $N$ & ::= & $x$ \\
     & | & $X$ \\
     $S$ & ::= & $\kwbvr X$ \\
-    & | & $\kwprm x = t$\\
     $P$ & ::= & $\kwprm x$ \\
     $B$ & ::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
@@ -49,9 +48,9 @@
     $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
     & | & $\$\wedge \overline{t\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{red} $\$\cap \overline{\left(\overline{I:T}\right)\rightarrow T} \kwfn \overline{I}\rightarrow E$} \\
+    & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
     $T$ & ::= & $t$ \\
-    & | & $\left(\overline{I:T}\right)\rightarrow T$ \\
+    & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\star$ \\
     & | & $\left\{\overline{S};\overline{D}\right\}$ \\
     $t$ & ::= & $\kwint$ \\
@@ -74,7 +73,7 @@
   \begin{tabular}{r c l}
     $\tau$ & ::= & $t$ \\
     & | & $\star$ \\
-    & | & $\left(\overline{I:\tau}\right)\rightarrow \tau$ \\
+    & | & $\left(\overline{N:\tau}\right)\rightarrow \tau$ \\
     & | & $\kwlike\left(\overline{X\left[\overline{x=t}\right].}X\left[\overline{x=t}\right]\right)$ \\
     & | & $\cap\overline{\tau}$\\
     & | & $X\left[\overline{x=t}\right]$
@@ -105,7 +104,10 @@
     \inferrule[ModEnv-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon}\hfill
     \inferrule[ModEnv-Module]
       {\Sigma,\Gamma\vdash\left\{\overline{\kwtp x=\alpha};\overline{B}\right\}}
-      {\Sigma,\Gamma\vdash X=\overline{x}\mapsto\overline{B},\Sigma}
+      {\Sigma,\Gamma\vdash X=\overline{x}\mapsto\overline{B},\Sigma}\\
+    \inferrule[ModEnv-Dom]
+      {\Sigma=X:\overline{X}\mapsto}
+      {}
   \end{mathpar}
   \caption{Formation rules for environments}
 \end{figure}
@@ -133,24 +135,25 @@
        {\Sigma; \Gamma\vdash\overline{B}:\overline{D}\\
         \Sigma; \Gamma,X:\left(\overline{P:\star}\right)\rightarrow
         \left\{\overline{S};\overline{D}\right\}\vdash
-        \overline{B_0}:\overline{D_0}}
-       {\Sigma; \Gamma\vdash\kwdefm X\kwdo \overline{P}\overline{S}\overline{B}
-        \kwend \overline{B_0}:X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S};\overline{D}\right\} D_0}\\
+        \overline{B_0}:\overline{D_0}\\
+       }
+       {\Sigma; \Gamma\vdash\left(\kwdefm X\kwdo \overline{P}\overline{S}\overline{B}
+        \kwend\right) \overline{B_0}:\left(\kwmdl X:\left(\overline{P:\star}\right)\rightarrow
+        \left\{\overline{S};\overline{D}\right\}\right)\overline{D_0}}\\
     \inferrule[Bind-Type]
        {\Sigma;\Gamma\vdash t:\star\\
-        \Sigma;\Gamma\vdash, x:[=t]\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\kwtp x = t,\overline{B}: \left(x:[=t],\overline{D}\right)}\\
+        \Sigma;\Gamma, x=t\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(\kwtp x = t\right)\overline{B}: \left(\kwtp x = t\right)\overline{D}}\\
     \inferrule[Bind-Opaque]
        {\Sigma;\Gamma\vdash t:\star\\
-        \Sigma;\Gamma\vdash, x:[=t]\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\kwopq x = t,\overline{B}: \left(x:\star,\overline{D}\right)}\\
+        \Sigma;\Gamma, x=t\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(\kwopq x = t\right)\overline{B}: \left(\kwopq x\right)\overline{D}}\\
     \inferrule[Bind-Empty]
        {\\}{\Sigma;\Gamma\vdash\epsilon:\epsilon}\hfill
     \inferrule[Bind-Value]
-       {\Sigma;\Gamma\vdash v:t\\
-        \Sigma;\Gamma,x:t\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash x=v,\overline{B}:\left(x:t,\overline{D}\right)}
+       {\Sigma;\Gamma\vdash v:\cap\overline{T}\\
+        \Sigma;\Gamma,x:\cap\overline{T}\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:\left(\kwclbk x:\cap\overline{T}\right)\overline{D}}
   \end{mathpar}
   \caption{Typing rules for bindings}
 \end{figure}

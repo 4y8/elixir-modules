@@ -21,6 +21,7 @@
 \DeclareMathOperator{\kwlike}{\textsf{like}}
 \DeclareMathOperator{\kwint}{\textsf{int}}
 \DeclareMathOperator{\struct}{\textsf{struct}}
+\DeclareMathOperator{\dom}{\textsf{dom}}
 
 \author{Aghilas Y. Boussaa}
 \sloppy
@@ -52,10 +53,7 @@
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{I:T}\right)\rightarrow T$ \\
     & | & $\star$ \\
-    & | & $M$ \\
-    $M$ & ::= & $X\left[\overline{x=t}\right]$\\
-    & | & $\left\{\overline{D}\right\}$ \\
-    & | & $M\cap M$ \\
+    & | & $\left\{\overline{S};\overline{D}\right\}$ \\
     $t$ & ::= & $\kwint$ \\
     & | & $t\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
@@ -112,34 +110,6 @@
   \caption{Formation rules for environments}
 \end{figure}
 \begin{figure}
-  \centering
-  \begin{mathpar}
-    \inferrule[Struct-Com]
-      {\\}
-      {\Sigma,\Gamma\vdash\struct(M\cap M')=\struct(M'\cap M)}\\
-    \inferrule[Struct-Assoc]
-      {\\}
-      {\Sigma,\Gamma\vdash\struct(M\cap(M'\cap M''))=\struct((M\cap M')\cap M'')}\\
-    \inferrule[Struct-Declaration]
-      {\Sigma,\Gamma\vdash \overline{D}}{\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\right)=
-           \left\{\overline{D}\right\}}\\
-    \inferrule[Struct-ModuleType]
-      {X = \left(\overline{x_i}\mapsto \overline{D}\right)\in\Sigma\\
-       \forall i.\Sigma,(x_1=t_1, \ldots, x_i=t_i,\Gamma)\vdash t_{i+1}:\star}
-      {\Sigma,\Gamma\vdash\struct\left(X\left[\overline{x_i=t_i}\right]\right)=
-         \left\{\overline{\kwtp x_i = t_i};\overline{D}\right\}}\\
-    \inferrule[Struct-ModuleTypesIntersection]
-      {\forall i\neq i', j, j'.x^{i}_j \neq x^{i'}_{j'}\\
-       \forall i.\Sigma,\Gamma\vdash\struct\left(X^i[\overline{x^i_j=t^i_j}]\right)=\overline{D}^i
-      }
-      {\Sigma,\Gamma\vdash\struct\left(\bigcap\overline{X^i[\overline{x^i_j=t^i_j}]}\right)=\left\{\overline{{\overline{D}}^i}\right\}}\\
-    \inferrule[Struct-DeclarationIntersection]
-      {\\}
-      {\Sigma,\Gamma\vdash\struct\left(\left\{\overline{D}\right\}\cap M\right)=\left\{\overline{D}\right\}}
-  \end{mathpar}
-  \caption{Erasure of name subtyping}
-\end{figure}
-\begin{figure}
   \begin{mathpar}
     \inferrule[EqPath-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon\cong\epsilon}\hfill
     \inferrule[EqPath-Add]
@@ -156,6 +126,33 @@
   \begin{mathpar}
   \end{mathpar}
   \caption{Typing rules for declarations}
+\end{figure}
+\begin{figure}
+  \begin{mathpar}
+    \inferrule[Bind-DefModule]
+       {\Sigma; \Gamma\vdash\overline{B}:\overline{D}\\
+        \Sigma; \Gamma,X:\left(\overline{P:\star}\right)\rightarrow
+        \left\{\overline{S};\overline{D}\right\}\vdash
+        \overline{B_0}:\overline{D_0}}
+       {\Sigma; \Gamma\vdash\kwdefm X\kwdo \overline{P}\overline{S}\overline{B}
+        \kwend \overline{B_0}:X:\left(\overline{P:\star}\right)\rightarrow
+        \left\{\overline{S};\overline{D}\right\} D_0}\\
+    \inferrule[Bind-Type]
+       {\Sigma;\Gamma\vdash t:\star\\
+        \Sigma;\Gamma\vdash, x:[=t]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\kwtp x = t,\overline{B}: \left(x:[=t],\overline{D}\right)}\\
+    \inferrule[Bind-Opaque]
+       {\Sigma;\Gamma\vdash t:\star\\
+        \Sigma;\Gamma\vdash, x:[=t]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\kwopq x = t,\overline{B}: \left(x:\star,\overline{D}\right)}\\
+    \inferrule[Bind-Empty]
+       {\\}{\Sigma;\Gamma\vdash\epsilon:\epsilon}\hfill
+    \inferrule[Bind-Value]
+       {\Sigma;\Gamma\vdash v:t\\
+        \Sigma;\Gamma,x:t\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash x=v,\overline{B}:\left(x:t,\overline{D}\right)}
+  \end{mathpar}
+  \caption{Typing rules for bindings}
 \end{figure}
 \begin{figure}
   \begin{mathpar}

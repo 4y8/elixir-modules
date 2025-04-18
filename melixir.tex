@@ -118,11 +118,8 @@
       {\Sigma,\Gamma\vdash P_1\cong P_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
       {\Sigma,\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong
         P_2.X\left[\overline{x_i=t'_i}\right]}\\
-    \inferrule[Sub-Opaque]
-      {\Sigma,\Gamma\vdash P_1\cong P_2\\ \struct(P_1)=\{\kwopq t;\ldots\}}
-      {\Sigma,\Gamma\vdash P_1.t\preccurlyeq P_2.t}
   \end{mathpar}
-  \caption{Subtyping rules with path}
+  \caption{Rules for path equivalence}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
@@ -132,35 +129,69 @@
 \begin{figure}
   \begin{mathpar}
     \inferrule[Bind-DefModule]
-       {\Sigma; \Gamma\vdash\overline{B}:\overline{D}\\
+       {\Sigma; \Gamma,\overline{P:*}\vdash\overline{B}:\overline{D}\\
         \Sigma; \Gamma,X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S};\overline{D}\right\}\vdash
+        \left\{\overline{S_i};\overline{D}\right\}\vdash
         \overline{B_0}:\overline{D_0}\\
+        \forall i .\Sigma(S_i)=\overline{x_i:\star}\to \overline{D_i}\\
+        \forall i\neq j.(\overline{x_i},\dom(D_i)\# \overline{x_j},\dom(D_j))\\
+        \left\{\overline{D}\right\} \preccurlyeq
+        \left\{\overline{\overline{x_i:[=\_]}\overline{D_i}}\right\}
        }
-       {\Sigma; \Gamma\vdash\left(\kwdefm X\kwdo \overline{P}\overline{S}\overline{B}
-        \kwend\right) \overline{B_0}:\left(\kwmdl X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S};\overline{D}\right\}\right)\overline{D_0}}\\
+       {\Sigma; \Gamma\vdash\left(\kwdefm X\kwdo \overline{P}\overline{S_i}\overline{B}
+        \kwend\right) \overline{B_0}:\left(X:\left(\overline{P:\star}\right)\rightarrow
+        \left\{\overline{S_i};\overline{D}\right\}\right)\overline{D_0}}\\
     \inferrule[Bind-Type]
        {\Sigma;\Gamma\vdash t:\star\\
-        \Sigma;\Gamma, x=t\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(\kwtp x = t\right)\overline{B}: \left(\kwtp x = t\right)\overline{D}}\\
+        \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(\kwtp x=t\right)\overline{B}: \left(x :[=t]\right)\overline{D}}\\
     \inferrule[Bind-Opaque]
        {\Sigma;\Gamma\vdash t:\star\\
-        \Sigma;\Gamma, x=t\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(\kwopq x = t\right)\overline{B}: \left(\kwopq x\right)\overline{D}}\\
+        \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(\kwopq x = t\right)\overline{B}:  \left(x:\star\right)\overline{D}}\\
     \inferrule[Bind-Empty]
        {\\}{\Sigma;\Gamma\vdash\epsilon:\epsilon}\hfill
     \inferrule[Bind-Value]
        {\Sigma;\Gamma\vdash v:\cap\overline{T}\\
         \Sigma;\Gamma,x:\cap\overline{T}\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:\left(\kwclbk x:\cap\overline{T}\right)\overline{D}}
+       {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:
+        \left(x:\cap\overline{T}\right)\overline{D}}
   \end{mathpar}
   \caption{Typing rules for bindings}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
+    \inferrule[Path-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon:\{\epsilon;\Gamma\}}\\
+    \inferrule[Path-SubModule]{\\}{\\}
+  \end{mathpar}
+  \caption{Well-formdness rules for paths}
+\end{figure}
+\begin{figure}
+  \begin{mathpar}
+    \inferrule[Type-Variable]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:\cap T)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x : \cap T}\\
+    \inferrule[Type-Subsumption]{\Sigma;\Gamma\vdash T\\ \Sigma\Gamma\vdash E : \cap\overline{T'}\\ \Sigma;\Gamma\vdash\cap\overline{T'}\preccurlyeq T}{\Sigma;\Gamma\vdash E : T}\\
+    \inferrule[Type-BigFunction]{\Sigma;\Gamma\vdash\cap\overline{\overline{N:T}\to T'} \overline{\Sigma;\Gamma,\overline{N:T}}\vdash E:T'}
+    {\Sigma;\Gamma\vdash\$\cap\overline{\forall\overline{\alpha}\left(\overline{N:T}\right)\to T'}\kwfn \overline{N}\to E:\cap\overline{\overline{N:T}\to T'}}\\
+    \inferrule[Type-Module]{\Sigma;\Gamma\vdash P:\left\{\overline{S_0};\overline{D_0}
+      (X:\overline{y:\star}\to\left\{\overline{S};\overline{D}\right\})
+      \overline{D_1}\right\}\\
+      \Sigma;\Gamma\vdash\overline{t}\\
+      \overline{x}\simeq\overline{y}
+    }{\Sigma;\Gamma\vdash P.X\left[\overline{x=t}\right]:\left\{\overline{S};\overline{D}\right\}}
   \end{mathpar}
   \caption{Typing rules for the surface language}
+\end{figure}
+
+\begin{figure}
+  \begin{mathpar}
+    \inferrule[Sub-StarRefl]{\\}{\star\preccurlyeq\star}\hfill
+    \inferrule[Sub-Elixir]{t\preccurlyeq t'}{\Sigma;\Gamma\vdash t\preccurlyeq t'}\hfill
+    \inferrule[Sub-Intersection]{\\}{\Sigma;\Gamma\vdash\cap\overline{T_i}\preccurlyeq T_i}\\
+    \inferrule[Sub-ModuleLeft]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash t\preccurlyeq T}{\Sigma;\Gamma\vdash P.x\preccurlyeq T}\\
+    \inferrule[Sub-ModuleRight]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash \cap\overline{T}\preccurlyeq t}{\Sigma;\Gamma\vdash\cap\overline{T}\preccurlyeq P.x}\\
+    \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}
+  \end{mathpar}
+  \caption{Subtyping rules}
 \end{figure}
 \begin{figure}
   \centering

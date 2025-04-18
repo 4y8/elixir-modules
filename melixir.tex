@@ -95,28 +95,25 @@
 \end{figure}
 \begin{figure}
   \begin{mathpar}
-    \inferrule[ElEnv-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon}\hfill
-    \inferrule[ElEnv-Expr]{\Sigma,\Gamma\vdash t:\star}{\Sigma,\Gamma\vdash x:t,\Gamma}\hfill
-    \inferrule[ElEnv-Type]{\Sigma,\Gamma\vdash t:\star}{\Sigma,\Gamma\vdash x=t,\Gamma}\\
+    \inferrule[ElEnv-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon}\hfill
+    \inferrule[ElEnv-Expr]{\Sigma;\Gamma\vdash t:\star}{\Sigma,\Gamma\vdash x:t,\Gamma}\hfill
+    \inferrule[ElEnv-Type]{\Sigma;\Gamma\vdash t:\star}{\Sigma;\Gamma\vdash x=t,\Gamma}\\
     \inferrule[ModEnv-ModuleType]
-      {\Sigma,\Gamma\vdash\left\{\overline{\kwtp x=\alpha};\overline{D}\right\}}
-      {\Sigma,\Gamma\vdash X=\overline{x}\mapsto\overline{D},\Sigma}\hfill
-    \inferrule[ModEnv-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon}\hfill
+      {\Sigma;\Gamma,\overline{x:\star}\vdash\left\{\overline{D}\right\}}
+      {\Sigma;\Gamma\vdash X=\overline{x}\mapsto\overline{D},\Sigma}\hfill
+    \inferrule[ModEnv-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon}\hfill
     \inferrule[ModEnv-Module]
-      {\Sigma,\Gamma\vdash\left\{\overline{\kwtp x=\alpha};\overline{B}\right\}}
-      {\Sigma,\Gamma\vdash X=\overline{x}\mapsto\overline{B},\Sigma}\\
-    \inferrule[ModEnv-Dom]
-      {\Sigma=X:\overline{X}\mapsto}
-      {}
+      {\Sigma;\Gamma,\overline{x:\star}\vdash\left\{;\overline{B}\right\}}
+      {\Sigma;\Gamma\vdash X=\overline{x}\mapsto\overline{B},\Sigma}\\
   \end{mathpar}
   \caption{Formation rules for environments}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
-    \inferrule[EqPath-Empty]{\\}{\Sigma,\Gamma\vdash\epsilon\cong\epsilon}\hfill
+    \inferrule[EqPath-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon\cong\epsilon}\hfill
     \inferrule[EqPath-Add]
-      {\Sigma,\Gamma\vdash P_1\cong P_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
-      {\Sigma,\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong
+      {\Sigma;\Gamma\vdash P_1\cong P_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
+      {\Sigma;\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong
         P_2.X\left[\overline{x_i=t'_i}\right]}\\
   \end{mathpar}
   \caption{Rules for path equivalence}
@@ -189,7 +186,9 @@
     \inferrule[Sub-Intersection]{\\}{\Sigma;\Gamma\vdash\cap\overline{T_i}\preccurlyeq T_i}\\
     \inferrule[Sub-ModuleLeft]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash t\preccurlyeq T}{\Sigma;\Gamma\vdash P.x\preccurlyeq T}\\
     \inferrule[Sub-ModuleRight]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash \cap\overline{T}\preccurlyeq t}{\Sigma;\Gamma\vdash\cap\overline{T}\preccurlyeq P.x}\\
-    \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}
+    \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}\\
+    \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,x_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
+      \Sigma;\Gamma,\overline{X_i:R_i}\vdash T'\preccurlyeq R'}{\Sigma;\Gamma\vdash\left(X_i:T_i\right)\to T'\preccurlyeq\left(X_i:R_i\right)\to R'}
   \end{mathpar}
   \caption{Subtyping rules}
 \end{figure}

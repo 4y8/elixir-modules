@@ -183,14 +183,14 @@
   \begin{mathpar}
     \inferrule[Sub-StarRefl]{\\}{\star\preccurlyeq\star}\hfill
     \inferrule[Sub-Elixir]{t\preccurlyeq t'}{\Sigma;\Gamma\vdash t\preccurlyeq t'}\hfill
-    \inferrule[Sub-Intersection]{\\}{\Sigma;\Gamma\vdash\cap\overline{T_i}\preccurlyeq T_i}\\
+    \inferrule[Sub-Intersection]{\exists i\in I, T_i\preccurlyeq T\\}{\Sigma;\Gamma\vdash\cap_I\overline{T_i}\preccurlyeq T}\\
     \inferrule[Sub-ModuleLeft]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash t\preccurlyeq T}{\Sigma;\Gamma\vdash P.x\preccurlyeq T}\\
     \inferrule[Sub-ModuleRight]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash \cap\overline{T}\preccurlyeq t}{\Sigma;\Gamma\vdash\cap\overline{T}\preccurlyeq P.x}\\
     \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}\\
     \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,x_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
       \Sigma;\Gamma,\overline{X_i:R_i}\vdash T'\preccurlyeq R'}{\Sigma;\Gamma\vdash\left(X_i:T_i\right)\to T'\preccurlyeq\left(X_i:R_i\right)\to R'}
   \end{mathpar}
-  \caption{Subtyping rules}
+  \caption{Subtyping rules $\Sigma;\Gamma\vdash\cap\overline T\preccurlyeq T$}
 \end{figure}
 \begin{figure}
   \centering

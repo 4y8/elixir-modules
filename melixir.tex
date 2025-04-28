@@ -183,7 +183,7 @@
   \begin{mathpar}
     \inferrule[Sub-StarRefl]{\\}{\star\preccurlyeq\star}\hfill
     \inferrule[Sub-Elixir]{t\preccurlyeq t'}{\Sigma;\Gamma\vdash t\preccurlyeq t'}\hfill
-    \inferrule[Sub-Intersection]{\exists i\in I, T_i\preccurlyeq T\\}{\Sigma;\Gamma\vdash\cap_I\overline{T_i}\preccurlyeq T}\\
+    \inferrule[Sub-Intersection]{\exists i\in I, T_i\preccurlyeq T}{\Sigma;\Gamma\vdash\cap_I\overline{T_i}\preccurlyeq T}\\
     \inferrule[Sub-ModuleLeft]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash t\preccurlyeq T}{\Sigma;\Gamma\vdash P.x\preccurlyeq T}\\
     \inferrule[Sub-ModuleRight]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash \cap\overline{T}\preccurlyeq t}{\Sigma;\Gamma\vdash\cap\overline{T}\preccurlyeq P.x}\\
     \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}\\

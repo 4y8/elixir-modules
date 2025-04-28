@@ -128,16 +128,16 @@
     \inferrule[Bind-DefModule]
        {\Sigma; \Gamma,\overline{P:*}\vdash\overline{B}:\overline{D}\\
         \Sigma; \Gamma,X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S_i};\overline{D}\right\}\vdash
+        \left\{\overline{S};\overline{D}\right\}\vdash
         \overline{B_0}:\overline{D_0}\\
-        \forall i .\Sigma(S_i)=\overline{x_i:\star}\to \overline{D_i}\\
+        \forall S_i\in\overline{S} .\Sigma(S_i)=\overline{x_i:\star}\to \overline{D_i}\\
         \forall i\neq j.(\overline{x_i},\dom(D_i)\# \overline{x_j},\dom(D_j))\\
         \left\{\overline{D}\right\} \preccurlyeq
-        \left\{\overline{\overline{x_i:[=\_]}\overline{D_i}}\right\}
+        \left\{\overline{\overline{x_i:[=\_]}\;\overline{D_i}}\right\}
        }
        {\Sigma; \Gamma\vdash\left(\kwdefm X\kwdo \overline{P}\overline{S_i}\overline{B}
         \kwend\right) \overline{B_0}:\left(X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S_i};\overline{D}\right\}\right)\overline{D_0}}\\
+        \left\{\overline{S};\overline{D}\right\}\right)\overline{D_0}}\\
     \inferrule[Bind-Type]
        {\Sigma;\Gamma\vdash t:\star\\
         \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}

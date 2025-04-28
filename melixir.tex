@@ -154,7 +154,7 @@
        {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:
         \left(x:\cap\overline{T}\right)\overline{D}}
   \end{mathpar}
-  \caption{Typing rules for bindings}
+  \caption{Typing rules for bindings \fbox{$\Sigma;\Gamma\vdash\overline{B}:\overline{D}$}}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
@@ -190,7 +190,7 @@
     \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,x_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
       \Sigma;\Gamma,\overline{X_i:R_i}\vdash T'\preccurlyeq R'}{\Sigma;\Gamma\vdash\left(X_i:T_i\right)\to T'\preccurlyeq\left(X_i:R_i\right)\to R'}
   \end{mathpar}
-  \caption{Subtyping rules $\Sigma;\Gamma\vdash\cap\overline T\preccurlyeq T$}
+  \caption{Subtyping rules \fbox{$\Sigma;\Gamma\vdash\cap\overline T\preccurlyeq T$}}
 \end{figure}
 \begin{figure}
   \centering

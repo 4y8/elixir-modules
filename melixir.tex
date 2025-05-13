@@ -159,7 +159,11 @@
 \begin{figure}
   \begin{mathpar}
     \inferrule[Path-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon:\{\epsilon;\Gamma\}}\\
-    \inferrule[Path-SubModule]{\\}{\\}
+    \inferrule[Path-SubModule]{\Sigma;\Gamma\vdash P:\left\{\_;\overline{D}\right\}\\
+      D = \ldots, \kwdefm X\kwdo\overline{P} \overline{S} \overline{B} \kwend\\
+      \overline{P} = \overline{\kwprm x}\\
+      \Sigma;\Gamma\vdash\overline{t}
+    }{\Sigma;\Gamma\vdash P.\left[\overline{x=t}\right]:\left\{\overline{S} ; \overline{\kwtp x=t}\, \overline{B} \right\}}
   \end{mathpar}
   \caption{Well-formdness rules for paths}
 \end{figure}

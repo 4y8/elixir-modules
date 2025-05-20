@@ -120,21 +120,39 @@
 \end{figure}
 \begin{figure}
   \begin{mathpar}
+    \inferrule[WF-Field]{\Sigma;\Gamma\vdash P :
+      \left\{\ldots,\kwtp x = t, \ldots\right\}\cup
+      \left\{\ldots,\kwtp x = t, \ldots\right\}}
+              {\Sigma;\Gamma\vdash P.x}\hfill
+    \inferrule[WF-Star]{\Sigma;\Gamma\vdash}
+              {\Sigma;\Gamma\vdash\star}\\
+    \inferrule[WF-Function]{\Sigma;\Gamma\vdash\\
+    \forall 0\leq i\leq n.\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
+              {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}\\
+    \inferrule[WF-ModuleTypeNames]{\forall S_i\in\overline{S}.\Sigma(S_i)=\overline{x:\star}^i\to \overline{D}^i\\
+      \left\{\overline{D}\right\} \preccurlyeq
+        \left\{\overline{\overline{x:[=\_]}^i\;\overline{D}^i}\right\}\\
+    \forall i\neq j.\dom\left(\overline{D}^i\right)\#\dom\left(\overline{D}^j\right)\\
+    \Sigma;\Gamma,\overline{\overline{x:\star}^i}\vdash\left\{\overline{D}\right\}}
+              {\Sigma;\Gamma\vdash\left\{\overline{S_i};\overline{D}\right\}}\left(S\neq\epsilon\right)\\
+    \inferrule[WF-ModuleTypeModule]{\Sigma;\Gamma\vdash T\\\Sigma;\Gamma,X:T\vdash\left\{\overline{D}\right\}}
+              {\Sigma;\Gamma\vdash\left\{(\kwmdl X:T)\overline{D}\right\}}\hfill
+    \inferrule[WF-ModuleTypeOpaque]{\Sigma;\Gamma,x:\star\vdash\left\{\overline{D}\right\}}
+              {\Sigma;\Gamma\vdash\left\{(\kwopq x)\overline{D}\right\}}\\
+    \inferrule[WF-ModuleTypeType]{\Sigma;\Gamma\vdash t\\\Sigma;\Gamma,x:[=t]\vdash\left\{\overline{D}\right\}}
+              {\Sigma;\Gamma\vdash\left\{(\kwtp x = t)\overline{D}\right\}}\hfill
+    \inferrule[WF-ModuleTypeCallback]{\overline{\Sigma;\Gamma\vdash T}\\\Sigma;\Gamma,x:\bigcap\overline{T}\vdash\left\{\overline{D}\right\}}
+              {\Sigma;\Gamma\vdash\left\{(\kwclbk x:\bigcap\overline{T})\overline{D}\right\}}
   \end{mathpar}
-  \caption{Typing rules for declarations}
+  \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
     \inferrule[Bind-DefModule]
-       {\Sigma; \Gamma,\overline{P:*}\vdash\overline{B}:\overline{D}\\
+       {\Sigma; \Gamma,\overline{P:\star}\vdash\overline{B}:\overline{D}\\
         \Sigma; \Gamma,X:\left(\overline{P:\star}\right)\rightarrow
         \left\{\overline{S};\overline{D}\right\}\vdash
-        \overline{B_0}:\overline{D_0}\\
-        \forall S_i\in\overline{S} .\Sigma(S_i)=\overline{x_i:\star}\to \overline{D_i}\\
-        \forall i\neq j.(\overline{x_i},\dom(D_i)\# \overline{x_j},\dom(D_j))\\
-        \left\{\overline{D}\right\} \preccurlyeq
-        \left\{\overline{\overline{x_i:[=\_]}\;\overline{D_i}}\right\}
-       }
+        \overline{B_0}:\overline{D_0}}
        {\Sigma; \Gamma\vdash\left(\kwdefm X\kwdo \overline{P}\overline{S}\overline{B}
         \kwend\right) \overline{B_0}:\left(X:\left(\overline{P:\star}\right)\rightarrow
         \left\{\overline{S};\overline{D}\right\}\right)\overline{D_0}}\\
@@ -160,7 +178,7 @@
   \begin{mathpar}
     \inferrule[Path-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon:\{\epsilon;\Gamma\}}\\
     \inferrule[Path-SubModule]{\Sigma;\Gamma\vdash P:\left\{\_;\overline{D}\right\}\\
-      \overline{D} = \ldots, \kwdefm X\kwdo\overline{P},\ldots \overline{S} \overline{B} \kwend\\
+      \overline{D} = \ldots, \kwdefm X\kwdo\overline{P}\overline{S} \overline{B} \kwend ,\ldots \\
       \overline{P} = \overline{\kwprm x}\\
       \Sigma;\Gamma\vdash\overline{t}
     }{\Sigma;\Gamma\vdash P.X\left[\overline{x=t}\right]:\left\{\overline{S} ; \overline{\kwtp x=t}\, \overline{B} \right\}}

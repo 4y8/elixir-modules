@@ -63,7 +63,8 @@
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & $\overline{X\left[\overline{x=t}\right].}x$ \\
+    & | & {\color{red}$\overline{X\left[\overline{x=t}\right].}x$} \\
+    & | & {\color{red}$X\left[\overline{x=t}\right]$} \\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq x$ \\
@@ -122,9 +123,13 @@
 \end{figure}
 \begin{figure}
   \begin{mathpar}
+      \inferrule[WF-Behave]{\Sigma;\Gamma\vdash X :
+        \overline{x:\star}\to \{D\} \\ \Sigma;\Gamma\vdash t_i:\star}
+                {\Sigma;\Gamma\vdash X[\overline{x_i=t_i}]}
+                
     \inferrule[WF-Field]{\Sigma;\Gamma\vdash P :
-      \left\{\ldots,\kwtp x = t, \ldots\right\}\cup
-      \left\{\ldots,\kwopq x, \ldots\right\}}
+      \left\{\kwtp x = t\right\}\cup
+      \left\{\kwopq x\right\}}
               {\Sigma;\Gamma\vdash P.x}\hfill
     \inferrule[WF-Star]{\Sigma;\Gamma\vdash}
               {\Sigma;\Gamma\vdash\star}\\
@@ -134,7 +139,9 @@
     \inferrule[WF-ModuleTypeNames]{\forall S_i\in\overline{S}.\Sigma(S_i)=\overline{x:\star}^i\to \overline{D}^i\\
       \left\{\overline{D}\right\} \preccurlyeq
         \left\{\overline{\overline{x:[=\_]}^i\;\overline{D}^i}\right\}\\
-    \forall i\neq j.\dom\left(\overline{D}^i\right)\#\dom\left(\overline{D}^j\right)\\
+    \forall i\neq
+    j.(\dom\left(\overline{D}^i\right)\#\dom\left(\overline{D}^j\right)\text{
+      and } \overline{x}^i\#\overline{x}^j)\\
     \Sigma;\Gamma\vdash\left\{\overline{D}\right\}}
               {\Sigma;\Gamma\vdash\left\{\overline{S};\overline{D}\right\}}\left(S\neq\epsilon\right)\\
     \inferrule[WF-ModuleTypeModule]{\Sigma;\Gamma\vdash T\\\Sigma;\Gamma,X:T\vdash\left\{\overline{D}\right\}}
@@ -211,7 +218,7 @@
     \inferrule[Sub-ModuleLeft]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash t\preccurlyeq T}{\Sigma;\Gamma\vdash P.x\preccurlyeq T}\\
     \inferrule[Sub-ModuleRight]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash \cap\overline{T}\preccurlyeq t}{\Sigma;\Gamma\vdash\cap\overline{T}\preccurlyeq P.x}\\
     \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}\\
-    \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,x_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
+    \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,X_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
       \Sigma;\Gamma,\overline{X_i:R_i}\vdash T'\preccurlyeq R'}{\Sigma;\Gamma\vdash\left(X_i:T_i\right)\to T'\preccurlyeq\left(X_i:R_i\right)\to R'}
   \end{mathpar}
   \caption{Subtyping rules \fbox{$\Sigma;\Gamma\vdash\cap\overline T\preccurlyeq T$}}

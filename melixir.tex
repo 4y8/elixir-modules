@@ -12,6 +12,7 @@
 \DeclareMathOperator{\kwdo}{\textsf{do}}
 \DeclareMathOperator{\kwbvr}{\textsf{\$behaviour}}
 \DeclareMathOperator{\kwlet}{\textsf{let}}
+\DeclareMathOperator{\kwin}{\textsf{in}}
 \DeclareMathOperator{\kwprm}{\textsf{\$param}}
 \DeclareMathOperator{\kwdefm}{\textsf{defmodule}}
 \DeclareMathOperator{\kwopq}{\textsf{\$opaque}}
@@ -40,8 +41,8 @@
     & | & $\kwopq x = t$ \\
     $E$ & ::= & $v$ \\
     & | & $x$ \\
-    & | & $\kwlet N = E; E$ \\
-    & | & $E(\overline{E,})$ \\
+    & | & $\kwlet N = E\kwin E$ \\
+    & | & $E(\overline{X})$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\

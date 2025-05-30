@@ -4,8 +4,10 @@
 \usepackage{xcolor}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{stmaryrd}
 \usepackage{inconsolata}
 \usepackage{libertine}
+\usepackage{bbold}
 
 \DeclareMathOperator{\kwdefmt}{\textsf{defmodtype}}
 \DeclareMathOperator{\kwend}{\textsf{end}}
@@ -34,15 +36,15 @@
     $N$ & ::= & $x$ \\
     & | & $X$ \\
     $S$ & ::= & $\kwbvr X$ \\
-    $P$ & ::= & $\kwprm x$ \\
-    $B$ & ::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
+    $P$ &::= & $\kwprm x$ \\
+    $B$ &::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
     & | & $\kwtp x = t$ \\
     & | & $\kwopq x = t$ \\
-    $E$ & ::= & $v$ \\
+    $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
-    & | & $E(\overline{X})$ \\
+    & | & $E(\overline{N})$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\
@@ -84,19 +86,19 @@
   \end{tabular}
   \caption{Syntax of surface module types}
 \end{figure}
-\begin{figure}
-  \centering
-  \begin{tabular}{c c c c c}
-    $\kwmdl X : T$ & $\cap$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cap T'$\\
-    $\kwclbk X :\bigcap\overline{T}$ & $\cap$ & $\kwclbk X : \bigcap\overline{T'}$ & = & $\kwclbk X : \bigcap \overline{T}\,\overline{T'}$\\
-    $\kwtp x = t$ & $\cap$ & $\kwtp x = t'$ & = & $\kwtp x = t\wedge t'$\\
-    $\kwopq x$ & $\cap$ & $\kwopq x$ & = & $\kwopq x$\\
-    $\kwopq x$ & $\cap$ & $\kwtp x = t$ & = & $\kwtp x = t$\\
-    $\kwtp x = t$ & $\cap$ & $\kwopq x$ & = & $\kwtp x = t$\\
-    $D$ & $\cap$ & $D'$ & = & $\epsilon$\\
-  \end{tabular}
-  \caption{Component-wise intersection}
-\end{figure}
+%\begin{figure}
+%  \centering
+%  \begin{tabular}{c c c c c}
+%    $\kwmdl X : T$ & $\cap$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cap T'$\\
+%    $\kwclbk X :\bigcap\overline{T}$ & $\cap$ & $\kwclbk X : \bigcap\overline{T'}$ & = & $\kwclbk X : \bigcap \overline{T}\,\overline{T'}$\\
+%    $\kwtp x = t$ & $\cap$ & $\kwtp x = t'$ & = & $\kwtp x = t\wedge t'$\\
+%    $\kwopq x$ & $\cap$ & $\kwopq x$ & = & $\kwopq x$\\
+%    $\kwopq x$ & $\cap$ & $\kwtp x = t$ & = & $\kwtp x = t$\\
+%    $\kwtp x = t$ & $\cap$ & $\kwopq x$ & = & $\kwtp x = t$\\
+%    $D$ & $\cap$ & $D'$ & = & $\epsilon$\\
+%  \end{tabular}
+%  \caption{Component-wise intersection}
+%\end{figure}
 \begin{figure}
   \begin{mathpar}
     \inferrule[ElEnv-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon}\hfill
@@ -137,7 +139,7 @@
     \inferrule[WF-Function]{\Sigma;\Gamma\vdash\\
     \forall 0\leq j\leq n.\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
               {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}\\
-    \inferrule[WF-ModuleTypeNames]{\forall S_i\in\overline{S}.\Sigma(S_i)=\overline{x:\star}^i\to \overline{D}^i\\
+    \inferrule[WF-ModuleTypeNames]{\forall S_i\in\overline{S}.\Sigma(S_i)=\overline{x:\star}^i\mapsto \overline{D}^i\\
       \left\{\overline{D}\right\} \preccurlyeq
         \left\{\overline{\overline{x:[=\_]}^i\;\overline{D}^i}\right\}\\
     \forall i\neq
@@ -224,17 +226,43 @@
   \end{mathpar}
   \caption{Subtyping rules \fbox{$\Sigma;\Gamma\vdash\cap\overline T\preccurlyeq T$}}
 \end{figure}
+%% \begin{figure}
+%%   \centering
+%%   \begin{tabular}{c c c c c}
+%%     $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
+%%     $\kwclbk X : \bigcap \overline{T}$ & $\cup$ & $\kwclbk X :\bigcap \overline{T'}$ & = & ?\\
+%%     $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
+%%     $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
+%%     $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
+%%     $\kwtp x = t$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
+%%     $D$ & $\cup$ & $D'$ & = & $\epsilon$\\
+%%   \end{tabular}
+%%   \caption{Component-wise union}
+%% \end{figure}
+
 \begin{figure}
-  \centering
-  \begin{tabular}{c c c c c}
-    $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
-    $\kwclbk X : \bigcap \overline{T}$ & $\cup$ & $\kwclbk X :\bigcap \overline{T'}$ & = & ?\\
-    $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
-    $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
-    $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
-    $\kwtp x = t$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
-    $D$ & $\cup$ & $D'$ & = & $\epsilon$\\
-  \end{tabular}
-  \caption{Component-wise union}
+  \begin{mathpar}
+  \inferrule[Sub-BehBeh]{\overline{\Sigma;\Gamma\vdash t\cong t'}}
+    {\Sigma;\Gamma\vdash X\left[\overline{x=t}\right]\preccurlyeq X\left[\overline{x=t'}\right]}\hfill
+  \inferrule[Sub-BehMod]{\\}
+    {\Sigma;\Gamma\vdash X\left[\overline{x=t}\right]\preccurlyeq \Sigma(X)\left(\overline{t}\right)}\\
+  \inferrule[Sub-ModBeh]{\overline{t_i=\left\{\overline{D}\right\}_\xi.x_i}\\ X\in\xi}
+    {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq X\left[\overline{x_i=t_i}\right]}\hfill
+  \inferrule[Sub-TypeType]{\Sigma;\Gamma\vdash t\cong t'}{[=t]\preccurlyeq[=t']}\hfill
+  \inferrule[Sub-TypeOpaque]{\\}{\Sigma;\Gamma\vdash[=t]\preccurlyeq\star}\\
+  \inferrule[Sub-ModMod]{\xi'\subseteq\xi\\
+    \left\{\overline{D}\right\}\preccurlyeq \left\{\overline{D'}\right\}}
+            {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq\left\{\overline{D'}\right\}_{\xi'}}
+  \end{mathpar}
+  \caption{New subtyping rules}
 \end{figure}
+
+\begin{figure}
+  \begin{align*}
+    \llbracket[=t]\rrbracket &= \text{type}\times\left(\llbracket t\rrbracket\times \llbracket \neg t\rrbracket\right)\\
+    \llbracket\star\rrbracket &= \text{type}\times\left(\llbracket \mathbb{1}\rrbracket\times \llbracket \mathbb{1}\rrbracket\right)\\
+  \end{align*}
+  \caption{Semantic interpretation of the new constructions}
+\end{figure}
+
 \end{document}

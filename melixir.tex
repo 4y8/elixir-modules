@@ -78,14 +78,14 @@
   \caption{Syntax of the surface language}
 \end{figure}
 \begin{figure}
-  \begin{tabular}{r c l}
-    $B$ &::= &  $\!\!X = \textsf{fn}(\overline{x:\star})\to \{\overline{B}\}_{\overline{\mathcal{X}}}$ \\
-    & | & $x = v$\\
-    & | & $x = \textsf{private }v$ \\
-    & | & $x = \textsf{type }t$ \\
-    & | & $x = \textsf{opaque }t$ \\
-    $\pi$ & ::= & $X[\overline{x=t}]$ \\
-    & | & $\pi.\pi$ \\
+  \begin{tabular}{r c ll}
+    $B$ &::= &  $\!\!X = \textsf{fn}(\overline{x:\star})\to \{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{gray} module $X$ with parameters $\overline x$ implementing $\overline{\mathcal X}$\\
+    & | & $x = v$                                   &\color{gray} exported definition \\
+    & | & $x = \textsf{private }v$                  &\color{gray} private definition\\
+    & | & $x = \textsf{type }t$                     &\color{gray} transparent type or behaviour argument\\
+    & | & $x = \textsf{opaque }t$                   &\color{gray} opaque type\\[3mm]
+    $M$ & ::= & $X[\overline{x=t}]$                 &\color{gray} local module\\
+    & | & $M.M$                                     &\color{gray} imported module\\[3mm]
     $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
@@ -93,12 +93,12 @@
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\
-    & | & {\color{red}$\pi.x$} \\
-    & | & {\color{red}$\pi$} \\
+    & | & {\color{red}$M.x$} \\
+    & | & {\color{red}$M$} \\
     $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
     & | & $\$\wedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
+    & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\star$ \\
@@ -111,12 +111,12 @@
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & {\color{red}$\pi.x$} \\
-    & | & {\color{red}$\mathcal{X}[\overline{x=t}]$} \\
-    $D$ & ::= & $X : T$ \\
-    & | & $x : \bigcap \overline{T}$ \\
-    & | & $x : \star$ \\
-    & | & $x : [=t]$\\[3mm]
+    & | & {\color{red}$M.x$}                          &\color{gray} the type $x$ imported from module $M$\\
+    & | & {\color{red}$\mathcal{X}[\overline{x=t}]$}  &\color{gray} a behaviour\\[3mm]
+    $D$ & ::= & $X : T$                               &\color{gray} exports a module $X$ of type $T$\\
+    & | & $x : \bigcap \overline{T}$                  &\color{gray} exports a value $x$ of type $\overline T$ \\
+    & | & $x : \star$                                 &\color{gray} exports an opaque type $x$\\  
+    & | & $x : [=t]$                                  &\color{gray} exports a transparent type $x = t$  \\[3mm]
   \end{tabular}
 
  where $\mathcal X$ ranges over behaviour names, $X$ over module names, $x$ over variable names, and $\ell$ over map keys. 

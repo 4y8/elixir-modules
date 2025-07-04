@@ -19,6 +19,7 @@
 \DeclareMathOperator{\kwdefm}{\textsf{defmodule}}
 \DeclareMathOperator{\kwopq}{\textsf{\$opaque}}
 \DeclareMathOperator{\kwtp}{\textsf{\$type}}
+\DeclareMathOperator{\kwpr}{\textsf{\$private}}
 \DeclareMathOperator{\kwmdl}{\textsf{\$module}}
 \DeclareMathOperator{\kwclbk}{\textsf{\$callback}}
 \DeclareMathOperator{\kwfn}{\textsf{fn}}
@@ -39,12 +40,13 @@
     $P$ &::= & $\kwprm x$ \\
     $B$ &::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
+    & | & $\kwpr x = v$ \\
     & | & $\kwtp x = t$ \\
     & | & $\kwopq x = t$ \\
     $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
-    & | & $E(\overline{N})$ \\
+    & | & $E(\overline{E})$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\
@@ -75,6 +77,52 @@
   \end{tabular}
   \caption{Syntax of the surface language}
 \end{figure}
+\begin{figure}
+  \begin{tabular}{r c l}
+    $B$ &::= &  $\!\!X = \textsf{fn}(\overline{x:\star})\to \{\overline{B}\}_{\overline{\mathcal{X}}}$ \\
+    & | & $x = v$\\
+    & | & $x = \textsf{private }v$ \\
+    & | & $x = \textsf{type }t$ \\
+    & | & $x = \textsf{opaque }t$ \\
+    $\pi$ & ::= & $X[\overline{x=t}]$ \\
+    & | & $\pi.\pi$ \\
+    $E$ &::= & $v$ \\
+    & | & $x$ \\
+    & | & $\kwlet N = E\kwin E$ \\
+    & | & $E(\overline{N})$ \\
+    & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
+    & | & $E.\ell$ \\
+    & | & $(E\in t)?E:E$ \\
+    & | & {\color{red}$\pi.x$} \\
+    & | & {\color{red}$\pi$} \\
+    $v$ & ::= & $c$ \\
+    & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
+    & | & $\$\wedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
+    & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
+    $T$ & ::= & $t$ \\
+    & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
+    & | & $\star$ \\
+    & | & $\left\{\overline{D}\right\}_{\overline{\mathcal X}}$ \\
+    $t$ & ::= & $\kwint$ \\
+    & | & $(\overline{\,t\,})\rightarrow t$\\
+    & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
+    & | & $t\vee t$ \\
+    & | & $t\wedge t$ \\
+    & | & $\neg t$\\
+    & | & $\alpha$ \\
+    & | & $\mathbb{O}$ \\
+    & | & {\color{red}$\pi.x$} \\
+    & | & {\color{red}$\mathcal{X}[\overline{x=t}]$} \\
+    $D$ & ::= & $X : T$ \\
+    & | & $x : \bigcap \overline{T}$ \\
+    & | & $x : \star$ \\
+    & | & $x : [=t]$\\[3mm]
+  \end{tabular}
+
+ where $\mathcal X$ ranges over behaviour names, $X$ over module names, $x$ over variable names, and $\ell$ over map keys. 
+  \caption{Syntax of the surface language}
+\end{figure}
+
 \begin{figure}
   \begin{tabular}{r c l}
     $\tau$ & ::= & $t$ \\

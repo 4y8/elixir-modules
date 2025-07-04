@@ -200,9 +200,11 @@
 \begin{figure}
   \begin{mathpar}
     \inferrule[Type-Variable]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:\cap T)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x : \cap T}\\
-    \inferrule[Type-Subsumption]{\Sigma;\Gamma\vdash T\\ \Sigma\Gamma\vdash E : \cap\overline{T'}\\ \Sigma;\Gamma\vdash\cap\overline{T'}\preccurlyeq T}{\Sigma;\Gamma\vdash E : T}\\
-    \inferrule[Type-BigFunction]{\Sigma;\Gamma\vdash\cap\overline{\overline{N:T}\to T'} \overline{\Sigma;\Gamma,\overline{N:T}}\vdash E:T'}
-    {\Sigma;\Gamma\vdash\$\cap\overline{\forall\overline{\alpha}\left(\overline{N:T}\right)\to T'}\kwfn \overline{N}\to E:\cap\overline{\overline{N:T}\to T'}}\\
+    \inferrule[Type-Subsumption]{\Sigma;\Gamma\vdash T\\ \Sigma;\Gamma\vdash E : \cap\overline{T'}\\ \Sigma;\Gamma\vdash\cap\overline{T'}\preccurlyeq T}{\Sigma;\Gamma\vdash E : T}
+    \\
+    \inferrule[Type-BigFunction]
+        {\Sigma;\Gamma\vdash\cap\overline{\overline{N:T}\to T'} \and \overline{\Sigma;\Gamma,\overline{N:T}}\vdash E:T'}
+        {\Sigma;\Gamma\vdash\$\cap\overline{\forall\overline{\alpha}\left(\overline{N:T}\right)\to T'}\kwfn \overline{N}\to E:\cap\overline{\overline{N:T}\to T'}}\\
     \inferrule[Type-Module]{\Sigma;\Gamma\vdash P:\left\{\overline{S_0};\overline{D_0}
       (X:\overline{y:\star}\to\left\{\overline{S};\overline{D}\right\})
       \overline{D_1}\right\}\\

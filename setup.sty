@@ -1,0 +1,79 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{setup}[2025/04/25 v0.1]
+
+
+\usepackage{dsfont}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Colors
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{color,colortbl}
+
+\definecolor{greenkey}{rgb}{0, 0.5, 0}
+\definecolor{fireenginered}{rgb}{0.81, 0.09, 0.13}
+\definecolor{chocolate(web)}{rgb}{0.82, 0.41, 0.12}
+\definecolor{celestialblue}{rgb}{0.29, 0.59, 0.82}
+\definecolor{code}{rgb}{0.96,0.96,.99}%{228,237,239}
+\definecolor{snow}{RGB}{246, 248, 248}
+\definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
+\definecolor{violet1}{RGB}{246,242,247}
+\definecolor{violet2}{RGB}{226,226,242}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MINTED FOR ELIXIR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The following two commands are needed to generate 
+% minted files for ArXiv submission. They must be used each
+% in two consecutive compilations: the first generates the
+% minted files and puts them in minted-cache, the second use them
+% (the second one must be left uncommented in the ArXiv submission)
+  %\usepackage[finalizecache=true,cachedir=minted-cache]{minted}
+  %\usepackage[frozencache=true,cachedir=minted-cache]{minted}
+% use the following line if you are not generating files for ArXiv
+% submission
+  \usepackage{minted}
+%
+  \usemintedstyle{vs}
+	\renewcommand{\theFancyVerbLine}%
+	{\sffamily
+		\textcolor[rgb]{0.5,0.5,1.0}{\scriptsize
+			\oldstylenums{\arabic{FancyVerbLine}}}
+	}
+	\setminted[elixir]{%
+		frame=lines,
+		bgcolor=snow,
+		fontfamily=tt,
+		fontsize=\small,
+		firstnumber=last,
+		linenos=true,
+		numbersep=.5em,%
+		xleftmargin=0em,%
+		escapeinside=!!}
+	\AtBeginEnvironment{minted}{\setlength{\parskip}{-3pt}}
+
+	\newcommand{\elabel}[1]{\phantomsection\label{#1}}
+
+	
+	\newcommand {\elix}[1]{%\mintinline[bgcolor=snow]{elixir}{#1}}
+%		\colorbox{snow}{%
+%			\hspace*{-.25em}%
+			\parbox[b][.45em][b]{%
+				\widthof{\mintinline[escapeinside=!!,fontsize=\small,breaklines]{elixir}{#1}}}
+			{\mintinline[escapeinside=!!,fontsize=\small,breaklines]{elixir}{#1}}%
+%			\hspace*{-.25em}
+%		}
+	}
+
+	\newcommand {\telix}[1]{%\mintinline[bgcolor=snow]{elixir}{#1}}
+		\colorbox{snow}{%
+			\hspace*{-.25em}\parbox[b][0.45em][b]{%
+				\widthof{\mintinline[escapeinside=||,fontsize=\small,breaklines]{elixir}{#1}}}
+			{\mintinline[escapeinside=||,fontsize=\small,breaklines]{elixir}{#1}}\hspace*{-.25em}}}
+
+	\newcommand {\felix}[1]{%\mintinline[bgcolor=snow]{elixir}{#1}}
+		\colorbox{snow}{%
+			\hspace*{-.25em}\smash{\parbox[b][0.1em][b]{%
+					\widthof{\mintinline[escapeinside=!!,fontsize=\scriptsize,breaklines]{elixir}{#1}}}
+				{\mintinline[escapeinside=!!,fontsize=\scriptsize,breaklines]{elixir}{#1}}\hspace*{-.25em}}}}
+
+	\newcommand{\tp}{\textcolor{cadmiumgreen}\$}
+%%%%%%%%%%%%%%%%%%%%%%END MINTED

@@ -1,4 +1,29 @@
 \documentclass[a4paper,10pt]{article}
+
+
+
+\DeclareFontFamily{OMX}{MnSymbolE}{}
+\DeclareSymbolFont{MnLargeSymbols}{OMX}{MnSymbolE}{m}{n}
+\SetSymbolFont{MnLargeSymbols}{bold}{OMX}{MnSymbolE}{b}{n}
+\DeclareFontShape{OMX}{MnSymbolE}{m}{n}{
+    <-6>  MnSymbolE5
+   <6-7>  MnSymbolE6
+   <7-8>  MnSymbolE7
+   <8-9>  MnSymbolE8
+   <9-10> MnSymbolE9
+  <10-12> MnSymbolE10
+  <12->   MnSymbolE12
+}{}
+\DeclareFontShape{OMX}{MnSymbolE}{b}{n}{
+    <-6>  MnSymbolE-Bold5
+   <6-7>  MnSymbolE-Bold6
+   <7-8>  MnSymbolE-Bold7
+   <8-9>  MnSymbolE-Bold8
+   <9-10> MnSymbolE-Bold9
+  <10-12> MnSymbolE-Bold10
+  <12->   MnSymbolE-Bold12
+}{}
+\usepackage{setup}
 \usepackage[T1]{fontenc}
 \usepackage{mathpartir}
 \usepackage{xcolor}
@@ -31,18 +56,32 @@
 \author{Aghilas Y. Boussaa}
 \sloppy
 \begin{document}
+An Elixir program is a sequence of module definitions. When a module definition contain a \elix{@callback} declaration, this module is considered a \emph{behaviour}. Behaviours are a kind of hybrid definitions since they may define both a module type and (in case they export functions) a module value. This ambiguity is resolved the compiler, which will generate a module type definition for the behaviour, and a module value definition for the implementation of the behaviour.
+
+For the sake of simplicity, we will suppose that this distinction is already done in the program. In the rest of the document, then, we will suppose that a program is a sequence of module type definitions, followed by the \texttt{Main} module definition, containing just a list of bindings. 
+\[\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm \textit{Main} \kwdo \overline{B} \kwend\]
+Intuitively, this list of bindings $\overline{B}$ will the list of the toplevel modules definitions of the program, of the form 
+\begin{equation}\label{eq:module}
+\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend
+\end{equation}
+and every module in the program is then denoted by a unique path starting with \texttt{Main} module name.
+
+The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. Let us examine in details the definition of a module, as given in \eqref{eq:module}.
+
 \begin{figure}
   \begin{tabular}{r c l}
-    $\Pi$ & ::= & $\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm \textit{Main} \kwdo \overline{B} \kwend$ \\
+    $\Sigma$ & ::= &$\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend$ \\
     $N$ & ::= & $x$ \\
     & | & $X$ \\
-    $S$ & ::= & $\kwbvr X$ \\
+    $S$ & ::= & $\kwbvr \mathcal X$ \\
     $P$ &::= & $\kwprm x$ \\
     $B$ &::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
     & | & $\kwpr x = v$ \\
     & | & $\kwtp x = t$ \\
     & | & $\kwopq x = t$ \\
+    $M$ & ::= & $X[\overline{x=t}]$ \\ 
+    & | & $M.M$ \\
     $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
@@ -50,18 +89,18 @@
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\
-    & | & ${\color{red} \overline{X\left[\overline{x=t}\right].}x}$ \\
-    & | & ${\color{red} \overline{X\left[\overline{x=t}\right].}X\left[\overline{x=t}\right]}$ \\
+    & | & ${\color{red} M.x}$ \\
+    & | & ${\color{red} M}$ \\
     $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
-    & | & $\$\wedge \overline{t\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
+    & | & $\$\wedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
     & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\star$ \\
     & | & $\left\{\overline{S};\overline{D}\right\}$ \\
     $t$ & ::= & $\kwint$ \\
-    & | & $t\rightarrow t$\\
+    & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
     & | & $t\vee t$ \\
     & | & $t\wedge t$ \\
@@ -69,14 +108,26 @@
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & {\color{red}$\overline{X\left[\overline{x=t}\right].}x$} \\
-    & | & {\color{red}$X\left[\overline{x=t}\right]$} \\
+    & | & {\color{red}$\mathcal{X}\left[\overline{x=t}\right]$} \\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq x$ \\
     & | & $\kwtp x = t$
   \end{tabular}
-  \caption{Syntax of the surface language}
+  \caption{Syntax of the surface language}\label{fig:surfacesyntax}
 \end{figure}
+
+
+The definition of a module $X$ is a sequence of three blocks: the list of type parameters of the form $\kwprm x$, the list of behaviours of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of values, types, and modules. 
+
+A values $v$ is bound to a name $x$ which may be exported or private, as defined by the syntax $x = v$ and $\kwpr x = v$ respectively. In general a value $v$ is either a constant or a function. In the latter case the function is defined in Elixir by the syntax \elix{def} and \elix{defp} for exported and private functions respectively, as in the following example:
+\begin{minted}{elixir}
+!\tp! (!$t_1$! -> !$t_2$!) and (!$t_3$! -> !$t_4$!)
+def  x(y,z) do E end
+!\tp! f(X : Stack[elem=int], s: X.t) -> integer()
+defp f(X,s) do E' end
+\end{minted}
+
 \begin{figure}
   \begin{tabular}{r c ll}
     $B$ &::= &  $\!\!X = \textsf{fn}(\overline{x:\star})\to \{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{gray} module $X$ with parameters $\overline x$ implementing $\overline{\mathcal X}$\\

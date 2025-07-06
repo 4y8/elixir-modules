@@ -1,37 +1,14 @@
 \documentclass[a4paper,10pt]{article}
-
-
-
-\DeclareFontFamily{OMX}{MnSymbolE}{}
-\DeclareSymbolFont{MnLargeSymbols}{OMX}{MnSymbolE}{m}{n}
-\SetSymbolFont{MnLargeSymbols}{bold}{OMX}{MnSymbolE}{b}{n}
-\DeclareFontShape{OMX}{MnSymbolE}{m}{n}{
-    <-6>  MnSymbolE5
-   <6-7>  MnSymbolE6
-   <7-8>  MnSymbolE7
-   <8-9>  MnSymbolE8
-   <9-10> MnSymbolE9
-  <10-12> MnSymbolE10
-  <12->   MnSymbolE12
-}{}
-\DeclareFontShape{OMX}{MnSymbolE}{b}{n}{
-    <-6>  MnSymbolE-Bold5
-   <6-7>  MnSymbolE-Bold6
-   <7-8>  MnSymbolE-Bold7
-   <8-9>  MnSymbolE-Bold8
-   <9-10> MnSymbolE-Bold9
-  <10-12> MnSymbolE-Bold10
-  <12->   MnSymbolE-Bold12
-}{}
+\usepackage[margin=2.5cm]{geometry}
 \usepackage{setup}
 \usepackage[T1]{fontenc}
 \usepackage{mathpartir}
-\usepackage{xcolor}
+\usepackage[table,dvipsnames]{xcolor}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{stmaryrd}
 \usepackage{inconsolata}
-\usepackage{libertine}
+%\usepackage{libertine}
 \usepackage{bbold}
 
 \DeclareMathOperator{\kwdefmt}{\textsf{defmodtype}}
@@ -52,6 +29,7 @@
 \DeclareMathOperator{\kwint}{\textsf{int}}
 \DeclareMathOperator{\struct}{\textsf{struct}}
 \DeclareMathOperator{\dom}{\textsf{dom}}
+\newcommand{\tx}{\textsc{x}}
 
 \author{Aghilas Y. Boussaa}
 \sloppy
@@ -66,21 +44,21 @@ Intuitively, this list of bindings $\overline{B}$ will the list of the toplevel 
 \end{equation}
 and every module in the program is then denoted by a unique path starting with \texttt{Main} module name.
 
-The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. Let us examine in details the definition of a module, as given in \eqref{eq:module}.
+The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although it uses the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\mathcal X$ for behaviour names. Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
 
 \begin{figure}
-  \begin{tabular}{r c l}
-    $\Sigma$ & ::= &$\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend$ \\
+  \begin{tabular}{r c ll}
+    $\Sigma$ & ::= &$\kwdefmt \mathcal X \kwdo \overline{P}\, \overline{D} \kwend$ \\
     $N$ & ::= & $x$ \\
     & | & $X$ \\
     $S$ & ::= & $\kwbvr \mathcal X$ \\
-    $P$ &::= & $\kwprm x$ \\
+    $P$ &::= & $\kwprm \tx$ \\
     $B$ &::= & $\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
     & | & $\kwpr x = v$ \\
-    & | & $\kwtp x = t$ \\
-    & | & $\kwopq x = t$ \\
-    $M$ & ::= & $X[\overline{x=t}]$ \\ 
+    & | & $\kwtp \tx = t$ \\
+    & | & $\kwopq \tx = t$ \\
+    $M$ & ::= & $X[\overline{\tx=t}]$ \\ 
     & | & $M.M$ \\
     $E$ &::= & $v$ \\
     & | & $x$ \\
@@ -89,15 +67,15 @@ The full syntax of the surface language is given in Figure \ref{fig:surfacesynta
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\
-    & | & ${\color{red} M.x}$ \\
-    & | & ${\color{red} M}$ \\
+    & | & $\textcolor{red}{M.x}$ \\
+    & | & $\textcolor{red}{M}$ \\
     $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
-    & | & $\$\wedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
+    & | & $\$\bigwedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
+    & | & \textcolor{red}{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
-    & | & $\star$ \\
+    & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$\\
     & | & $\left\{\overline{S};\overline{D}\right\}$ \\
     $t$ & ::= & $\kwint$ \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
@@ -107,53 +85,110 @@ The full syntax of the surface language is given in Figure \ref{fig:surfacesynta
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & {\color{red}$\overline{X\left[\overline{x=t}\right].}x$} \\
-    & | & {\color{red}$\mathcal{X}\left[\overline{x=t}\right]$} \\
+    & | & $\textcolor{red}{M.\tx}$ \\
+    & | & $\textcolor{red}{\mathcal{X}\left[\overline{\tx=t}\right]}$ \\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
-    & | & $\kwopq x$ \\
-    & | & $\kwtp x = t$
+    & | & $\kwopq \tx$ \\
+    & | & $\kwtp \tx = t$
   \end{tabular}
   \caption{Syntax of the surface language}\label{fig:surfacesyntax}
 \end{figure}
 
 
-The definition of a module $X$ is a sequence of three blocks: the list of type parameters of the form $\kwprm x$, the list of behaviours of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of values, types, and modules. 
+The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of values, types, and modules.
 
-A values $v$ is bound to a name $x$ which may be exported or private, as defined by the syntax $x = v$ and $\kwpr x = v$ respectively. In general a value $v$ is either a constant or a function. In the latter case the function is defined in Elixir by the syntax \elix{def} and \elix{defp} for exported and private functions respectively, as in the following example:
+A type $t$ is bound to a name $\tx$ which may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition make the binding $\tx= t$ visible only inside the module, while a transparent make this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus for instance if the \elix{StackB} behaviour is parametrized in the type \elix{elem} of its element, a module \elix{StackInt} implementing the behaviour for integers will be defined as
 \begin{minted}{elixir}
-!\tp! (!$t_1$! -> !$t_2$!) and (!$t_3$! -> !$t_4$!)
-def  x(y,z) do E end
-!\tp! f(X : Stack[elem=int], s: X.t) -> integer()
-defp f(X,s) do E' end
+defmodule StackInt do
+  !\tp!behaviour StackB
+  !\tp!type elem = integer()
+  !\tp!opaque stack = list(integer())
+
+  !\tp! () -> stack
+  def new = fn() -> [] end
+
+  !\tp! (stack, elem) -> stack
+  def push = fn(s, e) -> [e|s] end
+
+  !\tp! (stack) -> {integer(),stack}
+  def pop = fn(s) -> {hd(s), tl(s)}
+end
 \end{minted}
+Of course we can also define the module stack to be parametric in the type of
+its elements, and then pass this parameter as argument of the behaviour, as in
+the following example, in which we replace \elix{pop} by \elix{top} and we add a
+higher-order function
+\begin{minted}{elixir}
+defmodule StackModule do
+  !\tp!param elem
+  !\tp!behaviour StackB
+  !\tp!type elem = elem
+  !\tp!opaque stack = list(elem)
+
+  !\tp! () -> stack
+  def new = fn() -> [] end
+
+  !\tp! (stack, elem) -> stack
+  def push = fn(s, e) -> [e|s] end
+
+  !\tp! (stack) -> elem
+  def top = fn(s) -> hd(s) end
+
+  !\tp! (X: StackB[elem=elem], sx: X.stack, Y: StackB[elem=elem], sy: Y.stack) -> Y.stack
+  def move (X, sx, Y, sy) do Y.push(sy,X.top(sx)) end
+\end{minted}
+A value $v$ is bound to a name $x$ which may be exported or private, as defined by the syntax $x = v$ and $\kwpr x = v$ respectively. In general a value $v$ is either a constant or a function. In the latter case the function is defined in Elixir by the syntax \elix{def} and \elix{defp} for exported and private functions respectively, and prefixed by their type annotations as in the following example:
+\begin{minted}{elixir}
+defmodule X do
+  !\tp! (!$t_1$! -> !$t_2$!) and (!$t_3$! -> !$t_4$!)
+  def f(x,y) do !$E_1$! end
+
+  !\tp! (X : StackModule[elem=integer()], s: X.stack) -> integer()
+  defp g(X,s) do !$E_2$! end
+end  
+\end{minted}
+The above examples are considered as syntactic sugar and in the syntax of Figure \ref{fig:surfacesyntax} are rendered the following definitions 
+\begin{minted}{elixir}
+defmodule X do
+  f = !\tp$(t_1\to t_2) \wedge (t_3 \to t_4)$! fn x, y -> !$E_1$!
+  g = private !\tp!(X : Stack[elem=integer()], s: X.stack) !$\to$! integer() fn X, s -> !$E_2$!
+end
+\end{minted}
+
+A module has a type 
+
 
 \begin{figure}
   \begin{tabular}{r c ll}
-    $B$ &::= &  $\!\!X = \textsf{fn}(\overline{x:\star})\to \{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{gray} module $X$ with parameters $\overline x$ implementing $\overline{\mathcal X}$\\
+     $B$ &::= &  $\!\!X = \textsf{fn}(\overline{\tx:\star})\to \{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{gray} module $X$ with parameters $\overline x$ implementing $\overline{\mathcal X}$\\
     & | & $x = v$                                   &\color{gray} exported definition \\
     & | & $x = \textsf{private }v$                  &\color{gray} private definition\\
-    & | & $x = \textsf{type }t$                     &\color{gray} transparent type or behaviour argument\\
-    & | & $x = \textsf{opaque }t$                   &\color{gray} opaque type\\[3mm]
-    $M$ & ::= & $X[\overline{x=t}]$                 &\color{gray} local module\\
+    & | & $\tx = \textsf{type }t$                     &\color{gray} transparent type or behaviour argument\\
+    & | & $\tx = \textsf{opaque }t$                   &\color{gray} opaque type\\[3mm]
+    $M$ & ::= & $X[\overline{\tx=t}]$                 &\color{gray} local module\\
     & | & $M.M$                                     &\color{gray} imported module\\[3mm]
-    $E$ &::= & $v$ \\
+    $N$ & ::= & $x$ \\
+    & | & $X$ \\[3mm]
+   $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
     & | & $E(\overline{N})$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
     & | & $E.\ell$ \\
     & | & $(E\in t)?E:E$ \\
-    & | & {\color{red}$M.x$} \\
-    & | & {\color{red}$M$} \\
+    & | & {\color{red}\text{$M.x$}} \\
+    & | & {\color{red}\text{$M$}} \\
     $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
-    & | & $\$\wedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{red} $\$\cap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\[3mm]
+    & | & $\$\bigwedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
+    & | & {\color{red} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} \\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
-    & | & $\star$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\mathcal X}}$ \\
+    & | & $(\overline{\tx:\star})\to T$        & \text{we can include this case in the above by adding $\star$ to $T$ and $\tx$ to $N$} \\
+    & | & $\star$ &\text{\small I would remove it: we do not want to pass around modules unless}\\
+                  &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\kwint$ \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
@@ -162,12 +197,12 @@ defp f(X,s) do E' end
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & {\color{red}$M.x$}                          &\color{gray} the type $x$ imported from module $M$\\
-    & | & {\color{red}$\mathcal{X}[\overline{x=t}]$}  &\color{gray} a behaviour\\[3mm]
+    & | & \textcolor{red}{\text{$M.\tx$}}                          &\color{gray} the type $x$ imported from module $M$\\
+    & | & \textcolor{red}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{gray} a behaviour\\[3mm]
     $D$ & ::= & $X : T$                               &\color{gray} exports a module $X$ of type $T$\\
-    & | & $x : \bigcap \overline{T}$                  &\color{gray} exports a value $x$ of type $\overline T$ \\
-    & | & $x : \star$                                 &\color{gray} exports an opaque type $x$\\  
-    & | & $x : [=t]$                                  &\color{gray} exports a transparent type $x = t$  \\[3mm]
+    & | & $x : \bigcap \overline{T}$                  &\color{gray} exports a value $x$ of type $\bigcap\overline T$ \\
+    & | & $\tx : \star$                                 &\color{gray} exports an opaque type $x$\\  
+    & | & $\tx : [=t]$                                  &\color{gray} exports a transparent type $x = t$  \\[3mm]
   \end{tabular}
 
  where $\mathcal X$ ranges over behaviour names, $X$ over module names, $x$ over variable names, and $\ell$ over map keys. 

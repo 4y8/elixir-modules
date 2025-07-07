@@ -98,21 +98,21 @@ The full syntax of the surface language is given in Figure \ref{fig:surfacesynta
 
 The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of values, types, and modules.
 
-A type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent makes this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus for instance if the \elix{StackB} behaviour is parametrized in the type \elix{elem} of its elements, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
+A type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus for instance if the \elix{StackB} behaviour is parametrized in the type \elix{elem} of its elements, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
 \begin{minted}{elixir}
-defmodule StackInt do       # should we write all the types as stack() rather than just stack()?
+defmodule StackInt do            # should we write all the types as stack() rather than just stack?
   !\tp!behaviour StackB                       # declare that the module implements the behaviour StackB 
   !\tp!type elem = integer()                  # instantiate the behaviour parameter
   !\tp!opaque stack = list(integer())         # define the opaque type of the stack
 
   !\tp! () -> stack
-  def new = fn() -> [] end
+  def new(), do: []
 
   !\tp! (stack, elem) -> stack
-  def push = fn(s, e) -> [e|s] end
+  def push(s, e), do: [e|s] 
 
   !\tp! (stack) -> {integer(), stack}
-  def pop = fn(s) -> {hd(s), tl(s)}
+  def pop(s), do: {hd(s), tl(s)} 
 end
 \end{minted}
 Of course we can also define the module stack to be parametric in the type of
@@ -127,25 +127,25 @@ defmodule StackModule do
   !\tp!opaque stack = list(elem)
 
   !\tp! () -> stack
-  def new = fn() -> [] end
+  def new(), do: []
 
   !\tp! (stack, elem) -> stack
-  def push = fn(s, e) -> [e|s] end
+  def push(s, e), do: [e|s] 
 
   !\tp! (stack) -> elem
-  def top = fn(s) -> hd(s) end
+  def top(s), do: hd(s)
 
   !\tp! (X: StackB[elem=elem], sx: X.stack, Y: StackB[elem=elem], sy: Y.stack) -> Y.stack
-  def move (X, sx, Y, sy) do Y.push(sy,X.top(sx)) end
+  def move(X, sx, Y, sy) do: Y.push(sy,X.top(sx))
 \end{minted}
 A value $v$ is bound to a name $x$ which may be exported or private, as defined by the syntax $x = v$ and $\kwpr x = v$ respectively. In general a value $v$ is either a constant or a function. In the latter case the function is defined in Elixir by the syntax \elix{def} and \elix{defp} for exported and private functions respectively, and prefixed by their type annotations as in the following example:
 \begin{minted}{elixir}
 defmodule X do
   !\tp! (!$t_1$! -> !$t_2$!) and (!$t_3$! -> !$t_4$!)
-  def f(x,y) do !$E_1$! end
+  def f(x,y), do: !$E_1$! 
 
   !\tp! (X : StackModule[elem=integer()], s: X.stack) -> integer()
-  defp g(X,s) do !$E_2$! end
+  defp g(X,s), do: !$E_2$!
 end  
 \end{minted}
 The above examples are considered as syntactic sugar and in the syntax of Figure \ref{fig:surfacesyntax} are rendered the following definitions 
@@ -158,6 +158,8 @@ end
 
 The type of a module is defined by the syntax $\left\{\overline{S};\overline{D}\right\}$, where $\overline{S}$ is a list of behaviours implemented by the module, and $\overline{D}$ is a type environment, that is a list of the typings of the definitions exported by the module. These typings are of the form $\kwmdl X : T$ for modules, $\kwclbk x : \bigcap \overline{T}$ for callbacks, $\kwopq \tx$ for opaque types, and $\kwtp \tx = t$ for transparent types (of course, no type for private definitions). This list must contain at least the typings for all the type parameters and the callbacks of the behaviours $\overline{S}$ implemented by the module. The usual restrictions of Elixir apply: a module cannot implement two  behaviours with a common callback. If the module has some type parameters $\overline{\tx:\star}$, then the type of the module is defined by the syntax $[\overline{\tx:\star}]\to \left\{\overline{S};\overline{D}\right\}$ \textbf{Beppe: alternatively we can use the syntax $\left\{\overline{P};\overline{S};\overline{D}\right\}$}
 
+
+For our formalization we will use a slightly different syntax, which is more convenient for the type system we will define. This syntax  is given in Figure \ref{fig:modulelangsyntax}. 
 \begin{figure}
   \begin{tabular}{r c ll}
     $\mathcal B$ &::= &  $\!\!\mathcal X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}$ &\color{Gray} behaviour $\mathcal X$ with parameters $\overline \tx$\\
@@ -208,8 +210,21 @@ The type of a module is defined by the syntax $\left\{\overline{S};\overline{D}\
   \end{tabular}
 
  where $\mathcal X$ ranges over behaviour names, $X$ over module names, $x$ over variable names, $\tx$ over type names, and $\ell$ over map keys. 
-  \caption{Syntax of the surface language}
+  \caption{Module language syntax}\label{fig:modulelangsyntax}
 \end{figure}
+
+
+
+The main differences with respect to the Elixir syntax are the following:
+
+\begin{itemize}
+  \item The module type $\kwdefmt \mathcal X \kwdo \overline{\kwprm \tx}\, \overline{D} \kwend$ is written as $\mathcal X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}$.
+  \item The module definition $\kwdefm X \kwdo \overline{\kwprm \tx}\; \overline{\kwbvr \mathcal{X}}\; \overline{B} \kwend$ is written as $X = \Lambda(\overline{\tx:\star}).\{\overline{B}\}_{\overline{\mathcal{X}}}$
+  \item We changed the syntax of module binding so that all the bindings are of the form (name = definition).
+  \item Likewise the types of module bindings has been modified so that all the binding are of the form (name : definition\_type)
+  \item Expression can be applied only to a list of names, and not to arbitrary expressions. It is however easy to encode the expression $E(E_1,...,E_n)$ as $\kwlet N_1 = E_1 \kwin ... \kwlet N_n=E_n\kwin E(N_1,\dots,N_n)$.
+  
+\end{itemize}
 
 \begin{figure}
   \begin{tabular}{r c l}

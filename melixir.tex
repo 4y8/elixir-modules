@@ -80,7 +80,7 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
   %  & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$?\\
-    & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ \\
+    & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer could denote this type only via (\textsf{like }$M$)\\
     $t$ & ::= & $\kwint$ \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
@@ -119,7 +119,7 @@ defmodule StackInt do            # should we write all the types as stack() rath
   def pop(s), do: {hd(s), tl(s)} 
 end
 \end{minted}
-Of course we can also define the module stack to be parametric in the type of
+Although the current Elixir syntax does not allow, in the system of Figure~\ref{fig:surfacesyntax} we can also define the module stack to be parametric in the type of
 its elements, and then pass this parameter as argument to the behaviour, as in
 the following example, in which we replace \elix{pop} by \elix{top} and we add a
 higher-order function

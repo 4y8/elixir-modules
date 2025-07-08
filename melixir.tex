@@ -10,6 +10,10 @@
 \usepackage{inconsolata}
 %\usepackage{libertine}
 \usepackage{bbold}
+% Add biblatex
+\usepackage[style=alphabetic,backend=biber]{biblatex}
+\addbibresource{biblio.bib} 
+
 
 \DeclareMathOperator{\kwdefmt}{\textsf{defmodtype}}
 \DeclareMathOperator{\kwend}{\textsf{end}}
@@ -31,14 +35,109 @@
 \DeclareMathOperator{\dom}{\textsf{dom}} 
 \newcommand{\tx}{\textrm{x}}
 
-\author{Aghilas Y. Boussaa}
+\author{Aghilas Y. Boussaa and Giuseppe Castagna}
 \sloppy
 \begin{document}
-An Elixir program is a sequence of module definitions. When a module definition contain a \elix{@callback} declaration, this module is considered a \emph{behaviour}. Behaviours are a kind of hybrid definitions since they define both a module type and, whenever they export functions, a module value. This ambiguity is resolved by the Elixir compiler, which will generate a module type definition for the behaviour, and a module value definition for the implementations exported by the behaviour.
+
+
+\section{Introduction}
+
+GenServer is a behaviour of Elixir standard library that abstracts the
+common client-server interaction. It provides the boilerplate to
+supervise sync and async calls. The documentation of the latest
+version (v1.15.6) can be found at \url{https://hexdocs.pm/elixir/1.15.6/GenServer.html}.
+
+A schematic description of its definition (written using Typespec)
+is given next, where we use colors to highlight the
+interesting parts
+%\pagebreak
+\begin{minted}[escapeinside=!!,fontsize=\footnotesize,baselinestretch=.9]{elixir}
+defmodule GenServer do
+ # Types  
+ @type !\color{typeAqua}option()! :: {:debug, debug()} | {:name, name()} | ...    !\color{typeAqua}//transparent\label{001}!
+ @type !\color{typeAqua}result()! :: {:reply, reply(), state()} | ...             !\color{typeAqua}//transparent\label{002}!
+ @type !\color{typeBlue}state()! :: term()                                        !\color{typeBlue}//opaque\label{003}!
+ @type !\color{bordeaux}request()! :: term()                                      !\color{bordeaux}//parameter\label{004}!
+ @type !\color{bordeaux}reply()! :: term()                                        !\color{bordeaux}//parameter\label{005}!
+    !\etc!
+ # Callbacks
+ @callback init(init_arg :: term()) :: {:ok, state()} | :error 
+ @optional_callback handle_call(request(),pid(),state()) :: result() 
+ @optional_callback handle_cast(request(),state()) :: result()       
+    !\etc!
+ # Functions
+ @spec start(!{\color{red}module()}!, any(), options()) :: on_start()          !\color{red}//higher-order\negspace\label{009}!
+    !\etc!
+end
+\end{minted}
+Let us make some observations for each section:
+\begin{itemize}
+  \item \textbf{Types.} The types \elix{option()} and \elix{result()} are completely defined and  shared by all implementations of the GenServer behaviour, thus they must be transparently exported. The type \elix{state()} is the type of internal state of a server and can be manipulated only by the functions of each implementation, thus it must be opaquely exported. The types \elix{request()} and \elix{reply()} describe the messages sent for requests and replies; as for \elix{state()}, they are specific to each implementation, but they must be public so that processes can perform correct requests; therefore they are parameter of the implementations.
+
+  \item \textbf{Callbacks.} Callbacks are either mandatory or optional. From a typing point of view this is akin to the optional and mandatory fields for map types.
+
+  \item \textbf{Functions.} The first argument of the \elix{start} function must be a module, but in practice it cannot be any module: it must be the same module that implements the behaviour or, at least (to type-check), a module implementing exactly the same behaviour.
+\end{itemize}
+What do these observations imply on the definition of types? If
+behaviours are to be promoted to (module) types, then we expect the
+GenServer behaviour to be defined as follows (we use a mock-up syntax
+combined with our types):
+\begin{minted}[escapeinside=!!,fontsize=\footnotesize,baselinestretch=.9]{elixir}
+defmodule !\negspace\textbf{\color{darkgreen}type}! GenServer(!{\color{bordeaux}request, reply}!) do
+ # Types
+ !\textcolor{typeGreen}{type}! option() = {:debug, debug()} | {:name, name()} | ...      !\color{typeAqua}//transparent!
+ !\textcolor{typeGreen}{type}! result() = {:reply, !{\color{bordeaux}reply}!, state()} | ...                 !\color{typeAqua}//transparent!
+ !\textcolor{typeGreen}{type}! state()                                                   !\color{typeBlue}//opaque!
+    !{\etc}!
+ # Callbacks
+ !\textcolor{typeGreen}{callback}! init :: init_arg() -> {:ok, state()} | :error      
+ !\textcolor{typeGreen}{callback}! optional(handle_call) :: !{\color{bordeaux}request}!, pid(), state() -> result() 
+ !\textcolor{typeGreen}{callback}! optional(handle_cast) :: !{\color{bordeaux}request}!, state() -> result()        
+    !\etc!
+ # Functions
+ !\textcolor{typeGreen}{spec}! start :: GenServer(!{\color{bordeaux}request, reply}!), init_arg(), options() -> on_start()!\negspace!
+    !\etc!
+end
+\end{minted}
+The types \elix{request} and \elix{reply} are now parameters of the (module) type GenServer; the types \elix{request()} and \elix{reply()} are transparently exported, while \elix{state()} is opaque. optional callbacks are explicitly declared with a syntax reminiscent of map types. Finally, the type of the  first \elix{start} function explicitly declares that the first argument of the  function must be a module of the same type as the one implemented. Notice that the second argument of \elix{start} is of type \elix{init_arg()} since this argument is then passed to the function \elix{init}. We left the definition of \elix{init_arg()} unspecified, but it should probably be yet another parameter of the GenServer behaviour, exactly as  \elix{request()} and \elix{reply()}.  
+
+
+
+\subsection{Current Proposal}
+
+
+\begin{minted}[escapeinside=!!,fontsize=\footnotesize,baselinestretch=.9]{elixir}
+defmodule!\textbf{\color{red}type}! GenServer do
+  # Types
+  !\textcolor{bordeaux}{\$param}! request
+  !\textcolor{bordeaux}{\$param}! replay
+  !\textcolor{typeGreen}{\$type}! option = {:debug, debug()} | {:name, name()} | ...        !\color{typeAqua}//transparent!
+  !\textcolor{typeGreen}{\$type}! result = {:reply, !{\color{bordeaux}reply}!, state()} | ...                   !\color{typeAqua}//transparent!
+  !\textcolor{typeGreen}{\$opaque}! state                                                   !\color{typeBlue}//opaque!
+    !{\etc}!
+  # Callbacks
+  !\textcolor{typeGreen}{\$callback}! init : init_arg() -> {:ok, state} | :error      
+  !\textcolor{typeGreen}{\$callback}! optional(handle_call) : !{\color{bordeaux}request}!, pid(), state -> result
+  !\textcolor{typeGreen}{\$callback}! optional(handle_cast) : !{\color{bordeaux}request}!, state -> result        
+    !\etc!
+end
+
+defmodule GenServer do
+ # Functions
+ !\textcolor{typeGreen}{\$}! (Mod : GenServer[!{\color{bordeaux}request=a, reply=b}!],  arg : init_arg(), opt : Mod.options) -> on_start()
+    when a: term(), b: term()
+ def start(Mod, arg, opt) do
+    !\etc!
+end
+\end{minted}
+
+
+\section{The new Elixir module system}
+An Elixir program is a sequence of module definitions. When a module definition contain a \elix{@callback} declaration, this module is considered a \emph{behaviour}. Behaviours are a kind of hybrid definitions since they define both a module type and, whenever they export functions, a module value. This ambiguity is resolved by the Elixir compiler, which will generate a module \emph{type} definition for the behaviour, and a module \emph{value} definition for the implementations exported by the behaviour.
 
 For the sake of simplicity, we will suppose that this distinction is already done in the program. In the rest of the document, then, we will suppose that a program is a sequence of module type definitions, followed by the \texttt{Main} module definition, containing just a list of bindings. 
 \[\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm \textit{Main} \kwdo \overline{B} \kwend\]
-Intuitively, this list of bindings $\overline{B}$ exported by \textit{Main} will be the list of the toplevel modules definitions of the program, whose general form is as follows: 
+Intuitively, the list of bindings $\overline{B}$ exported by the module \textit{Main} will be the list of the toplevel modules definitions of the program, whose general form is as follows: 
 \begin{equation}\label{eq:module}
 \kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend
 \end{equation}
@@ -46,7 +145,7 @@ With this convention, every module defined in the program is then denoted by a u
 
 The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although developers are invited to follow the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\mathcal X$ for behaviour names. 
 
-We used a minimal set of expressions to represent Elixir, since we want to focus on the module system. So our expressions are a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{} with two notable additions (in red): $M$, denoting the module (reached by the path) $M$, and $M.x$ denoting the function or constant $x$ exported by the module $M$.
+In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions to represent Elixir, since we want to focus on the module system. So our expressions are a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{CDV24} with two notable additions (in red in the figure): $M$, denoting the module (reached by the path) $M$, and $M.x$ denoting the function or constant $x$ exported by the module $M$.
 
 Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
 
@@ -80,17 +179,20 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
   %  & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$?\\
-    & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer could denote this type only via (\textsf{like }$M$)\\
+    & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer should be able to denote this type only via (\textsf{Like }$M$)\\
     $t$ & ::= & $\kwint$ \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
-    & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
+    & | & $\texttt{\%}\!\left\{\texttt{..., }\overline{f}\right\}$ & open record type\\
+    & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ & closed record type \\
     & | & $t\vee t$ \\
     & | & $t\wedge t$ \\
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
-    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  & shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$\\
+    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  & shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]\\
+    $f$ & ::= & $\ell : t$ & mandatory field [should we do $\ell:T$?]\\
+    & | & $\ell \;\texttt{=>}\; t$ & optional field [same question as above]\\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq \tx$ \\
@@ -102,7 +204,7 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
 
 The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of values, types, and modules.
 
-A type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus for instance if the \elix{StackB} behaviour is parametrized in the type \elix{elem} of its elements, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
+A type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus, for instance if the \elix{StackB} behaviour is parametrized in the type \elix{elem} of its elements, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
 \begin{minted}{elixir}
 defmodule StackInt do            # should we write all the types as stack() rather than just stack?
   !\tp!behaviour StackB                       # declare that the module implements the behaviour StackB 
@@ -119,9 +221,9 @@ defmodule StackInt do            # should we write all the types as stack() rath
   def pop(s), do: {hd(s), tl(s)} 
 end
 \end{minted}
-Although the current Elixir syntax does not allow, in the system of Figure~\ref{fig:surfacesyntax} we can also define the module stack to be parametric in the type of
+Although the current Elixir syntax does not allow it, in the system of Figure~\ref{fig:surfacesyntax} we can also define a module to be parametric in some types. For instance, we can define the module stack to be parametric in the type of
 its elements, and then pass this parameter as argument to the behaviour, as in
-the following example, in which we replace \elix{pop} by \elix{top} and we add a
+the following example, in which we replace \elix{pop} by \elix{top}, and we add a
 higher-order function
 \begin{minted}{elixir}
 defmodule StackModule do
@@ -167,7 +269,17 @@ The type of a module is defined by the syntax $\left\{\overline{P};\overline{S};
 
 The reader may have noticed that we used a different color in three terms of the syntax: the parameters $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ in module definitions; the type of modules $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$; the instantiation $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ in module denotations. This is because the additions of this colored syntax requires a modification of the expressions of Elixir. In the original Elixir syntax, a module is denoted only by its name since there are no parametric modules, therefore no parameter instantiation: paths are only of the form \elix{Mod1.Mod2.Mod3} rather than, say, \elix{Mod1[x=integer()].Mod2.Mod2[z=proc()]} If do not want to extend the current Elixir syntax for expressions to allow parametrized modules such as \elix{StackModule}, it suffices to remove the syntax colored in blue  from Figure~\ref{fig:surfacesyntax}, that is, instantiations in module, and the type parameters in module types and definitions.\footnote{Of course, we will still replace Typespec specifications with our new syntax for types.} Then all the modifications to type the Elixir module system will be confined to types and type-related definitions, and the expressions will remain unchanged. In particular, type parameters will be confined to behaviours. 
 
-The types for expressions are essentially those of \cite{} extended with ...\textbf{TO BE CONTINUED} 
+The types for expressions are strictly stratified. There are the simple types, ranged over by $t$ which are essentially  those of \cite{CDV24} with a single syntactic extension, $M.\tx$ denoting the simple type exported by the module $M$ as $\tx$. \beppe{If we want this strict stratification we have to move behaviours into $T$, this also means that we cannot have maps and products containing modules}. On the top of that there are the module system types, ranged over by $T$, which are either (fully instantiated) behaviours $\mathcal X[\,\overline{\tx= t}\,]$, or (anonymous) module types of the form $\left\{{\overline{P}};\overline{S};\overline{D}\right\}$,\footnote{
+  Programmer will not have the possibility to write this type. We are rather oriented to allow the programmer only to specify in types either some behaviour names (e.g., \felix{StackB[elem=integer()]}), or use the \texttt{Like$\;M$} syntax (e.g., \felix{Like StackInt} to denote the anonymous type of the \felix{StackInt} module.} or  the types of functions working on modules, of the form $(N_1{:} T_1,\cdots, N_n{:}T_n) \to T_{n+1}$, where $N_i$ is a parameter name, and $T_i$ is a module system type in which the names $N_j$ for $j<i$ may occur (e.g. \elix{(X : StackB[elem=integer()], s : X.stack) -> X.elem}).
+
+  One of the consequences of this stratification---actually, its main motivation---is that set-theoretic type connectives such as $\vee$, $\wedge$, and $\neg$ are not allowed in module system types, but only in simple types. In practice, however we need at least intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcup$ rather, than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
+  
+  ...\textbf{TO BE CONTINUED} 
+
+
+
+
+\section{Formalization of the module system}
 
 
 For our formalization we will use a slightly different syntax, which is more convenient for the type system we will define. This syntax  is given in Figure \ref{fig:modulelangsyntax}. 
@@ -236,6 +348,8 @@ The main differences with respect to the Elixir syntax are the following:
   \item Expression can be applied only to a list of names, and not to arbitrary expressions. It is however easy to encode the expression $E_0(E_1,...,E_n)$ as $\kwlet N_1 = E'_1 \kwin ... \kwlet N_n=E'_n\kwin E'_0(N_1,\dots,N_n)$, where $E'_i$ is the encoding of expression $E_i$, and $N_i$ are fresh names.  
 \end{itemize}
 
+
+\subsection{Operational semantics or encoding?}
 \begin{figure}
   \begin{tabular}{r c l}
     $\tau$ & ::= & $t$ \\
@@ -428,4 +542,10 @@ The main differences with respect to the Elixir syntax are the following:
   \caption{Semantic interpretation of the new constructions}
 \end{figure}
 
+
+\section{Optional callbacks}
+
+Explain here how to extend the module system to allow optional callbacks, that is, callbacks that are not required by the behaviour but may be implemented by the module.
+
+\printbibliography
 \end{document}

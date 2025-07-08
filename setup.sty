@@ -6,7 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Colors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{color,colortbl}
+\usepackage{colortbl}
 
 \definecolor{greenkey}{rgb}{0, 0.5, 0}
 \definecolor{fireenginered}{rgb}{0.81, 0.09, 0.13}
@@ -17,6 +17,25 @@
 \definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
 \definecolor{violet1}{RGB}{246,242,247}
 \definecolor{violet2}{RGB}{226,226,242}
+
+% possible colors for type annotations
+\definecolor{darkgreen}{rgb}{0, 0.2, 0.13}
+\definecolor{bordeaux}{rgb}{0.5, 0, 0.13}
+\definecolor{typeBlue}{RGB}{51, 102, 255}
+\definecolor{typeGreen}{RGB}{34, 139, 34}
+\definecolor{typePurple}{RGB}{147, 112, 219}
+\definecolor{typeOrange}{RGB}{255, 140, 0}
+\definecolor{typeBrique}{RGB}{184,55,55}
+\definecolor{typeGray}{RGB}{169,169,169}
+\definecolor{typeAqua}{RGB}{42, 186, 233}
+\newcommand{\negspace}{\hspace*{-1.75mm}}
+\newcommand{\etc}{\raisebox{-3pt}{\scriptsize\smash{\vdots}}\vspace{4pt}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	\newcommand{\beppe}[1]{{\color{celestialblue}\textbf{[ Beppe: } #1\textbf{]}}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % MINTED FOR ELIXIR
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

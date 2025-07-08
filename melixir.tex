@@ -41,6 +41,8 @@
 
 
 \section{Introduction}
+\beppe{Cut and paste from the Programming paper Appendix}
+
 
 GenServer is a behaviour of Elixir standard library that abstracts the
 common client-server interaction. It provides the boilerplate to
@@ -106,7 +108,7 @@ The types \elix{request} and \elix{reply} are now parameters of the (module) typ
 \subsection{Current Proposal}
 
 
-\begin{minted}[escapeinside=!!,fontsize=\footnotesize,baselinestretch=.9]{elixir}
+\begin{minted}[escapeinside=!!,fontsize=\footnotesize]{elixir}
 defmodule!\textbf{\color{red}type}! GenServer do
   # Types
   !\textcolor{bordeaux}{\$param}! request

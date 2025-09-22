@@ -34,6 +34,7 @@
 \DeclareMathOperator{\struct}{\textsf{struct}}
 \DeclareMathOperator{\dom}{\textsf{dom}} 
 \newcommand{\tx}{\textrm{x}}
+\newcommand{\self}{\texttt{\_\_MODULE\_\_}}
 
 \author{Aghilas Y. Boussaa and Giuseppe Castagna}
 \sloppy
@@ -147,7 +148,7 @@ With this convention, every module defined in the program is then denoted by a u
 
 The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although developers are invited to follow the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\mathcal X$ for behaviour names. 
 
-In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions to represent Elixir, since we want to focus on the module system. So our expressions are a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{CDV24} with two notable additions (in red in the figure): $M$, denoting the module (reached by the path) $M$, and $M.x$ denoting the function or constant $x$ exported by the module $M$.
+In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ranged over by $E$---to represent Elixir, since we want to focus on the module system. So our expressions form a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{CDV24} with two notable additions (in red in the figure): $M$, denoting the module (reached by the path) $M$, \self{} which returns the name of the current module, and $M.x$ denoting the function or constant $x$ exported by the module $M$. The other expressions are standard, though the syntax may not be familiar to the reader. In particular, functions in Elixir are prefixed by their type declaration which, in general, is an intersection of (multi-arity) arrow types: $\$\bigwedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ to denote a function with intersection type. Functions are values, and we notice that there are two forms of function definitions that differ by the annotation that precedes them. In red the new annotation we introduce for the module system which have the particularity that the types in the domain may be named, and that the arrows are on module types; in particular these can use the names specified for the domains (e.g., the type of the third argument of \elix{start()}, is \elix{Mod.option}, that is the \elix{option} type exported by the first argument). Elixir uses the notation $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ for records (maps) with fields $\ell$ initialized to $E$. 
 
 Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
 
@@ -157,15 +158,16 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
     $N$ & ::= & $x$ \\
     & | & $X$ \\
     $S$ & ::= & $\kwbvr \mathcal X$ \\
-    $P$ &::= & $\kwprm \tx$ \\
+    $P$ &::= & \textcolor{Cerulean}{$\kwprm \tx$} \\
     $B$ &::= & $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
-    & | & $\kwpr x = v$ \\
+    & | & \textcolor{Cerulean}{$\kwpr x = v$} \\
     & | & $\kwtp \tx = t$ \\
-    & | & $\kwopq \tx = t$ \\
+    & | & \textcolor{Cerulean}{$\kwopq \tx = t$} \\
     $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ \\ 
-    & | & $M.M$ \\
-    $E$ &::= & $v$ \\
+    & | & $X.M$ & \text{\small José version: only the last module of the path can be instantiated}\\
+        & | & $\textcolor{Cerulean}{M}.M$ & \text{\small More general version: every module of the path can be instantiated}\\
+$E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
     & | & $E(\overline{E})$ \\
@@ -174,7 +176,8 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
     & | & $(E\in t)?E:E$ \\
     & | & $\textcolor{OrangeRed}{M.x}$ \\
     & | & $\textcolor{OrangeRed}{M}$ \\
-    $v$ & ::= & $c$ \\
+     & | & $\textcolor{OrangeRed}{\self}$ \\
+   $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
     & | & $\$\bigwedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
     & | & \textcolor{OrangeRed}{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
@@ -198,9 +201,12 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq \tx$ \\
-    & | & $\kwtp \tx = t$
+    & | & $\kwtp \tx = t$\\
   \end{tabular}
-  \caption{Syntax of the surface language}\label{fig:surfacesyntax}
+
+  \bigskip
+  In \textcolor{Cerulean}{blue} the modifications of the  current Elixir syntax.
+  \caption{Syntax of the surface language }\label{fig:surfacesyntax}
 \end{figure}
 
 

@@ -1,6 +1,9 @@
 *.aux
 *.log
 *.fls
+*.out
+*.blg
+*.bbl
 *.fdb_latexmk
 _minted-melixir
 main.run.xml
@@ -8,3 +11,4 @@ melixir.pdf
 melixir.bbl-SAVE-ERROR
 melixir.bcf
 melixir.run.xml
+

@@ -298,6 +298,7 @@ There are two possible syntaxes for paths with instantiations.
   \item a value $x$ defined in a module $X$ is visible in all modules nested in $X$ only if all the types used in the type of $x$ are visible in the nested modules.
  \end{itemize}
  This implies that to use a type or a value non-visible in a nested module, we must use a full and explicitly (and terminally) instantiated path to denote it.
+ Actually this is completely in line with the current Elixir implementation, where nested modules do not have access to the types and values defined in the enclosing module, unless these are explicitly denoted by their full path.
 
 The reader may have noticed that we used a different color in three terms of the syntax: the parameters $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ in module definitions; the type of modules $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$; the instantiation $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ in module denotations. The colored syntax denote all the modifications to the syntax of Elixir \textbf{expressions} to implement parametric modules. In the current  Elixir expression syntax, a module is denoted only by its name since there are no parametric modules, therefore no parameter instantiation: paths are only of the form \elix{Mod1.Mod2.Mod3} rather than, say, \elix{Mod1[x=integer()].Mod2.Mod2[z=proc()]} (in the variant that corresponds to $M::= M.M \mid X[\overline{\tx=t}]$), or its terminal variant \elix{Mod1.Mod2.Mod2[z=proc()]} (corresponding to $M::= X.M\mid X[\overline{\tx=t}]$)
 
@@ -310,7 +311,7 @@ In the example of \elix{StackModule} above, for instance, we have to decide whet
 The easy way is to always require the programmer to specify the type parameters of a module when this is used and extend the aliasing mechanism of Elixir to allow the programmer to define local aliases for instantiated modules, as in
 \begin{minted}{elixir}
 defmodule MyApp do
-  alias StackModule[elem=integer()] as: IntStack
+  alias StackModule[elem=integer()], as: IntStack
   s = IntStack.new()
   s1 = IntStack.push(s,5)
 end

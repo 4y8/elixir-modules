@@ -148,6 +148,7 @@ With this convention, every module defined in the program is then denoted by a u
 
 The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although developers are invited to follow the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\mathcal X$ for behaviour names. 
 
+\subsection{Expressions}
 In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ranged over by $E$---to represent Elixir, since we want to focus on the module system. So our expressions form a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{CDV24} with two notable additions (in red in the figure): $M$, denoting the module (reached by the path) $M$, \self{} which returns the name of the current module, and $M.x$ denoting the function or constant $x$ exported by the module $M$. The other expressions are standard, though the syntax may not be familiar to the reader. In particular, functions in Elixir are prefixed by their type declaration which, in general, is an intersection of (multi-arity) arrow types: $\$\bigwedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ to denote a function with intersection type. Functions are values, and we notice that there are two forms of function definitions that differ by the annotation that precedes them. In red the new annotation we introduce for the module system which have the particularity that the types in the domain may be named, and that the arrows are on module types; in particular these can use the names specified for the domains (e.g., the type of the third argument of \elix{start()}, is \elix{Mod.option}, that is the \elix{option} type exported by the first argument). Elixir uses the notation $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ for records (maps) with fields $\ell$ initialized to $E$. 
 
 Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
@@ -161,7 +162,7 @@ Let us examine in detail the definition of a module, as given in \eqref{eq:modul
     $P$ &::= & \textcolor{Cerulean}{$\kwprm \tx$} \\
     $B$ &::= & $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
-    & | & \textcolor{Cerulean}{$\kwpr x = v$} \\
+    & | & $\kwpr x = v$ \\
     & | & $\kwtp \tx = t$ \\
     & | & \textcolor{Cerulean}{$\kwopq \tx = t$} \\
     $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ \\ 
@@ -273,9 +274,52 @@ defmodule X do
 end
 \end{minted}
 
-The type of a module is defined by the syntax $\left\{\overline{P};\overline{S};\overline{D}\right\}$, where $\overline{P}$ are the type parameters of the behaviour, $\overline{S}$ is the list of behaviours implemented by the module, and $\overline{D}$ is a type environment, that is, the list of the typings of the definitions exported by the module. These typings are of the form $\kwmdl X : T$ for modules, $\kwclbk x : \bigcap \overline{T}$ for callbacks, $\kwopq \tx$ for opaque types, and $\kwtp \tx = t$ for transparent types (of course, no type for private definitions). This list must contain at least the typings for all the type parameters and the callbacks of the behaviours $\overline{S}$ implemented by the module. The usual restrictions of Elixir apply: a module cannot implement two  behaviours with a common callback. 
+The type of a module is defined by the syntax $\left\{\overline{P};\overline{S};\overline{D}\right\}$, where $\overline{P}$ are the type parameters of the module, $\overline{S}$ is the list of behaviours implemented by the module, and $\overline{D}$ is a type environment, that is, the list of the typings of the definitions exported by the module. These typings are of the form $\kwmdl X : T$ for modules, $\kwclbk x : \bigcap \overline{T}$ for callbacks, $\kwopq \tx$ for opaque types, and $\kwtp \tx = t$ for transparent types (of course, no type for private definitions). This list must contain at least the typings for all the type parameters and the callbacks of the behaviours $\overline{S}$ implemented by the module. The usual restrictions of Elixir apply: a module cannot implement two  behaviours with a common callback. 
 
-The reader may have noticed that we used a different color in three terms of the syntax: the parameters $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ in module definitions; the type of modules $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$; the instantiation $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ in module denotations. This is because the additions of this colored syntax requires a modification of the expressions of Elixir. In the original Elixir syntax, a module is denoted only by its name since there are no parametric modules, therefore no parameter instantiation: paths are only of the form \elix{Mod1.Mod2.Mod3} rather than, say, \elix{Mod1[x=integer()].Mod2.Mod2[z=proc()]} If do not want to extend the current Elixir syntax for expressions to allow parametrized modules such as \elix{StackModule}, it suffices to remove the syntax colored in blue  from Figure~\ref{fig:surfacesyntax}, that is, instantiations in module, and the type parameters in module types and definitions.\footnote{Of course, we will still replace Typespec specifications with our new syntax for types.} Then all the modifications to type the Elixir module system will be confined to types and type-related definitions, and the expressions will remain unchanged. In particular, type parameters will be confined to behaviours. 
+\subsection{The consequences of parametric modules}
+While having parametric behaviours is quite straightforward, the addition of parametric modules has several consequences on the syntax and semantics of the module system.
+
+
+\paragraph{Syntax.} The first important consequence is that this requires an important modification of the current Elixir syntax. If we just allow parametric behaviours and not also parametric modules, then the modification of the syntax of the expressions is really minimal: the type definitions of a module expression must specify whether this type is transparent ($\kwtp \tx = t$) or opaque ($\kwopq \tx = t$), and nothing else for what concerns the expression syntax (in particular modules with this choice are denoted by paths of module identifiers: $X_1.X_2.\cdots{.}X_n$.
+
+If we also allow parametric modules, then we must extend the syntax of module expressions to declare the parameters in the form $\kwpr \tx$ (easy) but \textbf{above all} we have to change the syntax of paths to allow instantiations of the parameters of modules. This is done by the syntax $X[\overline{\tx=t}]$ denoting the module $X$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$. 
+There are two possible syntaxes for paths with instantiations.
+\begin{enumerate}
+\item The instantiation may occur at any level of a path, as in $X_1[\overline{\tx=t}].X_2[\overline{\tx=t}].X_3[\overline{\tx=t}]$, or
+\item The instantiation can only occur at the end of the path, as in $X_1.X_2.X_3[\overline{\tx=t}]$, that is for the innermost module only.
+\end{enumerate}
+ The former is more general, but can be quite demanding to the programmer especially if the system requires all parametric modules in a path to be explicitly syntactic sugar.
+
+
+ The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. This however imposes to carefully define the scoping rules of types in a module. In particular:
+ \begin{itemize}  
+  \item the parameters of a module $X$ are not visible in the modules nested in $X$;
+  \item a type $\tx$ defined in a module $X$ is visible in all modules nested in $X$ only if all the types used in the definition of $\tx$ are visible in the nested modules.
+  \item a value $x$ defined in a module $X$ is visible in all modules nested in $X$ only if all the types used in the type of $x$ are visible in the nested modules.
+ \end{itemize}
+ This implies that to use a type or a value non-visible in a nested module, we must use a full and explicitly (and terminally) instantiated path to denote it.
+
+The reader may have noticed that we used a different color in three terms of the syntax: the parameters $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ in module definitions; the type of modules $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$; the instantiation $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ in module denotations. The colored syntax denote all the modifications to the syntax of Elixir \textbf{expressions} to implement parametric modules. In the current  Elixir expression syntax, a module is denoted only by its name since there are no parametric modules, therefore no parameter instantiation: paths are only of the form \elix{Mod1.Mod2.Mod3} rather than, say, \elix{Mod1[x=integer()].Mod2.Mod2[z=proc()]} (in the variant that corresponds to $M::= M.M \mid X[\overline{\tx=t}]$), or its terminal variant \elix{Mod1.Mod2.Mod2[z=proc()]} (corresponding to $M::= X.M\mid X[\overline{\tx=t}]$)
+
+If do not want to extend the current Elixir syntax for expressions to allow parametrized modules such as \elix{StackModule}, it suffices to remove the syntax colored in blue  from Figure~\ref{fig:surfacesyntax}, that is, instantiations in module, and the type parameters in module types and definitions (the two definitions of paths in that case collapse).\footnote{Of course, we will still replace Typespec specifications with our new syntax for types.} Then all the modifications to type the Elixir module system will be confined to types and type-related definitions, and the expressions will remain unchanged. In particular, type parameters will be confined to behaviours. 
+
+
+\paragraph{Inference.} A second important consequence of parametric modules iw that we have to decide how much inference we want to (and can) do. This is more a matter of programming style that formalization, though the choice may have some consequences on the formalization.
+In the example of \elix{StackModule} above, for instance, we have to decide whether we want the programmer to always specify the type parameters of a module when this is used, as in \elix{StackModule[elem=integer()].new()}, or whether we want the system to be able to infer the type parameters from the context, as in \elix{StackModule.push(StackModule.new(),5)}. The latter is more convenient for the programmer, but requires a more complex type system. In particular, it requires a form of local type inference, since the type of \elix{StackModule.new()} must be inferred to be \elix{StackModule[elem=integer()].stack} from the context in which it is used (the first argument of \elix{push}). 
+
+The easy way is to always require the programmer to specify the type parameters of a module when this is used and extend the aliasing mechanism of Elixir to allow the programmer to define local aliases for instantiated modules, as in
+\begin{minted}{elixir}
+defmodule MyApp do
+  alias StackModule[elem=integer()] as: IntStack
+  s = IntStack.new()
+  s1 = IntStack.push(s,5)
+end
+\end{minted}
+This is simpler to formalize, but may be a bit too demanding for the programmer.
+
+
+
+\subsection{Types}
 
 The types for expressions are strictly stratified. There are the simple types, ranged over by $t$ which are essentially  those of \cite{CDV24} with a single syntactic extension, $M.\tx$ denoting the simple type exported by the module $M$ as $\tx$. \beppe{If we want this strict stratification we have to move behaviours into $T$, this also means that we cannot have maps and products containing modules}. On the top of that there are the module system types, ranged over by $T$, which are either (fully instantiated) behaviours $\mathcal X[\,\overline{\tx= t}\,]$, or (anonymous) module types of the form $\left\{{\overline{P}};\overline{S};\overline{D}\right\}$,\footnote{
   Programmer will not have the possibility to write this type. We are rather oriented to allow the programmer only to specify in types either some behaviour names (e.g., \felix{StackB[elem=integer()]}), or use the \texttt{Like$\;M$} syntax (e.g., \felix{Like StackInt} to denote the anonymous type of the \felix{StackInt} module.} or  the types of functions working on modules, of the form $(N_1{:} T_1,\cdots, N_n{:}T_n) \to T_{n+1}$, where $N_i$ is a parameter name, and $T_i$ is a module system type in which the names $N_j$ for $j<i$ may occur (e.g. \elix{(X : StackB[elem=integer()], s : X.stack) -> X.elem}).

@@ -106,8 +106,8 @@ The types \elix{request} and \elix{reply} are now parameters of the (module) typ
 
 
 
-\subsection{Current Proposal}
-
+\subsection{The PoETS Proposal}
+In the paper "Principles of Elixir Type System"~\cite{CDV24}, we proposed to type the Genserver example as follows
 
 \begin{minted}[escapeinside=!!,fontsize=\footnotesize]{elixir}
 defmodule!\textbf{\color{red}type}! GenServer do
@@ -133,7 +133,7 @@ defmodule GenServer do
     !\etc!
 end
 \end{minted}
-
+Our current proposal that we describe in the rest of this document is very similar to the above, but much more detailed and formalized.
 
 \section{The new Elixir module system}
 An Elixir program is a sequence of module definitions. When a module definition contain a \elix{@callback} declaration, this module is considered a \emph{behaviour}. Behaviours are a kind of hybrid definitions since they define both a module type and, whenever they export functions, a module value. This ambiguity is resolved by the Elixir compiler, which will generate a module \emph{type} definition for the behaviour, and a module \emph{value} definition for the implementations exported by the behaviour.
@@ -148,8 +148,28 @@ With this convention, every module defined in the program is then denoted by a u
 
 The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although developers are invited to follow the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\mathcal X$ for behaviour names. 
 
+
+\subsection{Module Types}
+Let us first examine the syntax of the module types declarations, which is given by the syntax, \[\kwdefmt \mathcal X \kwdo \overline{P}\, \overline{D} \kwend\] and which correspond to the definition of a behaviour (ie., a module with callback declarations), stripped of its function definitions. The module type $\mathcal X$ is defined by a list of type parameters $\overline{P}$, and a list of export declarations and callback declarations $\overline{D}$. Every module implementing the behaviour $\mathcal X$ must \emph{at least} provide:
+\begin{itemize}
+    \item a transparent type definition of the form $\kwtp \tx = t$ for every $\kwprm \tx$ declared in $\overline{P}$,
+    \item an opaque type definition of the form $\kwopq \tx = t$ for every $\kwopq \tx$ declared in $\overline{D}$,
+    \item a transparent type definition of the form $\kwtp \tx = t$ for every $\kwtp \tx = t$ declared in $\overline{D}$,
+    \item a definition of the form $x = v$  with $v$ of type $\bigcap\overline{T}$ for every callback $\kwclbk x : \bigcap \overline{T}$ declared in $\overline{D}$.
+\end{itemize} 
+For instance, the \elix{StackB} behaviour for modules wanting to implement a stack parametric in the type of its elements can be defined as follows:
+\begin{minted}{elixir}
+!\color{blue}defmodtype! StackB do
+  !\tp!param elem
+  !\tp!opaque stack
+  !\tp!callback new : () -> stack
+  !\tp!callback push : (stack, elem) -> stack
+  !\tp!callback pop : stack -> {elem, stack}
+end
+\end{minted}
+
 \subsection{Expressions}
-In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ranged over by $E$---to represent Elixir, since we want to focus on the module system. So our expressions form a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{CDV24} with two notable additions (in red in the figure): $M$, denoting the module (reached by the path) $M$, \self{} which returns the name of the current module, and $M.x$ denoting the function or constant $x$ exported by the module $M$. The other expressions are standard, though the syntax may not be familiar to the reader. In particular, functions in Elixir are prefixed by their type declaration which, in general, is an intersection of (multi-arity) arrow types: $\$\bigwedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ to denote a function with intersection type. Functions are values, and we notice that there are two forms of function definitions that differ by the annotation that precedes them. In red the new annotation we introduce for the module system which have the particularity that the types in the domain may be named, and that the arrows are on module types; in particular these can use the names specified for the domains (e.g., the type of the third argument of \elix{start()}, is \elix{Mod.option}, that is the \elix{option} type exported by the first argument). Elixir uses the notation $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ for records (maps) with fields $\ell$ initialized to $E$. 
+In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ranged over by $E$---to represent Elixir, since we want to focus on the module system. So our expressions form a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions). The syntax is essentially the one by~\cite{CDV24} with three notable additions (in red in the figure): $M$, denoting the module (reached by the path) $M$, \self{} which returns the name of the (innermost) current module, and $M.x$ denoting the function or constant $x$ exported by the module $M$. The other expressions are standard, though the syntax may not be familiar to the reader. In particular, functions in Elixir are prefixed by their type declaration which, in general, is an intersection of (multi-arity) arrow types. Thus, we use $\$\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i} \kwfn \overline{x} \rightarrow E$ to denote the anonymous function of parameters $\overline{x}$, body $E$ and annotated with the intersection type $\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i}$ meaning that when the function is applied to arguments of type $\overline{t_i}$, we expect a result of type $t_i$. Functions are values, and we notice that there are two forms of function definitions that differ by the annotation that precedes them. In red the new annotation we introduce for the module system which have the particularity that the types in the domain may be named, and that the arrows are on module types; in particular these can use the names specified for the domains (e.g., the type of the third argument of \elix{start()}, is \elix{Mod.option}, that is the \elix{option} type exported by the first argument). Elixir uses the notation $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ for records (maps) with fields $\ell$ initialized to $E$. 
 
 Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
 
@@ -213,13 +233,14 @@ $E$ &::= & $v$ \\
 
 The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of values, types, and modules.
 
-A type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus, for instance if the \elix{StackB} behaviour is parametrized in the type \elix{elem} of its elements, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
+A type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus, for instance if the \elix{StackB} is defined as the above, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
 \begin{minted}{elixir}
 defmodule StackInt do            # should we write all the types as stack() rather than just stack?
   !\tp!behaviour StackB                       # declare that the module implements the behaviour StackB 
   !\tp!type elem = integer()                  # instantiate the behaviour parameter
   !\tp!opaque stack = list(integer())         # define the opaque type of the stack
 
+  # callbacks implementations
   !\tp! () -> stack
   def new(), do: []
 
@@ -232,21 +253,26 @@ end
 \end{minted}
 Although the current Elixir syntax does not allow it, in the system of Figure~\ref{fig:surfacesyntax} we can also define a module to be parametric in some types. For instance, we can define the module stack to be parametric in the type of
 its elements, and then pass this parameter as argument to the behaviour, as in
-the following example, in which we replace \elix{pop} by \elix{top}, and we add a
-higher-order function
+the following example, in which we add a  \elix{top} function and  a
+higher-order function \elix{move}
 \begin{minted}{elixir}
 defmodule StackModule do
   !\tp!param elem
   !\tp!behaviour StackB
-  !\tp!type elem = elem
+  !\tp!type elem = elem              # instantiate the behaviour parameter with the module parameter
   !\tp!opaque stack = list(elem)
 
+  # callbacks implementations
   !\tp! () -> stack
   def new(), do: []
 
   !\tp! (stack, elem) -> stack
   def push(s, e), do: [e|s] 
 
+  !\tp! (stack) -> {integer(), stack}
+  def pop(s), do: {hd(s), tl(s)} 
+
+  # extra functions
   !\tp! (stack) -> elem
   def top(s), do: hd(s)
 

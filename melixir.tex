@@ -193,8 +193,8 @@ $E$ &::= & $v$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
     & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  & shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]\\
-    $f$ & ::= & $\ell : t$ & mandatory field [should we do $\ell:T$?]\\
-    & | & $\ell \;\texttt{=>}\; t$ & optional field [same question as above]\\
+    $f$ & ::= & $\ell : t$ & mandatory field {\color{bordeaux}[should we use $T$ instead of $t$? Or $\mathcal X[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\mathcal X}}$?]}\\
+    & | & $\ell \;\texttt{=>}\; t$ & optional field {\color{bordeaux}[same questions as above]}\\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq \tx$ \\
@@ -365,7 +365,8 @@ The types for expressions are strictly stratified. There are the simple types, r
 %
 \beppe{If we want this strict stratification we have to 
 \begin{itemize} \item Move behaviours into $T$. The consequence of this is that we cannot have a type binding of the form  $\kwtp \tx ={\mathcal X}[\,\overline{\tx= t}\,]$, that is cannot export a module type. I do not see any other consequence.
-  \item this also means that we cannot have maps (and products if included) containing modules. If we want to have it we can modify the definition of field types $f$ so that the map labels to $T$, rather than $t$. The problem however is how to define union and intersections of map types with $T$ fields, since unions and intersections are not defined on $T$. As long as we do not have a semantic interpretation of $T$ we should mix syntactic and semantic subtyping. \end{itemize} }
+  \item this also means that we cannot have maps (and products if included) containing modules. If we want to have it we can modify the definition of field types $f$ so that the map labels to $T$, rather than $t$. The problem however is how to define union and intersections of map types with $T$ fields, since unions and intersections are not defined on $T$. As long as we do not have a semantic interpretation of $T$ we should mix syntactic and semantic subtyping.
+  \item A possible intermediate solution could be to have map types to specify intersections of instantiated behaviours, $\bigcap\overline{\mathcal X[\,\overline{\tx= t}\,]}$ as these can be considered as new basic types (modulo the ordering of the parameter instatiations) for which it is easy to define semantic subtyping. \end{itemize}}
   %
   
   On the top of that there are the module system types, ranged over by $T$, which are either (fully instantiated) behaviours $\mathcal X[\,\overline{\tx= t}\,]$, or (anonymous) module types of the form $\left\{{\overline{P}};\overline{S};\overline{D}\right\}$,\footnote{
@@ -380,10 +381,10 @@ The types for expressions are strictly stratified. There are the simple types, r
 
   One of the consequences of this stratification---actually, its main motivation---is that set-theoretic type connectives such as $\vee$, $\wedge$, and $\neg$ are not allowed in module system types, but only in simple types. The reason is that we do not have a semantic interpretation of the $T$ types and therefore we cannot define the set-theoretic connectives on them.
 
-  
-  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
-  
-  ...\textbf{TO BE CONTINUED} 
+
+  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\mathcal X}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\mathcal X_1}\cap...\cap{\mathcal X_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
+
+  ...\textbf{TO BE CONTINUED}
 
 
 
@@ -416,12 +417,12 @@ For our formalization we will use a slightly different syntax, which is more con
     $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
     & | & $\$\bigwedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} \\[3mm]
+    & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
-    & | & $\left\{\overline{D}\right\}_{\overline{\mathcal X}}$ \\
+    & | & $\left\{\overline{D}\right\}_{\overline{\mathcal X}}$ &\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\mathcal X_1}\cap...\cap{\mathcal X_n}$\\
     & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{we can include this case in the above by adding $\star$ to $T$ and $\tx$ to $N$} \\
-    & | & $\star$ &\text{\small I would remove it: we do not want to pass around modules unless}\\
+    & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
                   &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\kwint$ \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
@@ -432,7 +433,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $x$ imported from module $M$\\
-    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour\\[3mm]
+    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour \beppe{Should it be moved to $T$?}\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  

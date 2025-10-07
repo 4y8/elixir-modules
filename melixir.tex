@@ -34,6 +34,7 @@
 \DeclareMathOperator{\struct}{\textsf{struct}}
 \DeclareMathOperator{\dom}{\textsf{dom}} 
 \newcommand{\tx}{\textrm{x}}
+\newcommand{\BX}{\ensuremath{\mathcal{X}}}
 \newcommand{\self}{\texttt{\_\_MODULE\_\_}}
 
 \author{Aghilas Y. Boussaa and Giuseppe Castagna}
@@ -146,15 +147,15 @@ Intuitively, the list of bindings $\overline{B}$ exported by the module \textit{
 \end{equation}
 With this convention, every module defined in the program is then denoted by a unique path starting with \texttt{Main} module name.
 
-The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although developers are invited to follow the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\mathcal X$ for behaviour names. 
+The full syntax of the surface language is given in Figure \ref{fig:surfacesyntax}. In Elixir there is a unique syntactic category for names, although developers are invited to follow the naming convention of using capitalized names for modules and (thus) behaviours. To enhance clarity, we use $x$ to range over expression variables, $X$ for module names, $\tx$ for type names, and $\BX$ for behaviour names. 
 
 
 \begin{figure}
   \begin{tabular}{r c ll}
-    $\mathcal B$ & ::= &$\kwdefmt \mathcal X \kwdo \overline{P}\, \overline{D} \kwend$ \\
+    $\mathcal B$ & ::= &$\kwdefmt \BX\kwdo \overline{P}\, \overline{D} \kwend$ \\
     $N$ & ::= & $x$ \\
     & | & $X$ \\
-    $S$ & ::= & $\kwbvr \mathcal X$ \\
+    $S$ & ::= & $\kwbvr \BX$ \\
     $P$ &::= & \textcolor{Cerulean}{$\kwprm \tx$} \\
     $B$ &::= & $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
@@ -183,6 +184,7 @@ $E$ &::= & $v$ \\
   %  & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$?\\
     & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer should be able to denote this type only via (\textsf{Like }$M$)\\
     $t$ & ::= & $\kwint$ \\
+    & | & $\texttt{module}$ & top module type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\texttt{..., }\overline{f}\right\}$ & open record type\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ & closed record type \\
@@ -193,7 +195,7 @@ $E$ &::= & $v$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
     & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  & shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]\\
-    $f$ & ::= & $\ell : t$ & mandatory field {\color{bordeaux}[should we use $T$ instead of $t$? Or $\mathcal X[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\mathcal X}}$?]}\\
+    $f$ & ::= & $\ell : t$ & mandatory field {\color{bordeaux}[should we use $T$ instead of $t$? Or $\BX[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\BX}}$?]}\\
     & | & $\ell \;\texttt{=>}\; t$ & optional field {\color{bordeaux}[same questions as above]}\\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
@@ -208,7 +210,7 @@ $E$ &::= & $v$ \\
 
 
 \subsection{Module Types}
-Let us first examine the syntax of the module types declarations, which is given by the syntax, \[\kwdefmt \mathcal X \kwdo \overline{P}\, \overline{D} \kwend\] and which correspond to the definition of a behaviour (ie., a module with callback declarations), stripped of its function definitions. The module type $\mathcal X$ is defined by a list of type parameters $\overline{P}$, and a list of export declarations and callback declarations $\overline{D}$. Every module implementing the behaviour $\mathcal X$ must \emph{at least} provide:
+Let us first examine the syntax of the module types declarations, which is given by the syntax, \[\kwdefmt \BX\kwdo \overline{P}\, \overline{D} \kwend\] and which correspond to the definition of a behaviour (ie., a module with callback declarations), stripped of its function definitions. The module type $\BX$ is defined by a list of type parameters $\overline{P}$, and a list of export declarations and callback declarations $\overline{D}$. Every module implementing the behaviour $\BX$ must \emph{at least} provide:
 \begin{itemize}
     \item a transparent type definition of the form $\kwtp \tx = t$ for every $\kwprm \tx$ declared in $\overline{P}$,
     \item an opaque type definition of the form $\kwopq \tx = t$ for every $\kwopq \tx$ declared in $\overline{D}$,
@@ -231,7 +233,7 @@ In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ra
 
 Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
 
-The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \mathcal X$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. 
+The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \BX$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. 
 
 The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of types, values, and modules.
 
@@ -364,17 +366,17 @@ The types for expressions are strictly stratified. There are the simple types, r
 %
 %
 \beppe{If we want this strict stratification we have to 
-\begin{itemize} \item Move behaviours into $T$. The consequence of this is that we cannot have a type binding of the form  $\kwtp \tx ={\mathcal X}[\,\overline{\tx= t}\,]$, that is, a module cannot export a module type. I do not see any other consequence.
+\begin{itemize} \item Move behaviours into $T$. The consequence of this is that we cannot have a type binding of the form  $\kwtp \tx ={\BX}[\,\overline{\tx= t}\,]$, that is, a module cannot export a module type. I do not see any other consequence.
   \item this also means that we cannot have maps (and products if included) containing modules. If we want to have it we can modify the definition of field types $f$ so that the map labels to $T$, rather than $t$. The problem however is how to define union and intersections of map types with $T$ fields, since unions and intersections are not defined on $T$. As long as we do not have a semantic interpretation of $T$ we should mix syntactic and semantic subtyping.
-  \item A possible intermediate solution could be to have map types to specify intersections of instantiated behaviours, $\bigcap\overline{\mathcal X[\,\overline{\tx= t}\,]}$ as these can be considered as new basic types (modulo the ordering of the parameter instatiations) for which it is easy to define semantic subtyping. \end{itemize}}
+  \item A possible intermediate solution could be to have map types to specify intersections of instantiated behaviours, $\bigcap\overline{\BX[\,\overline{\tx= t}\,]}$ as these can be considered as new basic types (modulo the ordering of the parameter instatiations) for which it is easy to define semantic subtyping. \end{itemize}}
   %
   
-  On the top of the simple types there are the module system types, ranged over by $T$, which are either (fully instantiated) behaviours $\mathcal X[\,\overline{\tx= t}\,]$, or (anonymous) module types of the form $\left\{{\overline{P}};\overline{S};\overline{D}\right\}$,\footnote{
+  On the top of the simple types there are the module system types, ranged over by $T$, which are either (fully instantiated) behaviours $\BX[\,\overline{\tx= t}\,]$, or (anonymous) module types of the form $\left\{{\overline{P}};\overline{S};\overline{D}\right\}$,\footnote{
   Programmer will not have the possibility to write this type. We are rather oriented to allow the programmer only to specify in types either some behaviour names (e.g., \felix{StackB[elem=integer()]}), or use the \texttt{Like$\;M$} syntax (e.g., \felix{Like StackInt} to denote the anonymous type of the \felix{StackInt} module.} or  the types of functions working on modules, of the form $(N_1{:} T_1,\cdots, N_n{:}T_n) \to T_{n+1}$, where $N_i$ is a parameter name, and $T_i$ is a module system type in which the names $N_j$ for $j<i$ may occur (e.g. \elix{(X : StackB[elem=integer()], s : X.stack) -> X.elem}).
 
   These module system types have the following intended meaning:
   \begin{itemize}
-    \item A module $X$ has a behaviour type $\mathcal X[\,\overline{\tx= t}\,]$ if it explicitly implements the behaviour $\mathcal X$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$. This means that that the definition of the module $X$ contains the declaration $\kwbvr \mathcal X$, a transparent type definition $\kwtp \tx_i=t_i$ for each  $\tx_i, t_i$, in $\overline{\tx}, \overline t$, and provides a definition for all the values, modules, and callbacks declared in $\mathcal X$, with the types declared in $\mathcal X$. 
+    \item A module $X$ has a behaviour type $\BX[\,\overline{\tx= t}\,]$ if it explicitly implements the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$. This means that that the definition of the module $X$ contains the declaration $\kwbvr \BX$, a transparent type definition $\kwtp \tx_i=t_i$ for each  $\tx_i, t_i$, in $\overline{\tx}, \overline t$, and provides a definition for all the values, modules, and callbacks declared in $\BX$, with the types declared in $\BX$. 
     \item The type of a module is defined by the syntax $\left\{\overline{P};\overline{S};\overline{D}\right\}$, where $\overline{P}$ are the type parameters of the module, $\overline{S}$ is the list of behaviours implemented by the module, and $\overline{D}$ is a type environment, that is, the list of the typings of the definitions exported by the module. These typings are of the form $\kwmdl X : T$ for modules, $\kwclbk x : \bigcap \overline{T}$ for value definitions (constant, record values, and functions/callbacks), $\kwopq \tx$ for opaque types, and $\kwtp \tx = t$ for transparent types (of course, no type for private definitions). This list must contain at least the typings for all the type parameters and the callbacks of the behaviours $\overline{S}$ implemented by the module. The usual restrictions of Elixir apply: a module cannot implement two  behaviours with a common callback. 
     \item The type $(N_1{:} T_1,\cdots, N_n{:}T_n) \to T_{n+1}$ is used to type functions working on modules. The parameters $N_i$ are names that can be used in the types $T_j$ for $j>i$ to denote types exported by the module passed as $i$-th argument (e.g., the \elix{move} function of the \elix{StackModule} example above, which has type \elix{(X : StackB[elem=elem], sx : X.stack, Y : StackB[elem=elem], sy : Y.stack) -> Y.stack}.)
 \end{itemize}
@@ -382,7 +384,7 @@ The types for expressions are strictly stratified. There are the simple types, r
   One of the consequences of this stratification---actually, its main motivation---is that set-theoretic type connectives such as $\vee$, $\wedge$, and $\neg$ are not allowed in module system types, but only in simple types. The reason is that we do not have a semantic interpretation of the $T$ types and therefore we cannot define the set-theoretic connectives on them.
 
 
-  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\mathcal X}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\mathcal X_1}\cap...\cap{\mathcal X_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
+  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\BX}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\BX_1}\cap...\cap{\BX_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
 
   ...\textbf{TO BE CONTINUED}
 
@@ -391,19 +393,21 @@ The types for expressions are strictly stratified. There are the simple types, r
 
 \section{Formalization of the module system}
 
+\subsection{Syntax}
 
 For our formalization we will use a slightly different syntax, which is more convenient for the type system we will define. This syntax  is given in Figure \ref{fig:modulelangsyntax}. 
 \begin{figure}
   \begin{tabular}{r c ll}
-    $\mathcal B$ &::= &  $\!\!\mathcal X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}$ &\color{Gray} behaviour $\mathcal X$ with parameters $\overline \tx$\\
-    $B$ &::= &  $\!\!X = \textcolor{Cerulean}{\Lambda(\overline{\tx:\star}).}\{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{Gray} module $X$ with parameters $\overline \tx$ implementing $\overline{\mathcal X}$\\
+    $\mathcal B$ &::= &  $\!\!\BX: \Lambda(\overline{\tx:\star}).\{\overline{D}\}$ &\color{Gray} behaviour $\BX$ with parameters $\overline \tx$\\
+    $B$ &::= &  $\!\!X = \textcolor{Cerulean}{\Lambda(\overline{\tx:\star}).}\{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{Gray} module $X$ with parameters $\overline \tx$ implementing $\overline{\BX}$\\
     & | & $x = v$                                   &\color{Gray} exported definition \\
     & | & $x = \textsf{private }v$                  &\color{Gray} private definition\\
     & | & $\tx = \textsf{type }t$                     &\color{Gray} transparent type or behaviour argument\\
     & | & $\tx = \textsf{opaque }t$                   &\color{Gray} opaque type\\[3mm]
     $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$                 &\color{Gray} local module\\
-    & | & $M.M$                                     &\color{Gray} imported module\\[3mm]
-    $N$ & ::= & $x$ \\
+    & | & $M.M$                                     &\color{Gray} imported module\\
+    & | & $X.M$                                     &\color{Gray} [alternative:] simplified imported module\\[3mm]
+   $N$ & ::= & $x$ \\
     & | & $X$ \\[3mm]
    $E$ &::= & $v$ \\
     & | & $x$ \\
@@ -420,11 +424,12 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
-    & | & $\left\{\overline{D}\right\}_{\overline{\mathcal X}}$ &\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\mathcal X_1}\cap...\cap{\mathcal X_n}$\\
+    & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$\\
     & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{we can include this case in the above by adding $\star$ to $T$ and $\tx$ to $N$} \\
     & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
                   &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\kwint$ \\
+    & | & $\texttt{module}$ & top module type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
     & | & $t\vee t$ \\
@@ -432,8 +437,9 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $x$ imported from module $M$\\
-    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour \beppe{Should it be moved to $T$?}\\[3mm]
+    & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
+    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour \beppe{Should it be moved to $T$? If not need semsub for it}\\
+    &&&\color{bordeaux} very interesting: this allows map fields to contain modules!\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  
@@ -442,7 +448,7 @@ For our formalization we will use a slightly different syntax, which is more con
     $\Sigma$ & ::= & $\overline{\mathcal B}$ &\color{Gray} behaviour environment\\[4mm]
   \end{tabular}
 
- where $\mathcal X$ ranges over behaviour names, $X$ over module names, $x$ over variable names, $\tx$ over type names, and $\ell$ over map keys. 
+ where $\BX$ ranges over behaviour names, $X$ over module names, $x$ over variable names, $\tx$ over type names, and $\ell$ over map keys. 
   \caption{Module language syntax}\label{fig:modulelangsyntax}
 \end{figure}
 
@@ -450,24 +456,43 @@ For our formalization we will use a slightly different syntax, which is more con
 
 The main differences with respect to the Elixir syntax are the following:
 
-\begin{itemize}
-  \item The module type $\kwdefmt \mathcal X \kwdo \overline{\kwprm \tx}\, \overline{D} \kwend$ is written as $\mathcal X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}$.
+\begin{enumerate}
+  \item The module type $\kwdefmt \BX\kwdo \overline{\kwprm \tx}\, \overline{D} \kwend$ is written as $\BX: \Lambda(\overline{\tx:\star}).\{\overline{D}\}$.
   \item The module definition $\kwdefm X \kwdo \overline{\kwprm \tx}\; \overline{\kwbvr \mathcal{X}}\; \overline{B} \kwend$ is written as $X = \Lambda(\overline{\tx:\star}).\{\overline{B}\}_{\overline{\mathcal{X}}}$
-  \item We changed the syntax of module binding so that all the bindings are of the form (\emph{name $=$ definition}).
-  \item Likewise, the types of module bindings has been modified so that all the binding are of the form (\emph{name $:$ definition-type})
+  \item We changed the syntax of module binding so that all the bindings are of the form (\emph{name $=$ definition}): this is the main motivation for the change of syntax in point 1 above.
+  \item Likewise, the types of module bindings has been modified so that all the binding are of the form (\emph{name $:$ definition-type}). This is the main motivation for the change of syntax in point 2 above.
   \item Expression can be applied only to a list of names, and not to arbitrary expressions. It is however easy to encode the expression $E_0(E_1,...,E_n)$ as $\kwlet N_1 = E'_1 \kwin ... \kwlet N_n=E'_n\kwin E'_0(N_1,\dots,N_n)$, where $E'_i$ is the encoding of expression $E_i$, and $N_i$ are fresh names.  
-\end{itemize}
+\end{enumerate}
+
+\subsection{Types}
+
+Types are either the simple types $t$, or the module system types $T$. We have already discussed the syntax and intended meaning of these types before, therefore we will not repeat it here. Here the important point is that we have to define type containment. In other words, we have to define a semantic interpretation of the simple types $t$ and a syntactic subtyping relation on module system types $T$. 
+
+\subsubsection{Semantic subtyping for simple types}
+The semantic interpretation of simple types $t$ is essentially the same as in \cite{CDV24,CD25}, with the addition of the two new forms $M.\tx$ and $\BX[\overline{\tx=t}]$. The first denotes the type $\tx$ exported by the module $M$, while the second denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
+
+Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
+Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations).
+
+For what concerns the interpretation of $M.\tx$, we can always use the type of the module names that form $M$ to deduce the simple type $M.\tx$ denotes. This is either a transparent type $t$, in which case we can define the interpretation of $M.\tx$ as the interpretation of the type $t$, or it is an opaque type, in which case we consider $M.\tx$ as a type variable (modulo the equivalence of paths defined in Figure~\ref{fig:pathequivalence}).
+
+
+\subsection{Syntactic subtyping for module system types}
+The subtyping relation on module system types $T$ is defined syntactically, since we do not have a semantic interpretation of these types. The main rules are the following:
+
 
 
 \subsection{Operational semantics or encoding?}
 \begin{figure}
-  \begin{tabular}{r c l}
-    $\tau$ & ::= & $t$ \\
-    & | & $\star$ \\
-    & | & $\left(\overline{N:\tau}\right)\rightarrow \tau$ \\
-    & | & $\kwlike\left(\overline{X\left[\overline{x=t}\right].}X\left[\overline{x=t}\right]\right)$ \\
-    & | & $\cap\overline{\tau}$\\
-    & | & $X\left[\overline{x=t}\right]$
+  \begin{tabular}{r c ll}
+    $\tau$ & ::= & $t$                 &\color{Gray} all simple types (including fully instantiated behaviours)\\
+    & | & $\left(\overline{N:\tau}\right)\rightarrow \tau$ &\color{Gray} types of functions on modules\\
+    & | & $\kwlike(M)$                 &\color{Gray}anonymous module type\\
+    & | & $\cap\overline{\tau}$        &\color{Gray} syntactic intersection (programmer should no see any difference with the semantic one) \\
+  %  & | & $X\left[\overline{\tx=t}\right]$\\
+    & | & $\star$            & \color{bordeaux} I would remove this production: we do not want to pass around types do we?\\
+                                      &&&\color{bordeaux} a milder form could be $(\tx:\star)\to\tau$ but do we want HO modules to be first class?\\        
+                                      &&&\color{bordeaux} or fully instantiated modules only?
   \end{tabular}
   \caption{Syntax of surface module types}
 \end{figure}
@@ -503,11 +528,11 @@ The main differences with respect to the Elixir syntax are the following:
   \begin{mathpar}
     \inferrule[EqPath-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon\cong\epsilon}\hfill
     \inferrule[EqPath-Add]
-      {\Sigma;\Gamma\vdash P_1\cong P_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
-      {\Sigma;\Gamma\vdash P_1.X\left[\overline{x_i=t_i}\right] \cong
-        P_2.X\left[\overline{x_i=t'_i}\right]}\\
+      {\Sigma;\Gamma\vdash M_1\cong M_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
+      {\Sigma;\Gamma\vdash M_1.X\left[\overline{x_i=t_i}\right] \cong
+        M_2.X\left[\overline{x_i=t'_i}\right]}\\
   \end{mathpar}
-  \caption{Rules for path equivalence}
+  \caption{Rules for path equivalence}\label{fig:pathequivalence}
 \end{figure}
 \begin{figure}
   \begin{mathpar}
@@ -630,11 +655,11 @@ The main differences with respect to the Elixir syntax are the following:
 \begin{figure}
   \begin{mathpar}
   \inferrule[Sub-BehBeh]{\overline{\Sigma;\Gamma\vdash t\cong t'}}
-    {\Sigma;\Gamma\vdash X\left[\overline{x=t}\right]\preccurlyeq X\left[\overline{x=t'}\right]}\hfill
+    {\Sigma;\Gamma\vdash \BX\left[\overline{x=t}\right]\preccurlyeq \BX\left[\overline{x=t'}\right]}\hfill
   \inferrule[Sub-BehMod]{\\}
-    {\Sigma;\Gamma\vdash X\left[\overline{x=t}\right]\preccurlyeq \Sigma(X)\left(\overline{t}\right)}\\
-  \inferrule[Sub-ModBeh]{\overline{t_i=\left\{\overline{D}\right\}_\xi.x_i}\\ X\in\xi}
-    {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq X\left[\overline{x_i=t_i}\right]}\hfill
+    {\Sigma;\Gamma\vdash \BX\left[\overline{x=t}\right]\preccurlyeq \Sigma(\BX)\left(\overline{t}\right)}\\
+  \inferrule[Sub-ModBeh]{\overline{t_i=\left\{\overline{D}\right\}_\xi.x_i}\\ \BX\in\xi}
+    {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq \BX\left[\overline{x_i=t_i}\right]}\hfill
   \inferrule[Sub-TypeType]{\Sigma;\Gamma\vdash t\cong t'}{[=t]\preccurlyeq[=t']}\hfill
   \inferrule[Sub-TypeOpaque]{\\}{\Sigma;\Gamma\vdash[=t]\preccurlyeq\star}\\
   \inferrule[Sub-ModMod]{\xi'\subseteq\xi\\

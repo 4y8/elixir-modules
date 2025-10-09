@@ -424,7 +424,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
-    & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$\\
+    & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
     & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{we can include this case in the above by adding $\star$ to $T$ and $\tx$ to $N$} \\
     & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
                   &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
@@ -480,6 +480,7 @@ For what concerns the interpretation of $M.\tx$, we can always use the type of t
 \subsubsection{Syntactic subtyping for module system types}
 The subtyping relation on module system types $T$ is defined syntactically, since we do not have a semantic interpretation of these types. The main rules are the following:
 
+\paragraph{Type good formation.} First of all we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{fig:wftypes}, which essentially check the following conditions: $(1)$ behaviours are completely instantiated (by well-formed types); $(2)$ a path $M.\tx$ points to a type; $(3)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(4)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
 
 
 \subsection{Operational semantics or encoding?}
@@ -536,14 +537,14 @@ The subtyping relation on module system types $T$ is defined syntactically, sinc
 \end{figure}
 \begin{figure}
   \begin{mathpar}
-      \inferrule[WF-Behave]{\Sigma;\Gamma\vdash X :
-        \overline{x:\star}\to \{D\} \\ \Sigma;\Gamma\vdash t_i:\star}
-                {\Sigma;\Gamma\vdash X[\overline{x_i=t_i}]}
+      \inferrule[WF-Behave]{\Sigma;\Gamma\vdash \BX :
+        \overline{\tx:\star}\to \{D\} \\ \Sigma;\Gamma\vdash t_i:\star}
+                {\Sigma;\Gamma\vdash \BX[\overline{\tx_i=t_i}]}
                 
-    \inferrule[WF-Field]{\Sigma;\Gamma\vdash P :
-      \left\{\kwtp x = t\right\}\cup
-      \left\{\kwopq x\right\}}
-              {\Sigma;\Gamma\vdash P.x}\hfill
+    \inferrule[WF-ExportType]{\Sigma;\Gamma\vdash M :
+      \left\{\kwtp \tx = t\right\}\cup
+      \left\{\kwopq \tx\right\}}
+              {\Sigma;\Gamma\vdash M.\tx}\hfill
     \inferrule[WF-Star]{\Sigma;\Gamma\vdash}
               {\Sigma;\Gamma\vdash\star}\\
     \inferrule[WF-Function]{\Sigma;\Gamma\vdash\\
@@ -566,7 +567,8 @@ The subtyping relation on module system types $T$ is defined syntactically, sinc
     \inferrule[WF-ModuleTypeCallback]{\overline{\Sigma;\Gamma\vdash T}\\\Sigma;\Gamma,x:\bigcap\overline{T}\vdash\left\{\overline{D}\right\}}
               {\Sigma;\Gamma\vdash\left\{(\kwclbk x:\bigcap\overline{T})\overline{D}\right\}}
   \end{mathpar}
-  \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}
+  \beppe{Change WF-ModuleTypeNames for the new syntax $\{\overline{D}\}_{\overline{\BX}}$}
+  \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}\caption{fig:wftypes}
 \end{figure}
 \begin{figure}
   \begin{mathpar}

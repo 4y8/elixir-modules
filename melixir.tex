@@ -386,9 +386,7 @@ The types for expressions are strictly stratified. There are the simple types, r
 
   In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\BX}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\BX_1}\cap...\cap{\BX_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
 
-  ...\textbf{TO BE CONTINUED}
-
-
+  
 
 
 \section{Formalization of the module system}
@@ -463,6 +461,8 @@ The main differences with respect to the Elixir syntax are the following:
   \item Likewise, the types of module bindings has been modified so that all the binding are of the form (\emph{name $:$ definition-type}). This is the main motivation for the change of syntax in point 2 above.
   \item Expression can be applied only to a list of names, and not to arbitrary expressions. It is however easy to encode the expression $E_0(E_1,...,E_n)$ as $\kwlet N_1 = E'_1 \kwin ... \kwlet N_n=E'_n\kwin E'_0(N_1,\dots,N_n)$, where $E'_i$ is the encoding of expression $E_i$, and $N_i$ are fresh names.  
 \end{enumerate}
+There is a clear mapping from the terms of Figure~\ref{fig:surfacesyntax} to those of Figure~\ref{fig:modulelangsyntax}, therefore we will not discuss this further.
+
 
 \subsection{Types}
 
@@ -548,7 +548,7 @@ The subtyping relation on module system types $T$ is defined syntactically, sinc
     \inferrule[WF-Star]{\Sigma;\Gamma\vdash}
               {\Sigma;\Gamma\vdash\star}\\
     \inferrule[WF-Function]{\Sigma;\Gamma\vdash\\
-    \forall 0\leq j\leq n.\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
+    \forall 0\leq j\leq n.\quad\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
               {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}\\
     \inferrule[WF-ModuleTypeNames]{\forall S_i\in\overline{S}.\Sigma(S_i)=\overline{x:\star}^i\mapsto \overline{D}^i\\
       \left\{\overline{D}\right\} \preccurlyeq
@@ -567,8 +567,11 @@ The subtyping relation on module system types $T$ is defined syntactically, sinc
     \inferrule[WF-ModuleTypeCallback]{\overline{\Sigma;\Gamma\vdash T}\\\Sigma;\Gamma,x:\bigcap\overline{T}\vdash\left\{\overline{D}\right\}}
               {\Sigma;\Gamma\vdash\left\{(\kwclbk x:\bigcap\overline{T})\overline{D}\right\}}
   \end{mathpar}
-  \beppe{Change WF-ModuleTypeNames for the new syntax $\{\overline{D}\}_{\overline{\BX}}$}
-  \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}\caption{fig:wftypes}
+Plus the rules stating that a simple type other than path and behaviour is well-formed if all its components are well-formed.
+
+  \beppe{Many modifications needed:\begin{itemize}\item Change WF-ModuleTypeNames for the new syntax $\{\overline{D}\}_{\overline{\BX}}$ \item well-formedness of paths must be done, and in two variants (according to whether we want instantiation at the end or at each step) \end{itemize}}
+  \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}
+  \label{fig:wftypes}
 \end{figure}
 \begin{figure}
   \begin{mathpar}

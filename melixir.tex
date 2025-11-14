@@ -184,9 +184,9 @@ $E$ &::= & $v$ \\
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
   %  & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$?\\
-    & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer should be able to denote this type only via (\textsf{Like }$M$)\\
+    & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer should be able to denote this type only via \textsf{like($M$)}\\
     $t$ & ::= & \texttt{integer()} \\
-    & | & $\texttt{module()}$ & top module type \\
+    & | & $\texttt{\textcolor{OrangeRed}{module()}}$ & top module type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\texttt{..., }\overline{f}\right\}$ & open record type\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ & closed record type \\
@@ -196,9 +196,10 @@ $E$ &::= & $v$ \\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
-    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  & shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]\\
-    $f$ & ::= & $\ell : t$ & mandatory field {\color{bordeaux}[should we use $T$ instead of $t$? Or $\BX[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\BX}}$?]}\\
-    & | & $\ell \;\texttt{=>}\; t$ & optional field {\color{bordeaux}[same questions as above]}\\
+    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  %& shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]
+    \\
+    $f$ & ::= & $\ell : t$ & mandatory field \\%{\color{bordeaux}[should we use $T$ instead of $t$? Or $\BX[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\BX}}$?]}\\
+    & | & $\ell \;\texttt{=>}\; t$ & optional field\\ %{\color{bordeaux}[same questions as above]}\\
     $D$ & ::= & $\kwmdl X : T$ \\
     & | & $\kwclbk x : \bigcap \overline{T}$ \\
     & | & $\kwopq \tx$ \\
@@ -425,7 +426,7 @@ For our formalization we will use a slightly different syntax, which is more con
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
-    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{this allows to pass around non instantiated parametric modules} \\
+    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{this allows to pass around non instantiated parametric modules ... do we want it?} \\
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
   %                &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\kwint$ \\

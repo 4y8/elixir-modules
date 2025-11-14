@@ -30,11 +30,13 @@
 \DeclareMathOperator{\kwclbk}{\textsf{\$callback}}
 \DeclareMathOperator{\kwfn}{\textsf{fn}}
 \DeclareMathOperator{\kwlike}{\textsf{like}}
+\DeclareMathOperator{\kwbeha}{\textsf{behaviour\!\_\!of}}
 \DeclareMathOperator{\kwint}{\textsf{int}}
 \DeclareMathOperator{\struct}{\textsf{struct}}
 \DeclareMathOperator{\dom}{\textsf{dom}} 
 \newcommand{\tx}{\textrm{x}}
 \newcommand{\BX}{\ensuremath{\mathcal{X}}}
+\newcommand{\BY}{\ensuremath{\mathcal{Y}}}
 \newcommand{\self}{\texttt{\_\_MODULE\_\_}}
 
 \author{Aghilas Y. Boussaa and Giuseppe Castagna}
@@ -384,7 +386,7 @@ The types for expressions are strictly stratified. There are the simple types, r
   One of the consequences of this stratification---actually, its main motivation---is that set-theoretic type connectives such as $\vee$, $\wedge$, and $\neg$ are not allowed in module system types, but only in simple types. The reason is that we do not have a semantic interpretation of the $T$ types and therefore we cannot define the set-theoretic connectives on them.
 
 
-  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type $\texttt{Like}\,M$ intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\BX}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\BX_1}\cap...\cap{\BX_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
+  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type \texttt{like($M$)} intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\BX}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\BX_1}\cap...\cap{\BX_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
 
   
 
@@ -423,9 +425,9 @@ For our formalization we will use a slightly different syntax, which is more con
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
-    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{we can include this case in the above by adding $\star$ to $T$ and $\tx$ to $N$} \\
-    & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
-                  &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
+    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{this allows to pass around non instantiated parametric modules} \\
+  %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
+  %                &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\kwint$ \\
     & | & $\texttt{module}$ & top module type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
@@ -436,8 +438,8 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
-    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour \beppe{Should it be moved to $T$? If not need semsub for it}\\
-    &&&\color{bordeaux} very interesting: this allows map fields to contain modules!\\[3mm]
+    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a like a new constant of the basic type module())\\
+    &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  
@@ -464,19 +466,48 @@ The main differences with respect to the Elixir syntax are the following:
 There is a clear mapping from the terms of Figure~\ref{fig:surfacesyntax} to those of Figure~\ref{fig:modulelangsyntax}, therefore we will not discuss this further.
 
 
+\bigskip 
+
+\beppe{Open question: what about recursion in module types? Do we want to allow it? If yes, how? Few gut feelings:
+\begin{itemize}
+  \item recursion must not traverse instantiations: that is we cannot have $\mu \alpha .\BX[\tx=\alpha[\tx=t]]$ (whatever this means);
+  \item we definitively want to allow mutually recursive modules, and therefore we want to allow mutually recursive module types; but this must be done in a controlled way. For instance, we do not want $M.t = M'.u$ and $M'.u = M.t$ as this creates an infinite loop when trying to expand the types; the question is does normal contractivity suffice here (infinite unfolding must traverse infinitely many arrows or map constructors)?
+\end{itemize}
+Shall we postpone the problem to future work? \textbf{In any case the current formalization does not handle mutually recursive modules since the well-formation rules require modules to be defined before being used.}}
 \subsection{Types}
 
-Types are either the simple types $t$, or the module system types $T$. We have already discussed the syntax and intended meaning of these types before, therefore we will not repeat it here. Here the important point is that we have to define type containment. In other words, we have to define a semantic interpretation of the simple types $t$ and a syntactic subtyping relation on module system types $T$. 
+Types are either the simple types $t$, or the module system types $T$. We have already discussed the syntax and intended meaning of these types before, therefore we will not repeat it here. Here the important point is that we have to define type containment. In other words, we have to define a semantic interpretation of the simple types $t$ and a syntactic subtyping relation on module system types $T$. This is possible since our module system types are stratified, and therefore we can define subtyping on the module types $T$ by structural induction on their syntax, using the semantic subtyping on simple types $t$ when needed.
+
+\subsubsection{Stratification}\label{sec:stratification}
+
+The important point of our type system is that types are strictly stratified: module system types $T$ can contain simple types $t$, but not vice versa. This stratification has several important consequences. On the positive side, it allows us to define a semantic interpretation of simple types $t$ as sets of values, and therefore a semantic subtyping relation on simple types $t$, and a syntactic subtyping relation on module system types $T$. On the negative side, the only proper subtypes of \texttt{module()} that can occur in simple types $t$ are (Boolean combinations of) fully instantiated behaviours $\BX[\overline{\tx=t}]$. This means that in a tuple or a map or a list of Elixir, only modules that implement some behaviour can occur in them. This may be a limitation which can be overcome by adding to behaviours the singleton types of fully instantiated modules. In practice, as we propose to add a \texttt{like($M$)} syntax to denote the anonymous structural type of a module $M$, we can think of adding to the simple types $t$ the types \texttt{behaviour\_of($M$)} denoting the singleton type of the fully instantiated module $M$. Of course while \texttt{behaviour\_of($M$)} can be used in simple types $t$, the type \texttt{like($M$)} can be used only in module system types $T$. This addition does not change the underlying type theory.
+
+
+
 
 \subsubsection{Semantic subtyping for simple types}
 The semantic interpretation of simple types $t$ is essentially the same as in \cite{CDV24,CD25}, with the addition of the two new forms $M.\tx$ and $\BX[\overline{\tx=t}]$. The first denotes the type $\tx$ exported by the module $M$, while the second denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
 
 Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
-Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.
+Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Adding the \texttt{behaviour\_of($M$)} singleton types as suggested in Section \ref{sec:stratification} does not change the theory as these behaviours are singletons, modulo the equivalence on $M$ (see Figure~\ref{fig:pathequivalence}).  Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.
 
 
 For what concerns the interpretation of $M.\tx$, we can always use the type of the module names that form $M$ to deduce the simple type $M.\tx$ denotes. This is either a transparent type $t$, in which case we can define the interpretation of $M.\tx$ as the interpretation of the type $t$, or it is an opaque type, in which case we consider $M.\tx$ as a type variable (modulo the equivalence of paths defined in Figure~\ref{fig:pathequivalence}). It is important to notice that $M.\tx$ must be well-formed, that is the last module in the path $M$ (or the also all the intermediates modules of the path if we use the more general syntax for paths) must be completely instantiated, so that we can always deduce the type bound to $\tx$.
 
+Formally, we have the following definitions.
+
+TODO:
+\begin{itemize}
+  \item Define the types $t$ coinductively with the conditions of contractivity and regularity.
+  \item Define the good formation of types: this shoud be a judgment of the form $????\vdash t:\star$ checking that all the paths $M.\tx$ occurring in $t$ are well formed (i.e., $M$ is completely instantiated and $\tx$ is defined in the module type of $M$) and all behaviours are completely instantiated (with well-formed types).
+  \item Define the interpretation of types $\llbracket t\rrbracket$ as sets of values. The one for behaviours needs type equivalence, the one for $M.\tx$ instead is not clear (indeed we avoided this problem by using coinductive definition but having paths in type implicitly introduces recursion variables). Maybe we can define it as follows:
+    \begin{itemize}
+      \item if $M.\tx$ is bound to a transparent type $t'$, then $\llbracket M.\tx\rrbracket = \llbracket t'\rrbracket$; (contractivity should guarantee that the definition is well founded)
+      \item if $M.\tx$ is bound to an opaque type, then $\llbracket M.\tx\rrbracket = $\texttt{var\_of($M$)}, where \texttt{var\_of($M$)} is a function that maps equivalent paths into the same fresh type variable (is this well defined? equivalence needs subtyping which needs interpretation of types... ).
+    \end{itemize}
+\end{itemize}
+
+\beppe{From here I suppose that we have definied the subtyping relation $t\leq t'$ on simple types, therefore their equivalence $t\simeq t'$ as $t\leq t'$ and $t'\leq t$, and and the good formation judgment $???\vdash t:\star$.}
 
 \subsubsection{Syntactic subtyping for module system types}
 The subtyping relation on module system types $T$ is defined syntactically, since we do not have a semantic interpretation of these types. This is possible since module system types are stratified and therefore we can define subtyping on the module types $T$ by structural induction on their syntax, using the semantic subtyping on simple types $t$ when needed.
@@ -485,13 +516,16 @@ The main rules are the following:
 
 \paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{fig:wftypes}, which essentially check the following conditions: $(1)$ behaviours are completely instantiated (by well-formed types); $(2)$ a path $M.\tx$ points to a type; $(3)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(4)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
 
+\beppe{TO BE CONTINUED}
 
-\subsection{Operational semantics or encoding?}
+
+\subsection{Operational semantics or encoding? That's the question}
 \begin{figure}
   \begin{tabular}{r c ll}
     $\tau$ & ::= & $t$                 &\color{Gray} all simple types (including fully instantiated behaviours)\\
     & | & $\left(\overline{N:\tau}\right)\rightarrow \tau$ &\color{Gray} types of functions on modules\\
     & | & $\kwlike(M)$                 &\color{Gray}anonymous module type\\
+    & | & $\kwbeha(M)$                 &\color{Gray}nominal behaviour type\\
     & | & $\cap\overline{\tau}$        &\color{Gray} syntactic intersection (programmer should no see any difference with the semantic one) \\
   %  & | & $X\left[\overline{\tx=t}\right]$\\
     & | & $\star$            & \color{bordeaux} I would remove this production: we do not want to pass around types do we?\\

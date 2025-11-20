@@ -113,7 +113,7 @@ The types \elix{request} and \elix{reply} are now parameters of the (module) typ
 In the paper "Principles of Elixir Type System"~\cite{CDV24}, we proposed to type the Genserver example as follows
 
 \begin{minted}[escapeinside=!!,fontsize=\footnotesize]{elixir}
-defmodule!\textbf{\color{red}type}! GenServer do
+defmodule!\textbf{\color{red}type}! GenServer do  !\elabel{genservertypebegin} !                     
   # Types
   !\textcolor{bordeaux}{\$param}! request
   !\textcolor{bordeaux}{\$param}! reply
@@ -125,24 +125,34 @@ defmodule!\textbf{\color{red}type}! GenServer do
   !\textcolor{typeGreen}{\$callback}! init : init_arg() -> {:ok, state} | :error      
   !\textcolor{typeGreen}{\$callback}! optional(handle_call) : !{\color{bordeaux}request}!, pid(), state -> result
   !\textcolor{typeGreen}{\$callback}! optional(handle_cast) : !{\color{bordeaux}request}!, state -> result        
-    !\etc!
-end
+    !{\etc}!
+end !\elabel{genservertypeend} !
 
-defmodule GenServer do
+defmodule GenServer do !\elabel{genserverbegin} !                     
+  # Functions
+  !\textcolor{typeGreen}{\$spec}! start : (Mod : GenServer[!{\color{bordeaux}request=a, reply=b}!],  arg : init_arg(), opt : Mod.options) -> on_start() !\elabel{starttype}!
+    when a: term(), b: term()
+  def start(Mod, arg, opt) do
+    !\etc!
+  end
  # Functions
  !\textcolor{typeGreen}{\$}! (Mod : GenServer[!{\color{bordeaux}request=a, reply=b}!],  arg : init_arg(), opt : Mod.options) -> on_start() !\elabel{starttype}!
     when a: term(), b: term()
  def start(Mod, arg, opt) do
     !\etc!
-end
+end !\elabel{genserverend}!
 \end{minted}
 Our current proposal that we describe in the rest of this document is very similar to the above, but much more detailed and formalized.
 
 \section{The new Elixir module system}
 An Elixir program is a sequence of module definitions. When a module definition contain a \elix{@callback} declaration, this module is considered a \emph{behaviour}. Behaviours are a kind of hybrid definitions since they define both a module type and, whenever they export functions, a module value. This ambiguity is resolved by the Elixir compiler, which will generate a module \emph{type} definition for the behaviour, and a module \emph{value} definition for the implementations exported by the behaviour.
 
+So for example the definition of the \elix{GenServer} behaviour above will generate both a module type definition for the module type \elix{GenServer} (lines \ref{genservertypebegin}--\ref{genservertypeend}), and a module value definition for the module \elix{GenServer} exporting the functions defined in the behaviour (e.g., \elix{start/3}) (lines \ref{genserverbegin}--\ref{genserverend}).
+
 For the sake of simplicity, we will suppose that this distinction is already done in the program. In the rest of the document, then, we will suppose that a program is a sequence of module type definitions, followed by the \texttt{Main} module definition, containing just a list of bindings. 
-\[\overline{\kwdefmt X \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm \textit{Main} \kwdo \overline{B} \kwend\]
+\[\overline{\kwdefmt \BX \kwdo \overline{P}\, \overline{D} \kwend}\kwdefm \textit{Main} \kwdo \overline{B} \kwend\]
+\beppe{Guillaume suggests: $\overline{\kwdefmt \BX \kwdo \overline{P}\, \overline{D} \kwend} \overline{B}$}
+
 Intuitively, the list of bindings $\overline{B}$ exported by the module \textit{Main} will be the list of the toplevel modules definitions of the program, whose general form is as follows: 
 \begin{equation}\label{eq:module}
 \kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend
@@ -276,7 +286,7 @@ defmodule StackModule do
   !\tp! (stack, elem) -> stack
   def push(s, e), do: [e|s] 
 
-  !\tp! (stack) -> {integer(), stack}
+  !\tp! (stack) -> {elem, stack}
   def pop(s), do: {hd(s), tl(s)} 
 
   # extra functions
@@ -334,7 +344,7 @@ There are two possible syntaxes for paths with instantiations.
  The former is more general (and it can be easily encoded in 1ML), but can be quite demanding to the programmer especially if the system requires all parametric modules in a path to be explicitly syntactic sugar.
 
 
- The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. This second choice however imposes to carefully define the scoping rules of types in a module. In particular:
+ The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. \beppe{Explain that this is important for refactoring} This second choice however imposes to carefully define the scoping rules of types in a module. In particular:
  \begin{itemize}  
   \item the parameters of a module $X$ are not visible in the modules nested in $X$;
   \item a type $\tx$ defined in a module $X$ is visible in all modules nested in $X$ only if all the types used in the definition of $\tx$ are visible in the nested modules.

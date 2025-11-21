@@ -206,8 +206,9 @@ $E$ &::= & $v$ \\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
-    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$  %& shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]
-    \\
+    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$ \\ %& shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]
+    & | & \textcolor{Gray}{\texttt{behaviour\_of($M$)}} & singleton type of M (modulo path equivalence)
+ \\
     $f$ & ::= & $\ell : t$ & mandatory field \\%{\color{bordeaux}[should we use $T$ instead of $t$? Or $\BX[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\BX}}$?]}\\
     & | & $\ell \;\texttt{=>}\; t$ & optional field\\ %{\color{bordeaux}[same questions as above]}\\
     $D$ & ::= & $\kwmdl X : T$ \\
@@ -450,7 +451,8 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\mathbb{O}$ \\
     & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
     & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a like a new constant of the basic type module())\\
-    &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\[3mm]
+    &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\
+    & | & \textcolor{Gray}{\texttt{behaviour\_of($M$)}} &\color{Gray} the singleton type of $M$ (modulo path equivalence)\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  

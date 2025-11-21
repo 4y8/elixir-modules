@@ -12,7 +12,9 @@
 \usepackage{bbold}
 % Add biblatex
 \usepackage[style=alphabetic,backend=biber]{biblatex}
-\addbibresource{biblio.bib} 
+\addbibresource{biblio.bib}
+
+\usepackage{calc}
 
 
 \DeclareMathOperator{\kwdefmt}{\textsf{defmodtype}}
@@ -445,7 +447,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
     & | & $t\vee t$ \\
-    & | & $t\wedge t$ \\
+    & | & $t\wedge t$ & \aghilas{we can remove this one}\\
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
@@ -519,6 +521,56 @@ TODO:
       \item if $M.\tx$ is bound to an opaque type, then $\llbracket M.\tx\rrbracket = $\texttt{var\_of($M$)}, where \texttt{var\_of($M$)} is a function that maps equivalent paths into the same fresh type variable (is this well defined? equivalence needs subtyping which needs interpretation of types... ).
     \end{itemize}
 \end{itemize}
+
+\aghilas{We start by copying the definition and interpretation of simple types
+  without modules from~\cite{Cas23}.
+
+  The set of types is the set of terms $t$ that are coinductively produced by
+  \[t::=b|t\to t| t\vee t|\neg t|\mathbb{O}\]
+  and that satisfy two additional constraints: (1) regularity: the term must
+  have a finite number of different sub-terms; (2) contractivity: every infinite
+  branch must contain an infinite number of occurrences of the product or arrow
+  type constructors.
+
+  The interpretation domain $\mathcal{D}$ is the set of terms produced by the
+  following grammar:
+  \[
+  d::= c|(d,d)|\{(d,d),\ldots,(d,d)\}.
+  \]
+  The typing relation can then be defined by induction (the rules for multi-arity is from~\cite{CDV24}):
+  \begin{align*}
+    (c:b)&=c\in\mathbb{B}(b)\\
+(\{(d_1^1, \ldots, d_1^m, d'_1),\ldots,(d_n^1, \ldots, d_n^m, d'_n)\}:(t^1,\ldots,t^m)\to t') &= \forall i\in\{1,\ldots,n\}
+    .\texttt{if}(\forall j\in \{1,\ldots,n\}. d_i^j:t^j)\texttt{then}(d'_i:t')\\
+    (d:t_1\vee t_2)&=(d:t_1)\texttt{or} (d:t_2)\\
+   % (d:t_1\wedge t_2)&=(d:t_1)\text{and} (d:t_2)\\
+    (d:\neg t)&=\texttt{not} (d:t)\\
+    (d:t)&=\texttt{false (otherwise)}.
+  \end{align*}
+
+  Support for records can be added without changing these definitions using
+  quasi-constant functions. Similarly, support for behaviour types can be added
+  without modifying the previous definitions by translating them to function
+  types. Suppose we have a function $\eta$ which associates an atom to an Elixir
+  identifier. Then we could represent $\mathcal{X}[\overline{x=t}]$ by the following type:
+\[
+(\texttt{:name}\to(\eta(\mathcal{X})\to\eta(\mathcal{X})))\wedge\bigwedge\overline{\eta(x)\to(t\to
+  t)}.
+\]
+
+Special constants could be used to avoid ordinary functions to be considered as
+module types. As $t\to t$ is a subtype of $t'\to t'$ if and only if $t\simeq t'$
+we have equivalence of parameters.
+
+For $M.x$ we probably need to use the typing rules as $M$ might be any
+expression. A possibility could be to replace the $x : \star$ in the
+declarations for opaque types by $x : [= t]$ where $t$ is a variable attached to
+the module (the same idea of \texttt{var\_of($M$)}). In this case, the
+interpretation of $M.x$ is the field named $x$ in the type of $M$ in all cases.
+
+But, the well-foundedness is blurred if the interpretation of types depends on
+the typing rules which depend themselves on the interpretation of types.
+}
 
 \beppe{From here I suppose that we have definied the subtyping relation $t\leq t'$ on simple types, therefore their equivalence $t\simeq t'$ as $t\leq t'$ and $t'\leq t$, and and the good formation judgment $???\vdash t:\star$.}
 

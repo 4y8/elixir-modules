@@ -570,7 +570,10 @@ interpretation of $M.x$ is the field named $x$ in the type of $M$ in all cases.
 
 But, the well-foundedness is blurred if the interpretation of types depends on
 the typing rules which depend themselves on the interpretation of types.
-}
+Actually, we may not want to define a semantic of $M.x$, but instead make sure,
+during type checking, that equivalence and subtyping is only checked on types
+that contain no subterm of the form $M.x$. These types could be replaced during
+type checking by types of the form described in the previous paragraph. }
 
 \beppe{From here I suppose that we have definied the subtyping relation $t\leq t'$ on simple types, therefore their equivalence $t\simeq t'$ as $t\leq t'$ and $t'\leq t$, and and the good formation judgment $???\vdash t:\star$.}
 

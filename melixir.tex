@@ -418,8 +418,8 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\tx = \textsf{type }t$                     &\color{Gray} transparent type or behaviour argument\\
     & | & $\tx = \textsf{opaque }t$                   &\color{Gray} opaque type\\[3mm]
     $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$                 &\color{Gray} local module\\
-    & | & $M.M$                                     &\color{Gray} imported module\\
-    & | & $X.M$                                     &\color{Gray} [alternative:] simplified imported module\\[3mm]
+ %   & | & $M.M$                                     &\color{Gray} imported module\\
+    & | & $X.M$                                     &\color{Gray} imported module (flat hierarchy): later we can study $M.M$\\[3mm]
    $N$ & ::= & $x$ \\
     & | & $X$ \\[3mm]
    $E$ &::= & $v$ \\
@@ -438,11 +438,13 @@ For our formalization we will use a slightly different syntax, which is more con
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
-    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{this allows to pass around non instantiated parametric modules ... do we want it?} \\
+    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{it allows to pass around non instantiated parametric modules ... do we want it?} \\
+     & | & \color{Gray} $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}}$ & isn't it enough to have only this one, instead of the previous one?\\[3mm] 
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
   %                &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\kwint$ \\
-    & | & $\texttt{module}$ & top module type \\
+    & | & $\texttt{mod}$ & top module type \\
+    & | & $\texttt{fun}$ & top function type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
     & | & $t\vee t$ \\
@@ -452,8 +454,8 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\mathbb{O}$ \\
     & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
     & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a like a new constant of the basic type module())\\
-    &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\
-    & | & \textcolor{Gray}{\texttt{behaviour\_of($M$)}} &\color{Gray} the singleton type of $M$ (modulo path equivalence)\\[3mm]
+  %  &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\
+    & | & \textcolor{OrangeRed}{\text{$\BH M$}} &\color{Gray} the singleton type of $M$ (modulo path equivalence)\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  
@@ -550,7 +552,7 @@ Contractivity also gives an induction principle on $\Types$ that allows us to ap
 below type connectives (union and negation),
 but not below type constructors (product and arrow).
 
-The types are essentially the same as in \cite{CDV24}, with the addition of the three new forms for modules: $\BX[\overline{\tx=t}]$, $\BH M$, and $M.\tx$. These additions require the definition of type well-formation: $\BX[\overline{\tx=t}]$ requires the full instantiation of $\BX$ (i.e., $\BX$ is a beahaviour with parameters $\overline\tx$ instantiated by well-formed types $\overline{t}$); $\BH M$ requires the path $M$ to be well-formed, namely that it effectively points to a fully instantiated module \beppe{In future we may study whether fully instantiation is necessary/desirable, at least in singleton modules but even in paths}; $M.\tx$ requires the path $M$ to be well-formed and the type $\tx$ to be defined in the module $M$. All the other types are well-formed if all their sub-terms are well-formed. Clearly well-formedness depends on definition of the modules and of the bahaviours. Therefore, type good formation is given by judment of the form $\Sigma,\Gamma\vdash t:\star$, where $\Sigma$ is a behaviour environment mapping behaviour names $\BX$ to their definition (of the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$) and $\Gamma$ is a typing environment mapping  ....
+The types are essentially the same as in \cite{CDV24}, with the addition of the three new forms for modules: $\BX[\overline{\tx=t}]$, $\BH M$, and $M.\tx$. These additions require the definition of type well-formation: $\BX[\overline{\tx=t}]$ requires the full instantiation of $\BX$ (i.e., $\BX$ is a beahaviour with parameters $\overline\tx$ instantiated by well-formed types $\overline{t}$); $\BH M$ requires the path $M$ to be well-formed, namely that it effectively points to a fully instantiated module \beppe{In future we may study whether fully instantiation is necessary/desirable, at least in singleton modules but even in paths}; $M.\tx$ requires the path $M$ to be well-formed and the type $\tx$ to be defined in the module $M$. All the other types are well-formed if all their sub-terms are well-formed. Clearly well-formedness depends on definition of the modules and of the behaviors. Therefore, type good formation is given by judgment of the form $\Sigma,\Gamma\vdash t:\star$, where $\Sigma$ is a behaviour environment mapping behaviour names $\BX$ to their definition (of the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$) and $\Gamma$ is a typing environment mapping expressions names (i.e., module names and expression variables) into module types (in particular it maps module names into types either of the form $\left\{\overline{D}\right\}_{\overline{\BX}}$ or of the form $(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}$. These environments must also be well-formed, meaning that all the types occurring in them are well-formed and fully instantiated where needed.
 
 
 

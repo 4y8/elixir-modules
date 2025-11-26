@@ -572,7 +572,8 @@ TODO:
   without modules from~\cite{Cas23}.
 
   The set of types is the set of terms $t$ that are coinductively produced by
-  \[t::=b\mid t\to t\mid t\vee t\mid\neg t\mid\mathbb{O}\mid t\times t\]
+  \[t::=b\mid t\to t\mid t\vee t\mid\neg t\mid\mathbb{O}\mid t\times t
+  \mid\alpha\]
   and that satisfy two additional constraints: (1) regularity: the term must
   have a finite number of different sub-terms; (2) contractivity: every infinite
   branch must contain an infinite number of occurrences of the product or arrow
@@ -605,8 +606,8 @@ TODO:
 \]
 
 Special constants could be used to avoid ordinary functions to be considered as
-module types. As $t\to t$ is a subtype of $t'\to t'$ if and only if $t\simeq t'$
-we have equivalence of parameters.
+module types. As $t\to t$ is a subtype of $t'\to t'$ if and only if $t\simeq t'$,
+we have equivalence of parameters when we have equivalence of module types.
 
 For $M.\tx$ we probably need to use the typing rules as $M$ might be any
 expression. A possibility could be to replace the $\tx : \star$ in the
@@ -619,12 +620,27 @@ the typing rules which depend themselves on the interpretation of types.
 Actually, we may not want to define a semantic of $M.\tx$, but instead make sure,
 during type checking, that equivalence and subtyping is only checked on types
 that contain no subterm of the form $M.\tx$. These types could be replaced during
-type checking by types of the form described in the previous paragraph. }
+type checking by types of the form described in the previous paragraph.
+
+For $M[\overline{\tx=t}].\tx$, we can associate a variable $\alpha$ to $M$ (we
+cannot pass non-fully instantiated module as arguments, so $M$ is a statically
+known). We can, then, reuse the previous encoding to ensure applicativity up to
+parameter equivalence:
+\[
+(\texttt{:name}\to(\alpha\to\alpha))\wedge\bigwedge\overline{\eta(x)\to(t\to
+  t)}.
+\] \paragraph{Applicative vs. Generative} Type application should be
+  applicative. We might want general application to be generative.
+}
 
 \beppe{From here I suppose that we have definied the subtyping relation $t\leq t'$ on simple types, therefore their equivalence $t\simeq t'$ as $t\leq t'$ and $t'\leq t$, and and the good formation judgment $???\vdash t:\star$.}
 
 \subsubsection{Syntactic subtyping for module system types}
-The subtyping relation on module system types $T$ is defined syntactically, since we do not have a semantic interpretation of these types. This is possible since module system types are stratified and therefore we can define subtyping on the module types $T$ by structural induction on their syntax, using the semantic subtyping on simple types $t$ when needed.
+The subtyping relation on module system types $T$ is defined syntactically,
+since we do not have a semantic interpretation of these types. This is possible
+since module system types are stratified and therefore we can define subtyping
+on the module types $T$ by structural induction on their syntax, using the
+semantic subtyping on simple types $t$ when needed.
 
 The main rules are the following:
 

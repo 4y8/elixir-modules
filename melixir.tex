@@ -36,9 +36,10 @@
 \DeclareMathOperator{\kwint}{\textsf{int}}
 \DeclareMathOperator{\struct}{\textsf{struct}}
 \DeclareMathOperator{\dom}{\textsf{dom}} 
-\newcommand{\tx}{\textrm{x}}
+\newcommand{\tx}{\text{\rm x}}
 \newcommand{\BX}{\ensuremath{\mathcal{X}}}
 \newcommand{\BY}{\ensuremath{\mathcal{Y}}}
+\newcommand{\BH}[1]{\langle #1\rangle}
 \newcommand{\self}{\texttt{\_\_MODULE\_\_}}
 
 \author{Aghilas Y. Boussaa and Giuseppe Castagna}
@@ -75,6 +76,7 @@ defmodule GenServer do
     !\etc!
  # Functions
  @spec start(!{\color{red}module()}!, any(), options()) :: on_start()          !\color{red}//higher-order\negspace\label{009}!
+ def start(Mod, arg, opt) do
     !\etc!
 end
 \end{minted}
@@ -132,15 +134,9 @@ end !\elabel{genservertypeend} !
 
 defmodule GenServer do !\elabel{genserverbegin} !                     
   # Functions
-  !\textcolor{typeGreen}{\$spec}! start : (Mod : GenServer[!{\color{bordeaux}request=a, reply=b}!],  arg : init_arg(), opt : Mod.options) -> on_start() !\elabel{starttype}!
+  !\textcolor{typeGreen}{\$}! (Mod : GenServer[!{\color{bordeaux}request=a, reply=b}!],  arg : init_arg(), opt : Mod.options) -> on_start() !\elabel{starttype}!
     when a: term(), b: term()
   def start(Mod, arg, opt) do
-    !\etc!
-  end
- # Functions
- !\textcolor{typeGreen}{\$}! (Mod : GenServer[!{\color{bordeaux}request=a, reply=b}!],  arg : init_arg(), opt : Mod.options) -> on_start() !\elabel{starttype}!
-    when a: term(), b: term()
- def start(Mod, arg, opt) do
     !\etc!
 end !\elabel{genserverend}!
 \end{minted}
@@ -245,15 +241,17 @@ end
 \end{minted}
 
 \subsection{Expressions}
-In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ranged over by $E$---to represent Elixir. The syntax is kept minimal since we want to focus on the module system. So our expressions form a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions).  Elixir uses the notation $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ for records (maps) with fields $\ell$ initialized to $E$, and we reproduce it here faithfully. For type-cases we use instead the expression $(E\in t)?E_1:E_2$ which evaluates to $E_1$ or to $E_2$ according to whether $E$ returns a value of type $t$ or not; this is not valid Elixir syntax, but it serves a similar purpose. The syntax is essentially the one by~\cite{CDV24} with three notable additions (in red in the figure) to extend expressions to modules: $M$, denoting the module (reached by the path) $M$, \self{} which returns the name of the (innermost) current module, and $M.x$ denoting the function or constant $x$ exported by the module $M$. The other expressions are standard, though their syntax may not be familiar to a reader not acquainted with Elixir. In particular, functions in Elixir are prefixed by their type declaration which, in general, is an intersection of (multi-arity) arrow types. Thus, we use $\$\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i} \kwfn \overline{x} \rightarrow E$ to denote the anonymous function of parameters $\overline{x}$, body $E$ and annotated with the intersection type $\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i}$ meaning that when the function is applied to arguments of type $\overline{t_i}$, we expect a result of type $t_i$. Anonymous functions are values, and we notice that besides the form $\$\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i} \kwfn \overline{x} \rightarrow E$ above, which is the one introduced in~\cite{CDV24}, we added in red a second form $\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$ that differs from  the previous one by the annotation that precedes it. These annotations are the new ones we introduce for the module system, which have the particularity that the types in the domain may be named, and that the arrows are on module types; in particular these can use the names specified for the domains (e.g., the code in line~\ref{starttype} declares that the type of the third argument of \elix{start()}, is \elix{Mod.option}, that is the \elix{option} type exported by the first argument). We will give more details in Section~\ref{sec:types}.
+In Figure~\ref{fig:surfacesyntax} we specified a minimal set of expressions---ranged over by $E$---to represent Elixir. The syntax is kept minimal since we want to focus on the module system. So our expressions form a simple functional language with records (in Elixir parlance ``maps'') and a type-case expression (in lieu of more general case expressions).  Elixir uses the notation $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ for records (maps) with fields $\ell$ initialized to $E$, and we reproduce it here faithfully. For type-cases we use instead the expression $(E\in t)?E_1:E_2$ which evaluates to $E_1$ or to $E_2$ according to whether $E$ returns a value of type $t$ or not; this is not valid Elixir syntax, but it serves a similar purpose. The syntax is essentially the one by~\cite{CDV24} with three notable additions (in red in the figure) to extend expressions to modules: $M$, denoting the module (reached by the path) $M$, \self{} which returns the name of the (innermost) current module, and $M.x$ denoting the function or constant $x$ exported by the module $M$. The other expressions are standard, though their syntax may not be familiar to a reader not acquainted with Elixir. In particular, functions in Elixir are prefixed by their type declaration which, in general, is an intersection of (multi-arity) arrow types. Thus, we use $\$\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i} \kwfn \overline{x} \rightarrow E$ to denote the anonymous function of parameters $\overline{x}$, body $E$ and annotated with the intersection type $\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i}$ meaning that when the function is applied to arguments of type $\overline{t_i}$, we expect a result of type $t_i$. Anonymous functions are values, and we notice that besides the form $\$\bigwedge_{i\in I} \overline{(\,\overline{\,t_i\,}\,)\rightarrow t_i} \kwfn \overline{x} \rightarrow E$ above, which is the one introduced in~\cite{CDV24}, we added in red a second form $\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$ that differs from  the previous one by the annotation that precedes it. These annotations are the new ones we introduce for the module system, which have the particularity that the types in the domain may be named, and that the arrows are on module types; in particular these can use the names specified for the domains (e.g., the code in line~\ref{starttype} declares that the type of the third argument of \elix{start()}, is \elix{Mod.option}, that is the \elix{option} type exported by the first argument of the function \elix{start()}, whatever that will be). We will give more details in Section~\ref{sec:types}.
 
-Let us examine in detail the definition of a module, as given in \eqref{eq:module}.
-
+Let us examine in detail the definition of a module, as given in \eqref{eq:module}:
+%
+\[\kwdefm X \kwdo \overline{P}\, \overline{S}\, \overline{B} \kwend\]
+%
 The definition of a module $X$ is a sequence of three blocks: the list $\overline P$ of type parameters of the form $\kwprm \tx$, the list $\overline S$ of behaviours declarations of the form  $\kwbvr \BX$, and the definition of the module itself, which is a sequence of bindings $\overline{B}$. In Elixir, these three blocks may be interleaved, but for the sake of simplicity we will suppose that they are grouped together in the order given above. The module type parameters are used to define the type of the module and are instantiated when the module is used; the list of behaviours specifies the behaviours that this module implements. 
 
 The bindings $\overline{B}$ are used to define the actual implementation of the module, which may include definitions of types, values, and modules.
 
-In a \emph{type binding}, a type $t$ is bound to a name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$ respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible also outside the module and is in general used to instantiate the parameters of the behaviours the module implements. Thus, for instance if the \elix{StackB} is defined as the above, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
+In a \emph{type binding}, a type $t$ is bound to a (type) name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$, respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible also outside the module and it is also used to instantiate the parameters of the behaviours the module implements. Thus, for instance if the behaviour \elix{StackB} is defined as the above, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
 \begin{minted}{elixir}
 defmodule StackInt do            
   !\tp!behaviour StackB                       # declare that the module implements the behaviour StackB 
@@ -299,9 +297,9 @@ defmodule StackModule do
   !\tp! (X: StackB[elem=elem], sx: X.stack, Y: StackB[elem=elem], sy: Y.stack) -> Y.stack
   def move(X, sx, Y, sy) do: Y.push(sy,X.top(sx))
 \end{minted}
-Now the module \elix{StackModule} is parametric in the type of its elements, and to use it we must instanciate as in \elix{StackModule[elem=integer()].new()} which returns a value of (opaque) type \elix{StackModule[elem=integer()].elem}.
+Now the module \elix{StackModule} is parametric in the type of its elements, and to use it we must instantiate as in \elix{StackModule[elem=integer()].new()} which returns a value of (opaque) type \elix{StackModule[elem=integer()].elem}.
 
-\begin{remark} In order to reduce verbosity on can imagine using the aliasing mechanism of Elixir to define a shorter name for the module type \elix{StackB[elem=integer()]} as in
+\begin{remark} In order to reduce verbosity one can imagine using the aliasing mechanism of Elixir to define a shorter name for the module type \elix{StackB[elem=integer()]} as in
 %\begin{minted}{elixir}
 
 \elix{alias StackModule[elem=integer()], as: StackMInt}
@@ -336,7 +334,7 @@ Finally, a \emph{module binding} is a simple definition of the form $\kwdefm X \
 While having parametric behaviours is quite straightforward, the addition of parametric modules has several consequences on the syntax and semantics of the module system.
 
 
-\paragraph{Syntax.} The first important consequence is that this requires an important modification of the current Elixir syntax. If we just allow parametric behaviours and not also parametric modules, then the modification of the syntax of the expressions is really minimal: while currently a module definition just defines transparent types (e.g., \elix{@type state() :: term()}) and opaque ones (\elix{@opaque state() :: term()} the new type definitions just change this syntax to align to the Elixir new syntax of types, which specify if a type is exported transparently (i.e., both name and definition: $\kwtp \tx = t$) or opaquely (i.e., just its name: $\kwopq \tx = t$), and nothing else for what concerns the expression syntax (in particular modules with this choice are denoted by paths of module identifiers: $X_1.X_2.\cdots{.}X_n$, just like in current Elixir).
+\paragraph{Syntax.} The first important consequence is that this requires an important modification of the current Elixir syntax. If we just allow parametric behaviours and not also parametric modules, then the modification of the syntax of the expressions is really minimal: while currently a module definition just defines transparent types (e.g., \elix{@type state() :: term()}) and opaque ones (\elix{@opaque state() :: term()}), the new type definitions just change this syntax to align to the Elixir new syntax of types, which specify if a type is exported transparently (i.e., both name and definition: $\kwtp \tx = t$) or opaquely (i.e., just its name: $\kwopq \tx = t$), and nothing else for what concerns the expression syntax (in particular modules with this choice are denoted by paths of module identifiers: $X_1.X_2.\cdots{.}X_n$, just like in current Elixir).
 
 If we also allow parametric modules, then we must extend the syntax of module expressions to declare the parameters $\overline P$ in the form $\kwprm \tx$ (easy), but \textbf{above all} we have to change the syntax of paths to allow instantiations of the parameters of modules. This is done by the syntax $X[\overline{\tx=t}]$ denoting the module $X$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$. 
 There are two possible syntaxes for paths with instantiations.
@@ -344,7 +342,7 @@ There are two possible syntaxes for paths with instantiations.
 \item The instantiation may occur at any level of a path, as in $X_1[\overline{\tx=t}].X_2[\overline{\tx=t}].X_3[\overline{\tx=t}]$, or
 \item The instantiation can only occur at the end of the path, as in $X_1.X_2.X_3[\overline{\tx=t}]$, that is for the innermost module only.
 \end{enumerate}
- The former is more general (and it can be easily encoded in 1ML), but can be quite demanding to the programmer especially if the system requires all parametric modules in a path to be explicitly syntactic sugar.
+ The former is more general (and it can be easily encoded in 1ML), but can be quite demanding to the programmer, especially if the system requires all parametric modules in a path to be explicitly syntactic sugar.
 
 
  The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. \beppe{Explain that this is important for refactoring} This second choice however imposes to carefully define the scoping rules of types in a module. In particular:
@@ -362,7 +360,7 @@ If do not want to extend the current Elixir syntax for expressions to allow para
 
 
 \paragraph{Inference.} A second important consequence of parametric modules is that we have to decide how much inference we want to (and can) do for the type arguments of a parametrized module. This is more a matter of programming style than of formalization, though the choice may have some consequences on the formalization.
-In the example of \elix{StackModule} above, for instance, we have to decide whether we want the programmer to always specify the type parameters of a module when this is used, as in \elix{StackModule[elem=integer()].new()}, or whether we want the system to be able to infer the type parameters from the context, as in \elix{StackModule.push(StackModule.new(),5)}. The latter is more convenient for the programmer, but requires a more complex type system. In particular, it requires a form of local type inference, since the type of \elix{StackModule.new()} must be inferred to be \elix{StackModule[elem=integer()].stack} from the context in which it is used (the first argument of \elix{push}). 
+In the example of \elix{StackModule} above, for instance, we have to decide whether we want the programmer always to specify the type parameters of a module when this is used, as in \elix{StackModule[elem=integer()].new()}, or whether we want the system to be able to infer the type parameters from the context, as in \elix{StackModule.push(StackModule.new(),5)}. The latter is more convenient for the programmer, but requires a more complex type system. In particular, it requires a form of local type inference, since the type of \elix{StackModule.new()} must be inferred to be \elix{StackModule[elem=integer()].stack} from the context in which it is used (the first argument of \elix{push}). This also poses some problems of deciding how precisely the type parameters must be inferred. For instance, in \elix{StackModule.push(StackModule.new(),:a)}, should the system infer \elix{elem=atom()} or \elix{elem=:a}? The former is more general (and probably what a programmer would expect), but the latter is more precise.
 
 The easy way is to always require the programmer to specify the type parameters of a module when this is used and extend the aliasing mechanism of Elixir to allow the programmer to define local aliases for instantiated modules, as in
 \begin{minted}{elixir}
@@ -377,6 +375,7 @@ This is simpler to formalize, but may be a bit too demanding for the programmer.
 
 
 \subsection{Types}\label{sec:types}
+\beppe{This section must be rewritten on the lines discussed in Section~\ref{sec:stratification}.}
 
 The types for expressions are strictly stratified. There are the simple types, ranged over by $t$ which are essentially  those of \cite{CDV24} with a single syntactic extension, $M.\tx$ denoting the simple type exported by the module $M$ as $\tx$. 
 %
@@ -447,7 +446,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
     & | & $t\vee t$ \\
-    & | & $t\wedge t$ & \aghilas{we can remove this one}\\
+%    & | & $t\wedge t$ & \aghilas{we can remove this one}\\
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
@@ -509,7 +508,54 @@ Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the se
 
 For what concerns the interpretation of $M.\tx$, we can always use the type of the module names that form $M$ to deduce the simple type $M.\tx$ denotes. This is either a transparent type $t$, in which case we can define the interpretation of $M.\tx$ as the interpretation of the type $t$, or it is an opaque type, in which case we consider $M.\tx$ as a type variable (modulo the equivalence of paths defined in Figure~\ref{fig:pathequivalence}). It is important to notice that $M.\tx$ must be well-formed, that is the last module in the path $M$ (or the also all the intermediates modules of the path if we use the more general syntax for paths) must be completely instantiated, so that we can always deduce the type bound to $\tx$.
 
-Formally, we have the following definitions.
+Formally, we have the following definition of pretypes, where we replaced product types for record types. Types will be defined as the well-formed pretypes.
+\begin{definition}[Pretypes]\label{def:types}
+  Let $X$ range over module names, $\BX$ over behaviour names, $\tx$ over type names, and $M$ over module paths.
+  The set $ \Types $ of \emph{pretypes} is the set of terms $ t $
+  that are coinductively produced by the following grammar
+  \[
+    t ::= b \mid t \times t \mid (\overline{t}) \to t \mid  M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M\mid
+    t \lor t \mid \lnot t \mid \Empty\mid \alpha
+  \]
+  and that satisfy two additional constraints: $(1)$ \emph{regularity}:
+          the term must have a finite number of different sub-terms; $(2)$ \emph{contractivity}:
+          every infinite branch must contain an infinite number
+          of occurrences of the product or arrow type constructors.
+\end{definition}
+(Pre)types include  basic types $b$ (including at least the basic type \textsf{int} for integers, \textsf{mod} for the top module type, and \textsf{fun} for the top function type). They include the product type $t_1 \times t_2$ for products, the arrow type $(\overline{t_1}) \to t_2$ for multi-arity functions, the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$. They also include the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
+
+We use the abbreviations
+$
+  t_1 \land t_2 \eqdef \lnot (\lnot t_1 \lor \lnot t_2)
+$, $
+  t_1 \setminus t_2 \eqdef t_1 \land (\lnot t_2)
+$, and $
+  \Any \eqdef \lnot \Empty
+$ (in particular, $\Any$ is the supertype of all types, denoted in Elixir by \elix{term()}).
+We refer to $ b $, $ \times $, and $ \to $ as \emph{type
+constructors}, and to $ \lor $, $ \lnot $, $ \land $, and $ \setminus
+$ as \emph{type connectives.} As customary, connectives have priority
+over constructors and negation has the highest priority---e.g., $\neg
+s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
+
+Coinduction accounts for recursive types, and it is coupled with a
+contractivity condition which excludes infinite terms
+that do not have a meaningful interpretation as types or sets of values:
+for instance, the trees satisfying the equation
+$ t = t \lor t $
+(which gives no information on which values are in it)
+or $ t = \lnot t $ (which cannot represent any set of values) do not
+satisfy the contractivity condition.
+Contractivity also gives an induction principle on $\Types$ that allows us to apply the induction hypothesis
+below type connectives (union and negation),
+but not below type constructors (product and arrow).
+
+The types are essentially the same as in \cite{CDV24}, with the addition of the three new forms for modules: $\BX[\overline{\tx=t}]$, $\BH M$, and $M.\tx$. These additions require the definition of type well-formation: $\BX[\overline{\tx=t}]$ requires the full instantiation of $\BX$ (i.e., $\BX$ is a beahaviour with parameters $\overline\tx$ instantiated by well-formed types $\overline{t}$); $\BH M$ requires the path $M$ to be well-formed, namely that it effectively points to a fully instantiated module \beppe{In future we may study whether fully instantiation is necessary/desirable, at least in singleton modules but even in paths}; $M.\tx$ requires the path $M$ to be well-formed and the type $\tx$ to be defined in the module $M$. All the other types are well-formed if all their sub-terms are well-formed. Clearly well-formedness depends on definition of the modules and of the bahaviours. Therefore, type good formation is given by judment of the form $\Sigma,\Gamma\vdash t:\star$, where $\Sigma$ is a behaviour environment mapping behaviour names $\BX$ to their definition (of the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$) and $\Gamma$ is a typing environment mapping  ....
+
+
+
+
+\noindent\rule{\textwidth}{0.4pt}
 
 TODO:
 \begin{itemize}

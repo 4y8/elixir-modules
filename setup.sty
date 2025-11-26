@@ -1,9 +1,17 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{setup}[2025/04/25 v0.1]
 \providecommand\phantomsection{}
+\usepackage{mathtools}
 
-\newtheorem{remark}{Remark}[section]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter {theorem}
+ \newtheorem {definition}  {Definition} [section]
+ \newtheorem {property}    [definition] {Property}
+ \newtheorem {theorem}     [definition] {Theorem}
+ \newtheorem {remark}     [definition] {Remark}
+ \newtheorem {proposition} [definition] {Proposition}
+ \newtheorem {lemma}       [definition] {Lemma}
+ \newtheorem {corollary}   [definition] {Corollary}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Colors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{colortbl}
@@ -14,7 +22,8 @@
 \definecolor{celestialblue}{rgb}{0.29, 0.59, 0.82}
 \definecolor{code}{rgb}{0.96,0.96,.99}%{228,237,239}
 \definecolor{snow}{RGB}{246, 248, 248}
-\definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}
+\definecolor{cadmiumgreen}{rgb}{0.0, 0.42, 0.24}\DeclareMathAlphabet {\MyMathBb} {U} {bbold} {m} {n}
+
 \definecolor{violet1}{RGB}{246,242,247}
 \definecolor{violet2}{RGB}{226,226,242}
 
@@ -97,3 +106,23 @@
 
 	\newcommand{\tp}{\textcolor{cadmiumgreen}\$}
 %%%%%%%%%%%%%%%%%%%%%%END MINTED
+
+
+
+%%%%SOME SYMBOLS%%%%%%%%%%%%%%%%
+\DeclareFontFamily{U}{mathb}{}
+\DeclareFontShape{U}{mathb}{m}{n}{
+  <-5.5> mathb5
+  <5.5-6.5> mathb6
+  <6.5-7.5> mathb7
+  <7.5-8.5> mathb8
+  <8.5-9.5> mathb9
+  <9.5-11.5> mathb10
+  <11.5-> mathb12
+}{}
+\DeclareSymbolFont{mathb}{U}{mathb}{m}{n}
+\DeclareMathAlphabet {\MyMathBb} {U} {bbold} {m} {n}
+\newcommand {\Types} {\mathcal{T}}
+\newcommand {\Empty} {\ensuremath{\MyMathBb{0}}}
+\newcommand {\Any} {\ensuremath{\MyMathBb{1}}}
+\newcommand {\eqdef}  {\hbox{\;\;$=$\hspace*{-2.94mm}\raise5pt\hbox{\rm\scriptsize def}\hspace*{1mm}}}

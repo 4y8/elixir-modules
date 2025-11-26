@@ -572,7 +572,7 @@ TODO:
   without modules from~\cite{Cas23}.
 
   The set of types is the set of terms $t$ that are coinductively produced by
-  \[t::=b|t\to t| t\vee t|\neg t|\mathbb{O}\]
+  \[t::=b\mid t\to t\mid t\vee t\mid\neg t\mid\mathbb{O}\mid t\times t\]
   and that satisfy two additional constraints: (1) regularity: the term must
   have a finite number of different sub-terms; (2) contractivity: every infinite
   branch must contain an infinite number of occurrences of the product or arrow
@@ -581,7 +581,7 @@ TODO:
   The interpretation domain $\mathcal{D}$ is the set of terms produced by the
   following grammar:
   \[
-  d::= c|(d,d)|\{(d,d),\ldots,(d,d)\}.
+  d::= c\mid(d,d)\mid\{(d,d),\ldots,(d,d)\}.
   \]
   The typing relation can then be defined by induction (the rules for multi-arity is from~\cite{CDV24}):
   \begin{align*}
@@ -608,17 +608,17 @@ Special constants could be used to avoid ordinary functions to be considered as
 module types. As $t\to t$ is a subtype of $t'\to t'$ if and only if $t\simeq t'$
 we have equivalence of parameters.
 
-For $M.x$ we probably need to use the typing rules as $M$ might be any
-expression. A possibility could be to replace the $x : \star$ in the
-declarations for opaque types by $x : [= t]$ where $t$ is a variable attached to
+For $M.\tx$ we probably need to use the typing rules as $M$ might be any
+expression. A possibility could be to replace the $\tx : \star$ in the
+declarations for opaque types by $\tx : [= t]$ where $t$ is a variable attached to
 the module (the same idea of \texttt{var\_of($M$)}). In this case, the
-interpretation of $M.x$ is the field named $x$ in the type of $M$ in all cases.
+interpretation of $M.\tx$ is the field named $\tx$ in the type of $M$ in all cases.
 
 But, the well-foundedness is blurred if the interpretation of types depends on
 the typing rules which depend themselves on the interpretation of types.
-Actually, we may not want to define a semantic of $M.x$, but instead make sure,
+Actually, we may not want to define a semantic of $M.\tx$, but instead make sure,
 during type checking, that equivalence and subtyping is only checked on types
-that contain no subterm of the form $M.x$. These types could be replaced during
+that contain no subterm of the form $M.\tx$. These types could be replaced during
 type checking by types of the form described in the previous paragraph. }
 
 \beppe{From here I suppose that we have definied the subtyping relation $t\leq t'$ on simple types, therefore their equivalence $t\simeq t'$ as $t\leq t'$ and $t'\leq t$, and and the good formation judgment $???\vdash t:\star$.}

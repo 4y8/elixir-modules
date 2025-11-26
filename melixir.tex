@@ -508,11 +508,11 @@ Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the se
 
 For what concerns the interpretation of $M.\tx$, we can always use the type of the module names that form $M$ to deduce the simple type $M.\tx$ denotes. This is either a transparent type $t$, in which case we can define the interpretation of $M.\tx$ as the interpretation of the type $t$, or it is an opaque type, in which case we consider $M.\tx$ as a type variable (modulo the equivalence of paths defined in Figure~\ref{fig:pathequivalence}). It is important to notice that $M.\tx$ must be well-formed, that is the last module in the path $M$ (or the also all the intermediates modules of the path if we use the more general syntax for paths) must be completely instantiated, so that we can always deduce the type bound to $\tx$.
 
-Formally, we have the following definitions, where we replaced product types for record types.
+Formally, we have the following definition of pretypes, where we replaced product types for record types. Types will be defined as the well-formed pretypes.
 \begin{definition}[Pretypes]\label{def:types}
   Let $X$ range over module names, $\BX$ over behaviour names, $\tx$ over type names, and $M$ over module paths.
   The set $ \Types $ of \emph{pretypes} is the set of terms $ t $
-  that are coinductively produced by
+  that are coinductively produced by the following grammar
   \[
     t ::= b \mid t \times t \mid (\overline{t}) \to t \mid  M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M\mid
     t \lor t \mid \lnot t \mid \Empty\mid \alpha
@@ -522,7 +522,7 @@ Formally, we have the following definitions, where we replaced product types for
           every infinite branch must contain an infinite number
           of occurrences of the product or arrow type constructors.
 \end{definition}
-Types include  basic types $b$ (including at least the basic type \textsf{int} for integers, \textsf{mod} for the top module type, and \textsf{fun} for the top function type). They include the product type $t_1 \times t_2$ for products, the arrow type $(\overline{t_1}) \to t_2$ for multi-arity functions, the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$. They also include the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
+(Pre)types include  basic types $b$ (including at least the basic type \textsf{int} for integers, \textsf{mod} for the top module type, and \textsf{fun} for the top function type). They include the product type $t_1 \times t_2$ for products, the arrow type $(\overline{t_1}) \to t_2$ for multi-arity functions, the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$. They also include the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
 
 We use the abbreviations
 $
@@ -550,6 +550,12 @@ Contractivity also gives an induction principle on $\Types$ that allows us to ap
 below type connectives (union and negation),
 but not below type constructors (product and arrow).
 
+The types are essentially the same as in \cite{CDV24}, with the addition of the three new forms for modules: $\BX[\overline{\tx=t}]$, $\BH M$, and $M.\tx$. These additions require the definition of type well-formation: $\BX[\overline{\tx=t}]$ requires the full instantiation of $\BX$ (i.e., $\BX$ is a beahaviour with parameters $\overline\tx$ instantiated by well-formed types $\overline{t}$); $\BH M$ requires the path $M$ to be well-formed, namely that it effectively points to a fully instantiated module \beppe{In future we may study whether fully instantiation is necessary/desirable, at least in singleton modules but even in paths}; $M.\tx$ requires the path $M$ to be well-formed and the type $\tx$ to be defined in the module $M$. All the other types are well-formed if all their sub-terms are well-formed. Clearly well-formedness depends on definition of the modules and of the bahaviours. Therefore, type good formation is given by judment of the form $\Sigma,\Gamma\vdash t:\star$, where $\Sigma$ is a behaviour environment mapping behaviour names $\BX$ to their definition (of the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$) and $\Gamma$ is a typing environment mapping  ....
+
+
+
+
+\noindent\rule{\textwidth}{0.4pt}
 
 TODO:
 \begin{itemize}

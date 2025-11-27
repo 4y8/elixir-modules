@@ -204,8 +204,8 @@ $E$ &::= & $v$ \\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
-    & | & $\textcolor{OrangeRed}{\mathcal{X}[\,\overline{\tx=t}\,]}$ \\ %& shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]
-    & | & \textcolor{Gray}{\texttt{behaviour\_of($M$)}} & singleton type of M (modulo path equivalence)
+    & | & $\textcolor{OrangeRed}{\BX[\,\overline{\tx=t}\,]}$ \\ %& shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]
+    & | & \textcolor{Gray}{$\langle M\rangle$} & singleton type of M (modulo path equivalence)
  \\
     $f$ & ::= & $\ell : t$ & mandatory field \\%{\color{bordeaux}[should we use $T$ instead of $t$? Or $\BX[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\BX}}$?]}\\
     & | & $\ell \;\texttt{=>}\; t$ & optional field\\ %{\color{bordeaux}[same questions as above]}\\
@@ -600,8 +600,9 @@ TODO:
   Support for records can be added without changing these definitions using
   quasi-constant functions. Similarly, support for behaviour types can be added
   without modifying the previous definitions by translating them to function
-  types. Suppose we have a function $\eta$ which associates an atom to an Elixir
-  identifier. Then we could represent $\mathcal{X}[\overline{x=t}]$ by the following type:
+  types. Suppose we have a injective function $\eta$ which associates an atom to
+  an Elixir identifier. Then we could represent $\mathcal{X}[\overline{x=t}]$ by
+  the following type:
 \[
 (\texttt{:name}\to(\eta(\mathcal{X})\to\eta(\mathcal{X})))\wedge\bigwedge\overline{\eta(x)\to(t\to
   t)}.
@@ -631,7 +632,29 @@ parameter equivalence:
 \[
 (\texttt{:name}\to(\alpha\to\alpha))\wedge\bigwedge\overline{\eta(x)\to(t\to
   t)}.
-\] \paragraph{Applicative vs. Generative} Type application should be
+\]
+
+Actually the previous encoding might work but the proof is more complex than a
+similar encoding using products (or even records if we allow ourselves to use
+them):
+\[
+(\texttt{:name}\to(\alpha\to\alpha))\times\bigtimes\overline{\eta(x)\to(t\to
+  t)}.
+\]
+
+\begin{lemma}
+  Let ${(a_i)}_{1\leq i\leq n}$ and ${(b_j)}_{1\leq j\leq m}$ be two list of
+  distinct atom types, and let ${(t_i)}_{1\leq i\leq n}$ and ${(t_j)}_{1\leq
+    j\leq m}$ be two lists of types. Then:
+  \[
+  \bigwedge_{i=1}^n a_i\to(t_i\to t_i)\simeq \bigwedge_{j=1}^m b_j\to(t'_j\to t'_j),
+  \]
+  if and only if $m=n$, and there exists a permutation $\sigma\in\mathfrak{S}_n$
+  such that for all $1\leq i\leq n$, we have $a_i=b_{\sigma{i}}$ and $t_i\simeq
+  t'_{\sigma(i)}$.
+\end{lemma}
+
+\paragraph{Applicative vs. Generative} Type application should be
   applicative. We might want general application to be generative.
 }
 
@@ -649,6 +672,57 @@ The main rules are the following:
 \paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{fig:wftypes}, which essentially check the following conditions: $(1)$ behaviours are completely instantiated (by well-formed types); $(2)$ a path $M.\tx$ points to a type; $(3)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(4)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
 
 \beppe{TO BE CONTINUED}
+
+\aghilas{ We have two different environments: $(1)$ the behaviour environment
+  (noted $\Sigma$) maps behaviour names ($\BX,\BY,\ldots$) to behaviours:
+  $\mathcal{B}$; $(2)$ the value environment (noted $\Gamma$) which contains
+  four types of mapping: $D$. We only use the opaque case when checking the good
+  formation of behaviours, we may want to remove them. A value environment is,
+  in fact, a list of declarations, the good formation rules for both are thus
+  the same.
+
+  We define the following good formation judgments:
+  \begin{itemize}
+    \item Good formation of behaviour environments: $\Sigma\vdash\Sigma'$ (Figure~\ref{wf-behenv});
+    \item Good formation of value envirnoments: $\Sigma;\Gamma\vdash\Gamma'$ (Figure~\ref{wf-valenv});
+    \item Good formation of module system types: $\Sigma;\Gamma\vdash T$ (Figure~\ref{wf-modtype});
+    \item Good formation of types: $\Sigma;\Gamma\vdash t$ (Figure~\ref{wf-type});
+    \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}\}$.
+  \end{itemize}
+\begin{figure}[ht]
+  \begin{mathpar}
+    \inferrule[WFBehEnv-Empty]{\\}{\vdash\epsilon}\hfill
+    \inferrule[WFBehEnv-Beh]{\Sigma;\overline{\tx:\star}\vdash\{\overline{D}\}_\BX}{\Sigma\vdash\Sigma,\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}}
+  \end{mathpar}
+  \caption{Good formation of behaviour environments}\label{wf-behenv}
+\end{figure}
+\begin{figure}[ht]
+  \begin{mathpar}
+    \inferrule[WFValEnv-Empty]{\\}{\Sigma;\epsilon\vdash\epsilon}\hfill
+    \inferrule[WFValEnv-Opaque]{\\}{\Sigma;\Gamma\vdash\Gamma,\tx:\star}\hfill
+    \inferrule[WFValEnv-Concrete]{\Sigma;\Gamma\vdash t}{\Sigma;\Gamma\vdash\Gamma,\tx:[= t]}\\
+    \inferrule[WFValEnv-Value]{\Sigma;\Gamma\vdash T}{\Sigma;\Gamma\vdash\Gamma,X:T}
+  \end{mathpar}
+  \caption{Good formation of value environments}\label{wf-valenv}
+\end{figure}
+\begin{figure}[ht]
+  \begin{mathpar}
+    \inferrule[WFModType-Arrow]{\forall 0\leq j\leq n.\quad\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
+              {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}
+    \inferrule[WFModType-TArrow]{\Sigma;\Gamma,\overline{\tx:\star}\vdash T}{\Sigma;\Gamma\vdash(\overline{\tx:\star})\to T}
+    \inferrule[WFModType-Module]{\\}{\\}
+
+  \end{mathpar}
+  \caption{Good formation of module system types}\label{wf-modtype}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{mathpar}
+    \inferrule[WFType-Behaviour]{\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\\overline{\Sigma;\Gamma\vdash t}}{\Sigma;\Gamma\vdash\BX[\overline{x=t}]}
+  \end{mathpar}
+  \caption{Good formation of types}\label{wf-type}
+\end{figure}
+}
 
 
 \subsection{Operational semantics or encoding? That's the question}

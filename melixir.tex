@@ -689,6 +689,20 @@ The main rules are the following:
     \item Good formation of types: $\Sigma;\Gamma\vdash t$ (Figure~\ref{wf-type});
     \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}\}$.
   \end{itemize}
+
+  As pretypes are defined coinductively, we cannot give inductive rules for good
+  formation. A pretype is well-formed in a context $\Sigma;\Gamma$ if the
+  following conditions hold for all of its subterms $t$:
+  \begin{itemize}
+    \item if $t$ is of the form $\BX[\overline{\tx=t}]$, then there exists
+      $\overline{D}$ such that
+      $\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma$;
+    \item if $t$ is of the form $\langle M\rangle$, then $\Sigma;\Gamma\vdash
+      M:T$ where $T$ is a module type;
+    \item if $t$ is of the form $M.\tx$, then
+      $\Sigma;\Gamma\vdash\{\ldots,\tx:\star,\ldots\}$ or
+      $\Sigma;\Gamma\vdash\{\ldots,\tx:[=t],\ldots\}$.
+  \end{itemize}
 \begin{figure}[ht]
   \begin{mathpar}
     \inferrule[WFBehEnv-Empty]{\\}{\vdash\epsilon}\hfill
@@ -719,6 +733,7 @@ The main rules are the following:
 \begin{figure}[ht]
   \begin{mathpar}
     \inferrule[WFType-Behaviour]{\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\\overline{\Sigma;\Gamma\vdash t}}{\Sigma;\Gamma\vdash\BX[\overline{x=t}]}
+    \inferrule[]{\\}{\\}
   \end{mathpar}
   \caption{Good formation of types}\label{wf-type}
 \end{figure}

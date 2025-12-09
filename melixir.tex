@@ -686,11 +686,16 @@ The main rules are the following:
     \item Good formation of behaviour environments: $\Sigma\vdash\Sigma'$ (Figure~\ref{wf-behenv});
     \item Good formation of value envirnoments: $\Sigma;\Gamma\vdash\Gamma'$ (Figure~\ref{wf-valenv});
     \item Good formation of module system types: $\Sigma;\Gamma\vdash T$ (Figure~\ref{wf-modtype});
-    \item Good formation of types: $\Sigma;\Gamma\vdash t$ (Figure~\ref{wf-type});
-    \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}\}$.
+    \item Good formation of types: $\Sigma;\Gamma\vdash t:\star$ (Figure~\ref{wf-type});
+    \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}_{\mathcal{X}}\}$.
   \end{itemize}
 
-  As pretypes are defined coinductively, we cannot give inductive rules for good
+  We also provide an algorithmic way to determine good formation of types in
+  Figure~\ref{wf-type-algo}. Here $\mathcal{C}$ is a set of pretype. To check
+  for the good formation of a given pretype, we start by taking it empty. The
+  rules only apply when the rule \textsc{WFTypeAlgo-Known} cannot be applied.
+
+  This has to change: As pretypes are defined coinductively, we cannot give inductive rules for good
   formation. A pretype is well-formed in a context $\Sigma;\Gamma$ if the
   following conditions hold for all of its subterms $t$:
   \begin{itemize}
@@ -739,11 +744,110 @@ The main rules are the following:
 
 \begin{figure}[ht]
   \begin{mathpar}
-    \inferrule[WFType-Behaviour]{\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\\overline{\Sigma;\Gamma\vdash t}}{\Sigma;\Gamma\vdash\BX[\overline{x=t}]}
-    \inferrule[]{\\}{\\}
+  \inferrule[WFType-Base]{\\}
+    {\Sigma;\Gamma\vdash b:\star}\hfill
+  \inferrule[WFType-Empty]{\\}
+    {\Sigma;\Gamma\vdash\Empty:\star}\hfill
+  \inferrule[WFType-Variable]{\\}
+    {\Sigma;\Gamma\vdash \alpha:\star}\\
+  \inferrule[WFType-Union]
+    {\Sigma;\Gamma\vdash t:\star\\\Sigma;\Gamma\vdash t':\star}
+    {\Sigma;\Gamma\vdash t\vee t':\star}\hfill
+  \inferrule[WFType-Times]
+    {\Sigma;\Gamma\vdash t:\star\\\Sigma;\Gamma\vdash t':\star}
+    {\Sigma;\Gamma\vdash t\times t':\star}\hfill
+  \inferrule[WFType-Function]
+    {\overline{\Sigma;\Gamma\vdash t:\star}\\\Sigma;\Gamma\vdash t':\star}
+    {\Sigma;\Gamma\vdash(\overline{t})\to t':\star}
+\\
+  \inferrule[WFType-Behaviour]
+    {\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\
+     \overline{\Sigma;\Gamma\vdash t:\star}}
+    {\Sigma;\Gamma\vdash\BX[\overline{x=t}]:\star}\hfill
+  \inferrule[WFType-Singleton]
+    {\Sigma;\Gamma\vdash M:\texttt{mod}}
+    {\Sigma;\Gamma\vdash\langle M\rangle:\star}\\
+  \inferrule[WFType-Projection]
+    {\\}{\\}{\text{\aghilas{We need to choose a way to consider projection in path.}}}
   \end{mathpar}
   \caption{Good formation of types}\label{wf-type}
 \end{figure}
+
+\begin{figure}[ht]
+  \begin{mathpar}
+  \inferrule[WFTypeAlgo-Base]{\\}
+    {\Sigma;\Gamma;\mathcal{C}\vdash b:\star}\hfill
+  \inferrule[WFTypeAlgo-Empty]{\\}
+    {\Sigma;\Gamma;\mathcal{C}\vdash\Empty:\star}\hfill
+  \inferrule[WFTypeAlgo-Variable]{\\}
+    {\Sigma;\Gamma;\mathcal{C}\vdash \alpha:\star}\\
+  \inferrule[WFTypeAlgo-Union]
+    {\Sigma;\Gamma;\{t\vee t'\}\cup\mathcal{C}\vdash t:\star\\
+     \Sigma;\Gamma;\{t\vee t'\}\cup\mathcal{C}\vdash t':\star}
+    {\Sigma;\Gamma;\mathcal{C}\vdash t\vee t':\star}\hfill
+  \inferrule[WFTypeAlgo-Times]
+    {\Sigma;\Gamma;\{t\times t'\}\cup\mathcal{C}\vdash t:\star\\
+     \Sigma;\Gamma;\{t\times t'\}\cup\mathcal{C}\vdash t':\star}
+    {\Sigma;\Gamma;\mathcal{C}\vdash t\times t':\star}
+\\
+  \inferrule[WFTypeAlgo-Function]
+    {\overline{\Sigma;\Gamma;\{(\overline{t})\to t'\}\cup\mathcal{C}
+        \vdash t:\star}\\
+     \Sigma;\Gamma;\{(\overline{t})\to t'\}\cup\mathcal{C}\vdash t':\star}
+    {\Sigma;\Gamma;\mathcal{C}\vdash(\overline{t})\to t':\star}
+  \inferrule[WFTypeAlgo-Known]
+    {t\in\mathcal{C}}{\Sigma;\Gamma;\mathcal{C}\vdash t:\star}
+\\
+  \inferrule[WFTypeAlgo-Behaviour]
+    {\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\
+     \overline{\Sigma;\Gamma;;\{\BX[\overline{x=t}]\}\cup\mathcal{C}\vdash t:\star}}
+    {\Sigma;\Gamma;\mathcal{C}\vdash\BX[\overline{x=t}]:\star}\hfill
+  \inferrule[WFTypeAlgo-Singleton]
+    {\Sigma;\Gamma\vdash M:\texttt{mod}}
+    {\Sigma;\Gamma;\mathcal{C}\vdash\langle M\rangle:\star}\\
+  \inferrule[WFTypeAlgo-Projection]
+    {\\}{\\}{\text{\aghilas{We need to choose a way to consider projection in path.}}}
+  \end{mathpar}
+  \caption{Algorithmic rules for good formation of types}\label{wf-type-algo}
+\end{figure}
+
+
+
+\begin{figure}[ht]
+  \begin{mathpar}
+    \inferrule[Path-Empty]{\\}{\\}
+  \end{mathpar}
+  \caption{Good formation and typing of paths}
+\end{figure}
+
+\begin{figure}
+  \begin{mathpar}
+    \inferrule[Bind-DefModule]
+       {\Sigma; \Gamma,\overline{\tx:\star}\vdash\overline{B}:\overline{D}\\
+        \Sigma; \Gamma,\left(X:(\overline{\tx:\star})\rightarrow
+        \{\overline{D}\}_\BX\right)\vdash
+        \overline{B_0}:\overline{D_0}}
+       {\Sigma; \Gamma\vdash(X=\Lambda(\overline{\tx:\star}).\{\overline{B}\}_{\BX}) \overline{B_0}:\left(X:(\overline{\tx:\star})\rightarrow
+        \{\overline{D}\}_\BX\right)\overline{D_0}}\\
+    \inferrule[Bind-Type]
+       {\Sigma;\Gamma\vdash t:\star\\
+        \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(\kwtp x=t\right)\overline{B}: \left(x :[=t]\right)\overline{D}}\\
+    \inferrule[Bind-Opaque]
+       {\Sigma;\Gamma\vdash t:\star\\
+        \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(\kwopq x = t\right)\overline{B}:  \left(x:\star\right)\overline{D}}\\
+    \inferrule[Bind-Empty]
+       {\\}{\Sigma;\Gamma\vdash\epsilon:\epsilon}\hfill
+    \inferrule[Bind-Value]
+       {\Sigma;\Gamma\vdash v:\cap\overline{T}\\
+        \Sigma;\Gamma,x:\cap\overline{T}\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:
+        \left(x:\cap\overline{T}\right)\overline{D}}
+  \end{mathpar}
+  \caption{Typing rules for bindings \fbox{$\Sigma;\Gamma\vdash\overline{B}:\overline{D}$}}
+\end{figure}
+
 }
 
 

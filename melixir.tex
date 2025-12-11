@@ -295,7 +295,7 @@ defmodule StackModule do
   def top(s), do: hd(s)
 
   !\tp! (X: StackB[elem=elem], sx: X.stack, Y: StackB[elem=elem], sy: Y.stack) -> Y.stack
-  def move(X, sx, Y, sy) do: Y.push(sy,X.top(sx))
+  def move(X, sx, Y, sy), do: Y.push(sy, X.top(sx))
 \end{minted}
 Now the module \elix{StackModule} is parametric in the type of its elements, and to use it we must instantiate as in \elix{StackModule[elem=integer()].new()} which returns a value of (opaque) type \elix{StackModule[elem=integer()].elem}.
 
@@ -342,7 +342,7 @@ There are two possible syntaxes for paths with instantiations.
 \item The instantiation may occur at any level of a path, as in $X_1[\overline{\tx=t}].X_2[\overline{\tx=t}].X_3[\overline{\tx=t}]$, or
 \item The instantiation can only occur at the end of the path, as in $X_1.X_2.X_3[\overline{\tx=t}]$, that is for the innermost module only.
 \end{enumerate}
- The former is more general (and it can be easily encoded in 1ML), but can be quite demanding to the programmer, especially if the system requires all parametric modules in a path to be explicitly syntactic sugar.
+ The former is more general (and it can be easily encoded in 1ML), but can be quite demanding to the programmer, especially if the system requires all parametric modules in a path to be explicitly instantiated.
 
 
  The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. \beppe{Explain that this is important for refactoring} This second choice however imposes to carefully define the scoping rules of types in a module. In particular:
@@ -979,7 +979,7 @@ Plus the rules stating that a simple type other than path and behaviour is well-
       \Sigma;\Gamma\vdash\overline{t}
     }{\Sigma;\Gamma\vdash P.X\left[\overline{x=t}\right]:\left\{\overline{S} ; \overline{\kwtp x=t}\, \overline{B} \right\}}
   \end{mathpar}
-  \caption{Well-formdness rules for paths}
+  \caption{Well-formedness rules for paths}
 \end{figure}
 \begin{figure}
   \begin{mathpar}

@@ -832,22 +832,43 @@ The main rules are the following:
     \inferrule[Bind-Type]
        {\Sigma;\Gamma\vdash t:\star\\
         \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(\kwtp x=t\right)\overline{B}: \left(x :[=t]\right)\overline{D}}\\
+       {\Sigma;\Gamma\vdash\left(x=\textsf{type }t\right)\overline{B}: \left(x :[=t]\right)\overline{D}}\hfill
     \inferrule[Bind-Opaque]
        {\Sigma;\Gamma\vdash t:\star\\
         \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(\kwopq x = t\right)\overline{B}:  \left(x:\star\right)\overline{D}}\\
+       {\Sigma;\Gamma\vdash\left(x =\textsf{opaque }t\right)\overline{B}:  \left(x:\star\right)\overline{D}}\\
     \inferrule[Bind-Empty]
        {\\}{\Sigma;\Gamma\vdash\epsilon:\epsilon}\hfill
     \inferrule[Bind-Value]
        {\Sigma;\Gamma\vdash v:\cap\overline{T}\\
         \Sigma;\Gamma,x:\cap\overline{T}\vdash\overline{B}:\overline{D}}
        {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:
-        \left(x:\cap\overline{T}\right)\overline{D}}
+        \left(x:\cap\overline{T}\right)\overline{D}}\hfill
+\inferrule[Bind-Private]
+       {\Sigma;\Gamma\vdash v:\cap\overline{T}\\
+        \Sigma;\Gamma,x:\cap\overline{T}\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(x=\textsf{private }v\right)\overline{B}:\overline{D}}
   \end{mathpar}
   \caption{Typing rules for bindings \fbox{$\Sigma;\Gamma\vdash\overline{B}:\overline{D}$}}
 \end{figure}
 
+
+\begin{figure}
+  \begin{mathpar}
+  \inferrule[Sub-BehMod]{\\}
+    {\Sigma;\Gamma\vdash \BX\left[\overline{x=t}\right]\preccurlyeq \Sigma(\BX)\left(\overline{t}\right)}\\
+  \inferrule[Sub-ModBeh]{\overline{t_i=\left\{\overline{D}\right\}_\xi.x_i}\\ \BX\in\xi}
+    {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq \BX\left[\overline{x_i=t_i}\right]}\hfill
+  \inferrule[Sub-ModMod]{\xi'\subseteq\xi\\
+    \left\{\overline{D}\right\}\preccurlyeq \left\{\overline{D'}\right\}}
+            {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq\left\{\overline{D'}\right\}_{\xi'}}\hfill
+    \inferrule[Sub-Elixir]{t\preccurlyeq t'}{\Sigma;\Gamma\vdash t\preccurlyeq t'}\hfill
+    \inferrule[Sub-Intersection]{\exists i\in I, T_i\preccurlyeq T}{\Sigma;\Gamma\vdash\cap_I\overline{T_i}\preccurlyeq T}\\
+    \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,X_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
+      \Sigma;\Gamma,\overline{X_i:R_i}\vdash T'\preccurlyeq R'}{\Sigma;\Gamma\vdash\left(X_i:T_i\right)\to T'\preccurlyeq\left(X_i:R_i\right)\to R'}
+  \end{mathpar}
+  \caption{Subtyping rules}
+\end{figure}
 }
 
 

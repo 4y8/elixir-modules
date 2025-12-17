@@ -873,6 +873,15 @@ The main rules are the following:
 
 
 \subsection{Operational semantics or encoding? That's the question}
+
+There are four possible ways to proceed from here, listed here in the order of complexity (from the simplest to the most complex):
+\begin{itemize}
+  \item Define an encoding of the module system into 1-ML. This would be the simplest solution. It would give both the typing and the operational semantics for free. However, it would not give a direct understanding of the module system, and it would be difficult to reason directly on it (for instance to give meaningful typing error messages).
+  \item Define a type system for the module system and an encoding into 1-ML. Then prove that well typed programs are encoded into well-typed 1-ML expressions This would give a direct understanding of the module system type system, and it would be possible to reason directly on it, but the operational semantics would still be given by the encoding.
+  \item Define a type system and an operational semantics for the module system and an encoding into 1-ML. Then prove that well typed programs are encoded into well-typed 1-ML expressions and that the operational semantics is simulated by the encoding. This would give a direct understanding of both the type system and the operational semantics of the module system, but it would be more complex to define and to prove. (My preference would be for this solution.)
+  \item Define a type system and an operational semantics for the module system and prove type soundness directly on the module system. This would be the most complex solution, but it would give a direct understanding of both the type system and the operational semantics of the module system. It would also lack the connection with 1-ML.
+\end{itemize}
+
 \begin{figure}
   \begin{tabular}{r c ll}
     $\tau$ & ::= & $t$                 &\color{Gray} all simple types (including fully instantiated behaviours)\\

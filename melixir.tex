@@ -35,8 +35,9 @@
 \DeclareMathOperator{\kwbeha}{\textsf{behaviour\!\_\!of}}
 \DeclareMathOperator{\kwint}{\textsf{int}}
 \DeclareMathOperator{\struct}{\textsf{struct}}
-\DeclareMathOperator{\dom}{\textsf{dom}} 
+\DeclareMathOperator{\dom}{\textsf{dom}}
 \newcommand{\tx}{\text{\rm x}}
+\newcommand{\ty}{\text{\rm y}}
 \newcommand{\BX}{\ensuremath{\mathcal{X}}}
 \newcommand{\BY}{\ensuremath{\mathcal{Y}}}
 \newcommand{\BH}[1]{\langle #1\rangle}
@@ -655,8 +656,9 @@ them):
 \end{lemma}
 
 \paragraph{Applicative vs. Generative} Type application should be
-  applicative. We might want general application to be generative.
-}
+  applicative. We might want general application (i.e. when a function returns a
+  module) to be generative by default. We could add an option to let users
+  declare that a function should be applicative (how to decide equality ?). }
 
 \beppe{From here I suppose that we have definied the subtyping relation $t\leq t'$ on simple types, therefore their equivalence $t\simeq t'$ as $t\leq t'$ and $t'\leq t$, and and the good formation judgment $???\vdash t:\star$.}
 
@@ -871,6 +873,33 @@ The main rules are the following:
 \end{figure}
 }
 
+\subsubsection{Eliminating type projection}
+Before semantic interpretation, we want to remove types of the form $M.\tx$. A
+solution could be to replace opaque type declarations during typing with special
+variables that reflect the desired typing discipline. Then, if $M$ is of type
+$\textsf{mod}$, its types have no field of the form $\tx:\star$. \aghilas{This might
+cause problems with behaviours. I will check when more things are written cleanly.}
+
+We introduce a new kind of variable that we can encode using existing types: to
+each module declaration of the form
+$X=\Lambda(\overline{x:\star}).{\{\ldots,\ty,\ldots\}}_{\overline{\BX}}$, we
+associate a type $\langle X,\overline{\tx=t},y\rangle$ --- this description only
+works when $X$ is a top level module but can extend to take paths into account
+with the same kind of encoding. Two such types are equivalent when the $X$ and
+$y$ fields are equal and the corresponding $\tx$ types are equivalent. We
+replace the bindings of opaque types in declarations
+$X:(\overline{x:\star})\rightarrow{\{\overline{D}\}}_{\overline{\BX}}$ with
+transparent types of the form given earlier.
+
+For function types that return modules, replace (recursively to take into
+account submodules) each declaration $\tx:\star$ with $\tx:[=\alpha]$ where
+$\alpha$ is a fresh type variable. This forces generativity of all function
+returning modules.
+
+When type checking a function that has a module as one of its argument, all the
+behaviours should be unrolled to only have a type
+$X:{\{\overline{D}\}}_{\overline{\BX}}$. Then we apply replace all opaque types
+with fresh variables.
 
 \subsection{Operational semantics or encoding? That's the question}
 \begin{figure}

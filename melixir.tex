@@ -571,91 +571,7 @@ TODO:
     \end{itemize}
 \end{itemize}
 
-\aghilas{We start by copying the definition and interpretation of simple types
-  without modules from~\cite{Cas23}.
-
-  The set of types is the set of terms $t$ that are coinductively produced by
-  \[t::=b\mid t\to t\mid t\vee t\mid\neg t\mid\mathbb{O}\mid t\times t
-  \mid\alpha\]
-  and that satisfy two additional constraints: (1) regularity: the term must
-  have a finite number of different sub-terms; (2) contractivity: every infinite
-  branch must contain an infinite number of occurrences of the product or arrow
-  type constructors.
-
-  The interpretation domain $\mathcal{D}$ is the set of terms produced by the
-  following grammar:
-  \[
-  d::= c\mid(d,d)\mid\{(d,d),\ldots,(d,d)\}.
-  \]
-  The typing relation can then be defined by induction (the rules for multi-arity is from~\cite{CDV24}):
-  \begin{align*}
-    (c:b)&=c\in\mathbb{B}(b)\\
-(\{(d_1^1, \ldots, d_1^m, d'_1),\ldots,(d_n^1, \ldots, d_n^m, d'_n)\}:(t^1,\ldots,t^m)\to t') &= \forall i\in\{1,\ldots,n\}
-    .\texttt{if}(\forall j\in \{1,\ldots,n\}. d_i^j:t^j)\texttt{then}(d'_i:t')\\
-    (d:t_1\vee t_2)&=(d:t_1)\texttt{or} (d:t_2)\\
-   % (d:t_1\wedge t_2)&=(d:t_1)\text{and} (d:t_2)\\
-    (d:\neg t)&=\texttt{not} (d:t)\\
-    (d:t)&=\texttt{false (otherwise)}.
-  \end{align*}
-
-  Support for records can be added without changing these definitions using
-  quasi-constant functions. Similarly, support for behaviour types can be added
-  without modifying the previous definitions by translating them to function
-  types. Suppose we have a injective function $\eta$ which associates an atom to
-  an Elixir identifier. Then we could represent $\mathcal{X}[\overline{x=t}]$ by
-  the following type:
-\[
-(\texttt{:name}\to(\eta(\mathcal{X})\to\eta(\mathcal{X})))\wedge\bigwedge\overline{\eta(x)\to(t\to
-  t)}.
-\]
-
-Special constants could be used to avoid ordinary functions to be considered as
-module types. As $t\to t$ is a subtype of $t'\to t'$ if and only if $t\simeq t'$,
-we have equivalence of parameters when we have equivalence of module types.
-
-For $M.\tx$ we probably need to use the typing rules as $M$ might be any
-expression. A possibility could be to replace the $\tx : \star$ in the
-declarations for opaque types by $\tx : [= t]$ where $t$ is a variable attached to
-the module (the same idea of \texttt{var\_of($M$)}). In this case, the
-interpretation of $M.\tx$ is the field named $\tx$ in the type of $M$ in all cases.
-
-But, the well-foundedness is blurred if the interpretation of types depends on
-the typing rules which depend themselves on the interpretation of types.
-Actually, we may not want to define a semantic of $M.\tx$, but instead make sure,
-during type checking, that equivalence and subtyping is only checked on types
-that contain no subterm of the form $M.\tx$. These types could be replaced during
-type checking by types of the form described in the previous paragraph.
-
-For $M[\overline{\tx=t}].\tx$, we can associate a variable $\alpha$ to $M$ (we
-cannot pass non-fully instantiated module as arguments, so $M$ is a statically
-known). We can, then, reuse the previous encoding to ensure applicativity up to
-parameter equivalence:
-\[
-(\texttt{:name}\to(\alpha\to\alpha))\wedge\bigwedge\overline{\eta(x)\to(t\to
-  t)}.
-\]
-
-Actually the previous encoding might work but the proof is more complex than a
-similar encoding using products (or even records if we allow ourselves to use
-them):
-\[
-(\texttt{:name}\to(\alpha\to\alpha))\times\bigtimes\overline{\eta(x)\to(t\to
-  t)}.
-\]
-
-\begin{lemma}
-  Let ${(a_i)}_{1\leq i\leq n}$ and ${(b_j)}_{1\leq j\leq m}$ be two list of
-  distinct atom types, and let ${(t_i)}_{1\leq i\leq n}$ and ${(t_j)}_{1\leq
-    j\leq m}$ be two lists of types. Then:
-  \[
-  \bigwedge_{i=1}^n a_i\to(t_i\to t_i)\simeq \bigwedge_{j=1}^m b_j\to(t'_j\to t'_j),
-  \]
-  if and only if $m=n$, and there exists a permutation $\sigma\in\mathfrak{S}_n$
-  such that for all $1\leq i\leq n$, we have $a_i=b_{\sigma{i}}$ and $t_i\simeq
-  t'_{\sigma(i)}$.
-\end{lemma}
-
-\paragraph{Applicative vs. Generative} Type application should be
+\aghilas{\paragraph{Applicative vs. Generative} Type application should be
   applicative. We might want general application (i.e. when a function returns a
   module) to be generative by default. We could add an option to let users
   declare that a function should be applicative (how to decide equality ?). }
@@ -678,38 +594,21 @@ The main rules are the following:
 \aghilas{ We have two different environments: $(1)$ the behaviour environment
   (noted $\Sigma$) maps behaviour names ($\BX,\BY,\ldots$) to behaviours:
   $\mathcal{B}$; $(2)$ the value environment (noted $\Gamma$) which contains
-  four types of mapping: $D$. We only use the opaque case when checking the good
-  formation of behaviours, we may want to remove them. A value environment is,
-  in fact, a list of declarations, the good formation rules for both are thus
-  the same.
+  four types of mappings: $D$.
+  A value environment is, in fact, a list of declarations, the good formation
+  rules for both are thus the same.
 
   We define the following good formation judgments:
   \begin{itemize}
     \item Good formation of behaviour environments: $\Sigma\vdash\Sigma'$ (Figure~\ref{wf-behenv});
     \item Good formation of value envirnoments: $\Sigma;\Gamma\vdash\Gamma'$ (Figure~\ref{wf-valenv});
+    \item Good formation of types: $\Sigma;\Gamma\vdash t:\star$, we will
+      replace $t$ by the inductive layer of our stratification, the rules will
+      be the same as~\ref{wf-type};
     \item Good formation of module system types: $\Sigma;\Gamma\vdash T$ (Figure~\ref{wf-modtype});
-    \item Good formation of types: $\Sigma;\Gamma\vdash t:\star$ (Figure~\ref{wf-type});
     \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}_{\mathcal{X}}\}$.
   \end{itemize}
 
-  We also provide an algorithmic way to determine good formation of types in
-  Figure~\ref{wf-type-algo}. Here $\mathcal{C}$ is a set of pretype. To check
-  for the good formation of a given pretype, we start by taking it empty. The
-  rules only apply when the rule \textsc{WFTypeAlgo-Known} cannot be applied.
-
-  This has to change: As pretypes are defined coinductively, we cannot give inductive rules for good
-  formation. A pretype is well-formed in a context $\Sigma;\Gamma$ if the
-  following conditions hold for all of its subterms $t$:
-  \begin{itemize}
-    \item if $t$ is of the form $\BX[\overline{\tx=t}]$, then there exists
-      $\overline{D}$ such that
-      $\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma$;
-    \item if $t$ is of the form $\langle M\rangle$, then $\Sigma;\Gamma\vdash
-      M:T$ where $T$ is a module type;
-    \item if $t$ is of the form $M.\tx$, then
-      $\Sigma;\Gamma\vdash M:\{\ldots,\tx:\star,\ldots\}$ or
-      $\Sigma;\Gamma\vdash M:\{\ldots,\tx:[=t],\ldots\}$.
-  \end{itemize}
 \begin{figure}[ht]
   \begin{mathpar}
     \inferrule[WFBehEnv-Empty]{\\}{\vdash\epsilon}\hfill
@@ -777,46 +676,6 @@ The main rules are the following:
 
 \begin{figure}[ht]
   \begin{mathpar}
-  \inferrule[WFTypeAlgo-Base]{\\}
-    {\Sigma;\Gamma;\mathcal{C}\vdash b:\star}\hfill
-  \inferrule[WFTypeAlgo-Empty]{\\}
-    {\Sigma;\Gamma;\mathcal{C}\vdash\Empty:\star}\hfill
-  \inferrule[WFTypeAlgo-Variable]{\\}
-    {\Sigma;\Gamma;\mathcal{C}\vdash \alpha:\star}\\
-  \inferrule[WFTypeAlgo-Union]
-    {\Sigma;\Gamma;\{t\vee t'\}\cup\mathcal{C}\vdash t:\star\\
-     \Sigma;\Gamma;\{t\vee t'\}\cup\mathcal{C}\vdash t':\star}
-    {\Sigma;\Gamma;\mathcal{C}\vdash t\vee t':\star}\hfill
-  \inferrule[WFTypeAlgo-Times]
-    {\Sigma;\Gamma;\{t\times t'\}\cup\mathcal{C}\vdash t:\star\\
-     \Sigma;\Gamma;\{t\times t'\}\cup\mathcal{C}\vdash t':\star}
-    {\Sigma;\Gamma;\mathcal{C}\vdash t\times t':\star}
-\\
-  \inferrule[WFTypeAlgo-Function]
-    {\overline{\Sigma;\Gamma;\{(\overline{t})\to t'\}\cup\mathcal{C}
-        \vdash t:\star}\\
-     \Sigma;\Gamma;\{(\overline{t})\to t'\}\cup\mathcal{C}\vdash t':\star}
-    {\Sigma;\Gamma;\mathcal{C}\vdash(\overline{t})\to t':\star}
-  \inferrule[WFTypeAlgo-Known]
-    {t\in\mathcal{C}}{\Sigma;\Gamma;\mathcal{C}\vdash t:\star}
-\\
-  \inferrule[WFTypeAlgo-Behaviour]
-    {\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\
-     \overline{\Sigma;\Gamma;;\{\BX[\overline{x=t}]\}\cup\mathcal{C}\vdash t:\star}}
-    {\Sigma;\Gamma;\mathcal{C}\vdash\BX[\overline{x=t}]:\star}\hfill
-  \inferrule[WFTypeAlgo-Singleton]
-    {\Sigma;\Gamma\vdash M:\texttt{mod}}
-    {\Sigma;\Gamma;\mathcal{C}\vdash\langle M\rangle:\star}\\
-  \inferrule[WFTypeAlgo-Projection]
-    {\\}{\\}{\text{\aghilas{We need to choose a way to consider projection in path.}}}
-  \end{mathpar}
-  \caption{Algorithmic rules for good formation of types}\label{wf-type-algo}
-\end{figure}
-
-
-
-\begin{figure}[ht]
-  \begin{mathpar}
     \inferrule[Path-Empty]{\\}{\\}
   \end{mathpar}
   \caption{Good formation and typing of paths}
@@ -874,6 +733,17 @@ The main rules are the following:
 }
 
 \subsubsection{Eliminating type projection}
+
+\paragraph{Enconding equality of types} Let $t$ be a a type, we define:
+\[
+\texttt{eq}(t) := (t\cup\{\mho\})\times (\neg t\cup\{\mho\}).
+\]
+The type $\texttt{eq}(t)$ is never empty as it contains $(\mho,\mho)$.
+\begin{lemma}
+  Let $t$ and $t'$ be two types, then $\texttt{eq}(t)\leq\texttt{eq}(t')$ if
+  and only if $t\simeq t'$.
+\end{lemma}
+
 Before semantic interpretation, we want to remove types of the form $M.\tx$. A
 solution could be to replace opaque type declarations during typing with special
 variables that reflect the desired typing discipline. Then, if $M$ is of type
@@ -882,7 +752,7 @@ cause problems with behaviours. I will check when more things are written cleanl
 
 We introduce a new kind of variable that we can encode using existing types: to
 each module declaration of the form
-$X=\Lambda(\overline{x:\star}).{\{\ldots,\ty,\ldots\}}_{\overline{\BX}}$, we
+$X=\Lambda(\overline{x:\star}).{\{\ldots,\ty:\star,\ldots\}}_{\overline{\BX}}$, we
 associate a type $\langle X,\overline{\tx=t},y\rangle$ --- this description only
 works when $X$ is a top level module but can extend to take paths into account
 with the same kind of encoding. Two such types are equivalent when the $X$ and
@@ -997,7 +867,7 @@ There are four possible ways to proceed from here, listed here in the order of c
   \end{mathpar}
 Plus the rules stating that a simple type other than path and behaviour is well-formed if all its components are well-formed.
 
-  \beppe{Many modifications needed:\begin{itemize}\item Change WF-ModuleTypeNames for the new syntax $\{\overline{D}\}_{\overline{\BX}}$ \item well-formedness of paths must be done, and in two variants (according to whether we want instantiation at the end or at each step) \end{itemize}}
+  \beppe{Many modifications needed:\begin{itemize}\item well-formedness of paths must be done, and in two variants (according to whether we want instantiation at the end or at each step) \end{itemize}}
   \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}
   \label{fig:wftypes}
 \end{figure}
@@ -1031,17 +901,6 @@ Plus the rules stating that a simple type other than path and behaviour is well-
 \end{figure}
 \begin{figure}
   \begin{mathpar}
-    \inferrule[Path-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon:\{\epsilon;\Gamma\}}\\
-    \inferrule[Path-SubModule]{\Sigma;\Gamma\vdash P:\left\{\_;\overline{D}\right\}\\
-      \overline{D} = \ldots, \kwdefm X\kwdo\overline{P}\overline{S} \overline{B} \kwend ,\ldots \\
-      \overline{P} = \overline{\kwprm x}\\
-      \Sigma;\Gamma\vdash\overline{t}
-    }{\Sigma;\Gamma\vdash P.X\left[\overline{x=t}\right]:\left\{\overline{S} ; \overline{\kwtp x=t}\, \overline{B} \right\}}
-  \end{mathpar}
-  \caption{Well-formedness rules for paths}
-\end{figure}
-\begin{figure}
-  \begin{mathpar}
     \inferrule[Type-Variable]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:\cap T)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x : \cap T}\\
     \inferrule[Type-Subsumption]{\Sigma;\Gamma\vdash T\\ \Sigma;\Gamma\vdash E : \cap\overline{T'}\\ \Sigma;\Gamma\vdash\cap\overline{T'}\preccurlyeq T}{\Sigma;\Gamma\vdash E : T}
     \\
@@ -1057,59 +916,6 @@ Plus the rules stating that a simple type other than path and behaviour is well-
   \end{mathpar}
   \caption{Typing rules for the surface language}
 \end{figure}
-
-\begin{figure}
-  \begin{mathpar}
-    \inferrule[Sub-StarRefl]{\\}{\star\preccurlyeq\star}\hfill
-    \inferrule[Sub-Elixir]{t\preccurlyeq t'}{\Sigma;\Gamma\vdash t\preccurlyeq t'}\hfill
-    \inferrule[Sub-Intersection]{\exists i\in I, T_i\preccurlyeq T}{\Sigma;\Gamma\vdash\cap_I\overline{T_i}\preccurlyeq T}\\
-    \inferrule[Sub-ModuleLeft]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash t\preccurlyeq T}{\Sigma;\Gamma\vdash P.x\preccurlyeq T}\\
-    \inferrule[Sub-ModuleRight]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:[=t])\overline{D'}\right\}\\ \Sigma;\Gamma\vdash \cap\overline{T}\preccurlyeq t}{\Sigma;\Gamma\vdash\cap\overline{T}\preccurlyeq P.x}\\
-    \inferrule[Sub-Opaque]{\Sigma;\Gamma\vdash P\cong P'\\ \Sigma;\Gamma\vdash P:\left\{ \overline{S};\overline{D}(x:\star)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x \preccurlyeq P'.x}\\
-    \inferrule[Sub-BigFunction]{\forall i.\Sigma;\Gamma,X_1:R_1,\ldots, X_{i-1}:R_{i-1}\vdash T_{i}\succcurlyeq R_i\\
-      \Sigma;\Gamma,\overline{X_i:R_i}\vdash T'\preccurlyeq R'}{\Sigma;\Gamma\vdash\left(X_i:T_i\right)\to T'\preccurlyeq\left(X_i:R_i\right)\to R'}
-  \end{mathpar}
-  \caption{Subtyping rules \fbox{$\Sigma;\Gamma\vdash\cap\overline T\preccurlyeq T$}}
-\end{figure}
-%% \begin{figure}
-%%   \centering
-%%   \begin{tabular}{c c c c c}
-%%     $\kwmdl X : T$ & $\cup$ & $\kwmdl X : T'$ & = & $\kwmdl X : T\cup T'$\\
-%%     $\kwclbk X : \bigcap \overline{T}$ & $\cup$ & $\kwclbk X :\bigcap \overline{T'}$ & = & ?\\
-%%     $\kwtp x = t$ & $\cup$ & $\kwtp x = t'$ & = & $\kwtp x = t\cup t'$\\
-%%     $\kwopq x$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
-%%     $\kwopq x$ & $\cup$ & $\kwtp x = t$ & = & $\kwopq x$\\
-%%     $\kwtp x = t$ & $\cup$ & $\kwopq x$ & = & $\kwopq x$\\
-%%     $D$ & $\cup$ & $D'$ & = & $\epsilon$\\
-%%   \end{tabular}
-%%   \caption{Component-wise union}
-%% \end{figure}
-
-\begin{figure}
-  \begin{mathpar}
-  \inferrule[Sub-BehBeh]{\overline{\Sigma;\Gamma\vdash t\cong t'}}
-    {\Sigma;\Gamma\vdash \BX\left[\overline{x=t}\right]\preccurlyeq \BX\left[\overline{x=t'}\right]}\hfill
-  \inferrule[Sub-BehMod]{\\}
-    {\Sigma;\Gamma\vdash \BX\left[\overline{x=t}\right]\preccurlyeq \Sigma(\BX)\left(\overline{t}\right)}\\
-  \inferrule[Sub-ModBeh]{\overline{t_i=\left\{\overline{D}\right\}_\xi.x_i}\\ \BX\in\xi}
-    {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq \BX\left[\overline{x_i=t_i}\right]}\hfill
-  \inferrule[Sub-TypeType]{\Sigma;\Gamma\vdash t\cong t'}{[=t]\preccurlyeq[=t']}\hfill
-  \inferrule[Sub-TypeOpaque]{\\}{\Sigma;\Gamma\vdash[=t]\preccurlyeq\star}\\
-  \inferrule[Sub-ModMod]{\xi'\subseteq\xi\\
-    \left\{\overline{D}\right\}\preccurlyeq \left\{\overline{D'}\right\}}
-            {\Sigma;\Gamma\vdash\left\{\overline{D}\right\}_\xi\preccurlyeq\left\{\overline{D'}\right\}_{\xi'}}
-  \end{mathpar}
-  \caption{New subtyping rules}
-\end{figure}
-
-\begin{figure}
-  \begin{align*}
-    \llbracket[=t]\rrbracket &= \text{type}\times\left(\llbracket t\rrbracket\times \llbracket \neg t\rrbracket\right)\\
-    \llbracket\star\rrbracket &= \text{type}\times\left(\llbracket \mathbb{1}\rrbracket\times \llbracket \mathbb{1}\rrbracket\right)\\
-  \end{align*}
-  \caption{Semantic interpretation of the new constructions}
-\end{figure}
-
 
 \section{Optional callbacks}
 

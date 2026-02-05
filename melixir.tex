@@ -194,7 +194,8 @@ $E$ &::= & $v$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
   %  & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$?\\
     & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer should be able to denote this type only via \textsf{like($M$)}\\
-    $t$ & ::= & \texttt{integer()} \\
+    $t$ & ::= & \texttt{:}k & singleton atom type\\
+    & | & \texttt{atom()} & top atom type \\
     & | & $\texttt{\textcolor{OrangeRed}{module()}}$ & top module type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
     & | & $\texttt{\%}\!\left\{\texttt{..., }\overline{f}\right\}$ & open record type\\
@@ -443,7 +444,7 @@ For our formalization we will use a slightly different syntax, which is more con
      & | & \color{Gray} $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}}$ & isn't it enough to have only this one, instead of the previous one?\\[3mm] 
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
   %                &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
-    $t$ & ::= & $\kwint$ \\
+    $t$ & ::= & $\texttt{atom}$ \\
     & | & $\texttt{mod}$ & top module type \\
     & | & $\texttt{fun}$ & top function type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
@@ -490,20 +491,41 @@ There is a clear mapping from the terms of Figure~\ref{fig:surfacesyntax} to tho
   \item recursion must not traverse instantiations: that is we cannot have $\mu \alpha .\BX[\tx=\alpha[\tx=t]]$ (whatever this means);
   \item we definitively want to allow mutually recursive modules, and therefore we want to allow mutually recursive module types; but this must be done in a controlled way. For instance, we do not want $M.t = M'.u$ and $M'.u = M.t$ as this creates an infinite loop when trying to expand the types; the question is does normal contractivity suffice here (infinite unfolding must traverse infinitely many arrows or map constructors)?
 \end{itemize}
-Shall we postpone the problem to future work? \textbf{In any case the current formalization does not handle mutually recursive modules since the well-formation rules require modules to be defined before being used.}}
+Shall we postpone the problem to future work? \textbf{In any case the current formalization does not handle mutually recursive modules since the well-formation rules require modules to be defined before being used. Which means that this is an orthogonal problem, the system we define here assumes modules comes as defined.}}
 \subsection{Types}
 
-Types are either the simple types $t$, or the module system types $T$. We have already discussed the syntax and intended meaning of these types before, therefore we will not repeat it here. Here the important point is that we have to define type containment. In other words, we have to define a semantic interpretation of the simple types $t$ and a syntactic subtyping relation on module system types $T$. This is possible since our module system types are stratified, and therefore we can define subtyping on the module types $T$ by structural induction on their syntax, using the semantic subtyping on simple types $t$ when needed.
+Types are either the simple types $t$, or the module system types $T$. We have already discussed the syntax and intended meaning of these types before, therefore we will not repeat it here. This stratification is important to define type containment. We will use two different techniques to define the subtyping relation. For simple types we will define semantic subtyping, by interpreting them into sets of elements of a domain and defining subtyping as the containment of the interpretations. For module system types $T$ we will define a syntactic subtyping relation via a deduction system. The stratification of types allows us to define subtyping on modules types $T$ by structural induction on their syntax, using the semantic subtyping on simple types $t$ when needed. Next we are going to discuss the consequences of this stratification and then we will give the formal definitions of types and their interpretation.
+
+
 
 \subsubsection{Stratification}\label{sec:stratification}
 
-The important point of our type system is that types are strictly stratified: module system types $T$ can contain simple types $t$, but not vice versa. This stratification has several important consequences. On the positive side, it allows us to define a semantic interpretation of simple types $t$ as sets of values, and therefore a semantic subtyping relation on simple types $t$, and a syntactic subtyping relation on module system types $T$. On the negative side, the only proper subtypes of \texttt{module()} that can occur in simple types $t$ are (Boolean combinations of) fully instantiated behaviours $\BX[\overline{\tx=t}]$. This means that in a tuple or a map or a list of Elixir, only modules that implement some behaviour can occur in them. This may be a limitation which can be overcome by adding to behaviours the singleton types of fully instantiated modules. In practice, as we propose to add a \texttt{like($M$)} syntax to denote the anonymous structural type of a module $M$, we can think of adding to the simple types $t$ the types \texttt{behaviour\_of($M$)} denoting the singleton type of the fully instantiated module $M$. Of course while \texttt{behaviour\_of($M$)} can be used in simple types $t$, the type \texttt{like($M$)} can be used only in module system types $T$. This addition does not change the underlying type theory.
+The important point of our type system is that types are strictly stratified: module system types $T$ can contain simple types $t$, but not vice versa. This stratification has several important consequences. On the positive side, it allows us to define a semantic interpretation of simple types $t$ as sets of values, and therefore a semantic subtyping relation on simple types $t$, and a syntactic subtyping relation on module system types $T$. For this reason we hereafter we will also call simple types as \emph{semantic types} and $T$ types as syntactic types. On the negative side, the only proper subtypes of \texttt{module()} that can occur in simple types $t$ are (Boolean combinations of) fully instantiated behaviours $\BX[\overline{\tx=t}]$. This means that in a tuple or a map or a list of Elixir, only modules that implement some behaviour can occur in them. To palliate this limitation, we added to simple types the singleton types of fully instantiated modules. 
 
+\begin{remark}
+In practice, one can envisage to provide the programmer some syntax to denote structural module types. A possibility is to add to the Elixir language of types the \texttt{like($M$)} syntax to denote the anonymous structural type of a (fully instantiated) module $M$ as well as a more programming friendly synatax \texttt{behaviour\_of($M$)} to denote the singleton type $\langle M\rangle$. Of course while \texttt{behaviour\_of($M$)} can be used in simple types $t$, the type \texttt{like($M$)} can be used only in module system types $T$. Such additions do not change the underlying type theory we present next.
+\end{remark}
+
+Next we are going to discuss the semantic interpretation of simple types $t$. As we will see we need a further stratification of simple types $t$ into the current Elixir types and the new types we added to handle modules.
 
 
 
 \subsubsection{Semantic subtyping for simple types}
-The semantic interpretation of simple types $t$ is essentially the same as in \cite{CDV24,CD25}, with the addition of the two new forms $M.\tx$ and $\BX[\overline{\tx=t}]$. The first denotes the type $\tx$ exported by the module $M$, while the second denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
+Simple types, ranged over by $t$ are essentially the types of Elixir defined in \cite{CDV24,CD25}, with the addition of the three new forms: $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$. The first denotes the type $\tx$ exported by the module $M$, the second the singleton type of the fully instantiated module $M$, while the third denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
+
+The Elixir types and the three additional forms are essentially different in their nature. The Elixir types have a clear semantics that it is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The three new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons: first we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; second, such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation of the types used in their instantiations; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
+
+For these reasons we will further stratify simple types $t$ into the current Elixir types, which we will call \emph{core types}, which are \emph{coinductively} defined by the following grammar:
+$$\tau ::= \texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{f}\right\} \mid \tau\vee\tau \mid \neg\tau\mid\alpha\mid\mathbb{O}$$
+The simple types $t$ are then defined on the top of the core types $\tau$ \emph{inductively} by the following grammar:
+$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{f:t}\right\} \mid M.\tx \mid \BH M \mid \BX[\overline{\tx=t}]$$
+This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giveing an interpretation parametric in the program, we just give an encoding of the new forms parametric into it.
+
+Formally, we have the following definitions.
+
+\beppe{UP TO HERE}
+
+and the new types we added to handle modules, which we will call \emph{module types}. The core types are interpreted as sets of values as in \cite{CDV24,CD25}, while the module types are interpreted as singletons modulo the equivalence of their instantiations. This is a bit similar to the stratification of types in \cite{CDV24} into basic types and compound types, where basic types are interpreted as sets of values, while compound types are interpreted as sets of basic types.
 
 Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
 Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Adding the \texttt{behaviour\_of($M$)} singleton types as suggested in Section \ref{sec:stratification} does not change the theory as these behaviours are singletons, modulo the equivalence on $M$ (see Figure~\ref{fig:pathequivalence}).  Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.

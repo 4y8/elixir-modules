@@ -516,16 +516,25 @@ Simple types, ranged over by $t$ are essentially the types of Elixir defined in 
 The Elixir types and the three additional forms are essentially different in their nature. The Elixir types have a clear semantics that it is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The three new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons: first we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; second, such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation of the types used in their instantiations; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
 
 For these reasons we will further stratify simple types $t$ into the current Elixir types, which we will call \emph{core types}, which are \emph{coinductively} defined by the following grammar:
-$$\tau ::= \texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{f}\right\} \mid \tau\vee\tau \mid \neg\tau\mid\alpha\mid\mathbb{O}$$
+$$\tau ::= \texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{\ell:\tau}\right\} \mid \tau\vee\tau \mid \neg\tau\mid\alpha\mid\mathbb{O}$$
 The simple types $t$ are then defined on the top of the core types $\tau$ \emph{inductively} by the following grammar:
-$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{f:t}\right\} \mid M.\tx \mid \BH M \mid \BX[\overline{\tx=t}]$$
+$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{\ell:t}\right\} \mid M.\tx \mid \BH M \mid \BX[\overline{\tx=t}]$$
 This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giveing an interpretation parametric in the program, we just give an encoding of the new forms parametric into it.
 
 Formally, we have the following definitions.
 
-\beppe{UP TO HERE}
+\beppe{<UP TO HERE>}
 
-and the new types we added to handle modules, which we will call \emph{module types}. The core types are interpreted as sets of values as in \cite{CDV24,CD25}, while the module types are interpreted as singletons modulo the equivalence of their instantiations. This is a bit similar to the stratification of types in \cite{CDV24} into basic types and compound types, where basic types are interpreted as sets of values, while compound types are interpreted as sets of basic types.
+TODO: 
+\begin{itemize}
+\item core types
+\item pretypes (not yet well formed)
+\item definitions of $\Sigma$ and $\Gamma$
+\item encoding of well-formed types into core types, parametric in $\Sigma$ and $\Gamma$
+\item definition of semantic subtyping on core types
+\item definition of syntactic subtyping on module system types $T$
+\end{itemize}
+
 
 Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
 Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Adding the \texttt{behaviour\_of($M$)} singleton types as suggested in Section \ref{sec:stratification} does not change the theory as these behaviours are singletons, modulo the equivalence on $M$ (see Figure~\ref{fig:pathequivalence}).  Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.

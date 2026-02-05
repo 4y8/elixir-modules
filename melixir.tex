@@ -732,7 +732,7 @@ The main rules are the following:
 \end{figure}
 }
 
-\subsubsection{Eliminating type projection}
+\subsubsection{Interpreting the new types}
 
 \paragraph{Enconding equality of types} Let $t$ be a a type, we define:
 \[
@@ -743,34 +743,6 @@ The type $\texttt{eq}(t)$ is never empty as it contains $(\mho,\mho)$.
   Let $t$ and $t'$ be two types, then $\texttt{eq}(t)\leq\texttt{eq}(t')$ if
   and only if $t\simeq t'$.
 \end{lemma}
-
-Before semantic interpretation, we want to remove types of the form $M.\tx$. A
-solution could be to replace opaque type declarations during typing with special
-variables that reflect the desired typing discipline. Then, if $M$ is of type
-$\textsf{mod}$, its types have no field of the form $\tx:\star$. \aghilas{This might
-cause problems with behaviours. I will check when more things are written cleanly.}
-
-We introduce a new kind of variable that we can encode using existing types: to
-each module declaration of the form
-$X=\Lambda(\overline{x:\star}).{\{\ldots,\ty:\star,\ldots\}}_{\overline{\BX}}$, we
-associate a type $\langle X,\overline{\tx=t},y\rangle$ --- this description only
-works when $X$ is a top level module but can extend to take paths into account
-with the same kind of encoding. Two such types are equivalent when the $X$ and
-$y$ fields are equal and the corresponding $\tx$ types are equivalent. We
-replace the bindings of opaque types in declarations
-$X:(\overline{x:\star})\rightarrow{\{\overline{D}\}}_{\overline{\BX}}$ with
-transparent types of the form given earlier.
-
-For function types that return modules, replace (recursively to take into
-account submodules) each declaration $\tx:\star$ with $\tx:[=\alpha]$ where
-$\alpha$ is a fresh type variable. This forces generativity of all function
-returning modules.
-
-When type checking a function that has a module as one of its argument, all the
-behaviours should be unrolled to only have a type
-$X:{\{\overline{D}\}}_{\overline{\BX}}$. Then we apply replace all opaque types
-with fresh variables.
-
 \subsection{Operational semantics or encoding? That's the question}
 
 There are four possible ways to proceed from here, listed here in the order of complexity (from the simplest to the most complex):
@@ -871,52 +843,6 @@ Plus the rules stating that a simple type other than path and behaviour is well-
   \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}
   \label{fig:wftypes}
 \end{figure}
-\begin{figure}
-  \begin{mathpar}
-    \inferrule[Bind-DefModule]
-       {\Sigma; \Gamma,\overline{P:\star}\vdash\overline{B}:\overline{D}\\
-        \Sigma; \Gamma,X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S};\overline{D}\right\}\vdash
-        \overline{B_0}:\overline{D_0}}
-       {\Sigma; \Gamma\vdash\left(\kwdefm X\kwdo \overline{P}\overline{S}\overline{B}
-        \kwend\right) \overline{B_0}:\left(X:\left(\overline{P:\star}\right)\rightarrow
-        \left\{\overline{S};\overline{D}\right\}\right)\overline{D_0}}\\
-    \inferrule[Bind-Type]
-       {\Sigma;\Gamma\vdash t:\star\\
-        \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(\kwtp x=t\right)\overline{B}: \left(x :[=t]\right)\overline{D}}\\
-    \inferrule[Bind-Opaque]
-       {\Sigma;\Gamma\vdash t:\star\\
-        \Sigma;\Gamma, x:[=t]\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(\kwopq x = t\right)\overline{B}:  \left(x:\star\right)\overline{D}}\\
-    \inferrule[Bind-Empty]
-       {\\}{\Sigma;\Gamma\vdash\epsilon:\epsilon}\hfill
-    \inferrule[Bind-Value]
-       {\Sigma;\Gamma\vdash v:\cap\overline{T}\\
-        \Sigma;\Gamma,x:\cap\overline{T}\vdash\overline{B}:\overline{D}}
-       {\Sigma;\Gamma\vdash\left(x=v\right)\overline{B}:
-        \left(x:\cap\overline{T}\right)\overline{D}}
-  \end{mathpar}
-  \caption{Typing rules for bindings \fbox{$\Sigma;\Gamma\vdash\overline{B}:\overline{D}$}}
-\end{figure}
-\begin{figure}
-  \begin{mathpar}
-    \inferrule[Type-Variable]{\Sigma;\Gamma\vdash P:\left\{\overline{S};\overline{D} (x:\cap T)\overline{D'}\right\}}{\Sigma;\Gamma\vdash P.x : \cap T}\\
-    \inferrule[Type-Subsumption]{\Sigma;\Gamma\vdash T\\ \Sigma;\Gamma\vdash E : \cap\overline{T'}\\ \Sigma;\Gamma\vdash\cap\overline{T'}\preccurlyeq T}{\Sigma;\Gamma\vdash E : T}
-    \\
-    \inferrule[Type-BigFunction]
-        {\Sigma;\Gamma\vdash\cap\overline{\overline{N:T}\to T'} \and \overline{\Sigma;\Gamma,\overline{N:T}}\vdash E:T'}
-        {\Sigma;\Gamma\vdash\$\cap\overline{\forall\overline{\alpha}\left(\overline{N:T}\right)\to T'}\kwfn \overline{N}\to E:\cap\overline{\overline{N:T}\to T'}}\\
-    \inferrule[Type-Module]{\Sigma;\Gamma\vdash P:\left\{\overline{S_0};\overline{D_0}
-      (X:\overline{y:\star}\to\left\{\overline{S};\overline{D}\right\})
-      \overline{D_1}\right\}\\
-      \Sigma;\Gamma\vdash\overline{t}\\
-      \overline{x}\simeq\overline{y}
-    }{\Sigma;\Gamma\vdash P.X\left[\overline{x=t}\right]:\left\{\overline{S};\overline{D}\right\}}
-  \end{mathpar}
-  \caption{Typing rules for the surface language}
-\end{figure}
-
 \section{Optional callbacks}
 
 Explain here how to extend the module system to allow optional callbacks, that is, callbacks that are not required by the behaviour but may be implemented by the module.

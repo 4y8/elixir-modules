@@ -9,6 +9,7 @@
 \usepackage{stmaryrd}
 \usepackage{inconsolata}
 %\usepackage{libertine}
+\usepackage{hyperref}
 \usepackage{bbold}
 % Add biblatex
 \usepackage[style=alphabetic,backend=biber]{biblatex}
@@ -516,19 +517,77 @@ Simple types, ranged over by $t$ are essentially the types of Elixir defined in 
 The Elixir types and the three additional forms are essentially different in their nature. The Elixir types have a clear semantics that it is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The three new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons: first we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; second, such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation of the types used in their instantiations; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
 
 For these reasons we will further stratify simple types $t$ into the current Elixir types, which we will call \emph{core types}, which are \emph{coinductively} defined by the following grammar:
-$$\tau ::= \texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{\ell:\tau}\right\} \mid \tau\vee\tau \mid \neg\tau\mid\alpha\mid\mathbb{O}$$
+$$\tau ::= k\mid\texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{k:\tau}\right\} \mid \tau\vee\tau \mid \neg\tau\mid\alpha\mid\mathbb{O}$$
 The simple types $t$ are then defined on the top of the core types $\tau$ \emph{inductively} by the following grammar:
-$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{\ell:t}\right\} \mid M.\tx \mid \BH M \mid \BX[\overline{\tx=t}]$$
+$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{\ell:t}\right\} \mid t\vee t \mid \neg t\mid M.\tx \mid \BH M \mid \BX[\overline{\tx=t}]$$
 This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giveing an interpretation parametric in the program, we just give an encoding of the new forms parametric into it.
 
 Formally, we have the following definitions.
+
+\begin{definition}[Core Types]\label{def:coretypes}
+  Let $k$ range over atoms, $\BX$ over behaviour names, $\tx$ over type names, and $M$ over module paths.
+  The set $ \Coretypes $ of \emph{core types} is the set of terms $ \tau $
+  that are \underline{coinductively} produced by the following grammar
+  \[
+    \tau ::= k\mid \texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau}) \to \tau \mid  \texttt{\%}\!\left\{\overline{k:\tau}\right\} \mid
+    \tau \lor \tau \mid \lnot \tau \mid \Empty\mid \alpha
+  \]
+  and that satisfy two additional constraints: $(1)$ \emph{regularity}:
+          the term must have a finite number of different sub-terms; $(2)$ \emph{contractivity}:
+          every infinite branch must contain an infinite number
+          of occurrences of the product or arrow type constructors.
+\end{definition}
+
+\begin{definition}[Pretypes]\label{def:types}
+  Let $\tau$ range over core types, $X$ over module names, $\BX$ over behaviour names, $\tx$ over type names, and $M$ over module paths.
+  The set $ \Types $ of \emph{pretypes} is the set of terms $ t $
+  that are \underline{inductively} produced by the following grammar
+  \[
+    t ::=  \tau \mid  (\overline{t}) \to t \mid \texttt{\%}\!\left\{\overline{k:t}\right\} \mid
+    t \lor t \mid \lnot t \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
+  \]
+\end{definition}
+Core types are a relevant subset the polymorphic types of Elixir defined in \cite{CDV24,CD25}. they include a singleton type $k$ for each atom $k$, the basic types \texttt{atom} of all atoms, \texttt{mod} of all modules, and \texttt{fun} of all functions, the arrow type $(\overline{\tau}) \to \tau$ for multi-arity functions, the open map type $\texttt{\%}\!\left\{\overline{k:\tau}\right\}$ mapping atom keys to core types, the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
+
+
+Coinduction accounts for recursive types, and it is coupled with a
+contractivity condition which excludes infinite terms
+that do not have a meaningful interpretation as types or sets of values:
+for instance, the trees satisfying the equation
+$ \tau = \tau \lor \tau $
+(which gives no information on which values are in it)
+or $ \tau = \lnot \tau $ (which cannot represent any set of values) do not
+satisfy the contractivity condition.
+Contractivity also gives an induction principle on the set of core types that allows us to apply the induction hypothesis
+below type connectives (union and negation),
+but not below type constructors (product and arrow).
+
+The subtyping relation for core types is defined semantically by interpreting them as sets of values,  and defining subtyping as the containment of the interpretations. The interpretation of functional core types is standard and can be found in \cite[Sections 3.1 and 4.2]{DubocThesis26} (see~\cite[Section 3.2]{Cas24} for a much simpler overview), and so is the interpretation of map types, which are interpreted as quasi-constant functions from labels to sets of values as in \cite{Cas23}. The only difference is that the set of labels contains not only the atoms but also all the tyep names $\tx$ and three special labels $\texttt{\@p}, \texttt{\@o}, \texttt{\@n}$, since we use them in our encoding of types into core types, as we will see later. 
+
+
+Pretypes are called as such because we will select among them the one that are well-formed with respect to a given definition of modules and behaviors.
+The include core types and their type constructors and connectives, plus the three new types for modules: the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$.
+
+
+We use the abbreviations
+$
+  t_1 \land t_2 \eqdef \lnot (\lnot t_1 \lor \lnot t_2)
+$, $
+  t_1 \setminus t_2 \eqdef t_1 \land (\lnot t_2)
+$, and $
+  \Any \eqdef \lnot \Empty
+$ (in particular, $\Any$ is the supertype of all types, denoted in Elixir by \elix{term()}).
+We refer to $ b $, $ \times $, and $ \to $ as \emph{type
+constructors}, and to $ \lor $, $ \lnot $, $ \land $, and $ \setminus
+$ as \emph{type connectives.} As customary, connectives have priority
+over constructors and negation has the highest priority---e.g., $\neg
+s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
+
 
 \beppe{<UP TO HERE>}
 
 TODO: 
 \begin{itemize}
-\item core types
-\item pretypes (not yet well formed)
 \item definitions of $\Sigma$ and $\Gamma$
 \item encoding of well-formed types into core types, parametric in $\Sigma$ and $\Gamma$
 \item definition of semantic subtyping on core types
@@ -558,31 +617,7 @@ Formally, we have the following definition of pretypes, where we replaced produc
 \end{definition}
 (Pre)types include  basic types $b$ (including at least the basic type \textsf{int} for integers, \textsf{mod} for the top module type, and \textsf{fun} for the top function type). They include the product type $t_1 \times t_2$ for products, the arrow type $(\overline{t_1}) \to t_2$ for multi-arity functions, the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$. They also include the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
 
-We use the abbreviations
-$
-  t_1 \land t_2 \eqdef \lnot (\lnot t_1 \lor \lnot t_2)
-$, $
-  t_1 \setminus t_2 \eqdef t_1 \land (\lnot t_2)
-$, and $
-  \Any \eqdef \lnot \Empty
-$ (in particular, $\Any$ is the supertype of all types, denoted in Elixir by \elix{term()}).
-We refer to $ b $, $ \times $, and $ \to $ as \emph{type
-constructors}, and to $ \lor $, $ \lnot $, $ \land $, and $ \setminus
-$ as \emph{type connectives.} As customary, connectives have priority
-over constructors and negation has the highest priority---e.g., $\neg
-s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
 
-Coinduction accounts for recursive types, and it is coupled with a
-contractivity condition which excludes infinite terms
-that do not have a meaningful interpretation as types or sets of values:
-for instance, the trees satisfying the equation
-$ t = t \lor t $
-(which gives no information on which values are in it)
-or $ t = \lnot t $ (which cannot represent any set of values) do not
-satisfy the contractivity condition.
-Contractivity also gives an induction principle on $\Types$ that allows us to apply the induction hypothesis
-below type connectives (union and negation),
-but not below type constructors (product and arrow).
 
 The types are essentially the same as in \cite{CDV24}, with the addition of the three new forms for modules: $\BX[\overline{\tx=t}]$, $\BH M$, and $M.\tx$. These additions require the definition of type well-formation: $\BX[\overline{\tx=t}]$ requires the full instantiation of $\BX$ (i.e., $\BX$ is a behaviour with parameters $\overline\tx$ instantiated by well-formed types $\overline{t}$); $\BH M$ requires the path $M$ to be well-formed, namely that it effectively points to a fully instantiated module \beppe{In future we may study whether fully instantiation is necessary/desirable, at least in singleton modules but even in paths}; $M.\tx$ requires the path $M$ to be well-formed and the type $\tx$ to be defined in the module $M$. All the other types are well-formed if all their sub-terms are well-formed. Clearly well-formedness depends on definition of the modules and of the behaviours. Therefore, type good formation is given by judgment of the form $\Sigma,\Gamma\vdash t:\star$, where $\Sigma$ is a behaviour environment mapping behaviour names $\BX$ to their definition (of the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$) and $\Gamma$ is a typing environment mapping expressions names (i.e., module names and expression variables) into module types (in particular it maps module names into types either of the form $\left\{\overline{D}\right\}_{\overline{\BX}}$ or of the form $(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}$. These environments must also be well-formed, meaning that all the types occurring in them are well-formed and fully instantiated where needed.
 

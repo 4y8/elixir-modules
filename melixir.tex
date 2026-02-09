@@ -562,7 +562,7 @@ Contractivity also gives an induction principle on the set of core types that al
 below type connectives (union and negation),
 but not below type constructors (product and arrow).
 
-The subtyping relation for core types is defined semantically by interpreting them as sets of values,  and defining subtyping as the containment of the interpretations. The interpretation of functional core types is standard and can be found in \cite[Sections 3.1 and 4.2]{DubocThesis26} (see~\cite[Section 3.2]{Cas24} for a much simpler overview), and so is the interpretation of map types, which are interpreted as quasi-constant functions from labels to sets of values as in \cite{Cas23}. The only difference is that the set of labels contains not only the atoms but also all the tyep names $\tx$ and three special labels $\texttt{\@p}, \texttt{\@o}, \texttt{\@n}$, since we use them in our encoding of types into core types, as we will see later. 
+The subtyping relation for core types is defined semantically by interpreting them as sets of values,  and defining subtyping as the containment of the interpretations. The interpretation of functional core types is standard and can be found in \cite[Sections 3.1 and 4.2]{DubocThesis26} (see~\cite[Section 3.2]{Cas24} for a much simpler overview), and so is the interpretation of map types, which are interpreted as quasi-constant functions from labels to sets of values as in \cite{Cas23}. The only difference is that the set of labels contains not only the atoms but also all the type names $\tx$ and three special labels $\texttt{\@p}, \texttt{\@o}, \texttt{\@n}$, since we use them in our encoding of types into core types, as we will see later. 
 
 
 Pretypes are called as such because we will select among them the one that are well-formed with respect to a given definition of modules and behaviors.
@@ -593,10 +593,16 @@ TODO:
 \item definition of semantic subtyping on core types
 \item definition of syntactic subtyping on module system types $T$
 \end{itemize}
+\aghilas{ points 1 and 4 are done, 3 is the usual semantics which is Guillaume's
+  thesis, there is still a question for the encoding to core types: if $M.\tx$
+  is transparent equal to $t$ how to encode $t$ to a core type as it is not a
+  subtype of $M.\tx$ and that it is not defined in the same $\Gamma$. Modifying
+  the syntax of declaration types to have: $\tx:[=\tau]$ would fix the issue.
+}
 
 
 Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
-Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Adding the \texttt{behaviour\_of($M$)} singleton types as suggested in Section \ref{sec:stratification} does not change the theory as these behaviours are singletons, modulo the equivalence on $M$ (see Figure~\ref{fig:pathequivalence}).  Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.
+Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Adding the \texttt{behaviour\_of($M$)} singleton types as suggested in Section \ref{sec:stratification} does not change the theory as these behaviours are singletons, modulo the equivalence on $M$ (see Figure~\ref{fig:pathequivalence}). Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.
 
 
 For what concerns the interpretation of $M.\tx$, we can always use the type of the module names that form $M$ to deduce the simple type $M.\tx$ denotes. This is either a transparent type $t$, in which case we can define the interpretation of $M.\tx$ as the interpretation of the type $t$, or it is an opaque type, in which case we consider $M.\tx$ as a type variable (modulo the equivalence of paths defined in Figure~\ref{fig:pathequivalence}). It is important to notice that $M.\tx$ must be well-formed, that is the last module in the path $M$ (or the also all the intermediates modules of the path if we use the more general syntax for paths) must be completely instantiated, so that we can always deduce the type bound to $\tx$.
@@ -653,7 +659,7 @@ semantic subtyping on simple types $t$ when needed.
 
 The main rules are the following:
 
-\paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{fig:wftypes}, which essentially check the following conditions: $(1)$ behaviours are completely instantiated (by well-formed types); $(2)$ a path $M.\tx$ points to a type; $(3)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(4)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
+\paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{fig:wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
 
 \beppe{TO BE CONTINUED}
 
@@ -711,22 +717,21 @@ The main rules are the following:
 
 \begin{figure}[ht]
   \begin{mathpar}
-  \inferrule[WFType-Base]{\\}
-    {\Sigma;\Gamma\vdash b:\star}\hfill
-  \inferrule[WFType-Empty]{\\}
-    {\Sigma;\Gamma\vdash\Empty:\star}\hfill
-  \inferrule[WFType-Variable]{\\}
-    {\Sigma;\Gamma\vdash \alpha:\star}\\
+  \inferrule[WFType-Core]{\\}
+    {\Sigma;\Gamma\vdash\tau:\star}\hfill
   \inferrule[WFType-Union]
     {\Sigma;\Gamma\vdash t:\star\\\Sigma;\Gamma\vdash t':\star}
     {\Sigma;\Gamma\vdash t\vee t':\star}\hfill
   \inferrule[WFType-Times]
     {\Sigma;\Gamma\vdash t:\star\\\Sigma;\Gamma\vdash t':\star}
-    {\Sigma;\Gamma\vdash t\times t':\star}\hfill
+    {\Sigma;\Gamma\vdash t\times t':\star}\hfill 
   \inferrule[WFType-Function]
     {\overline{\Sigma;\Gamma\vdash t:\star}\\\Sigma;\Gamma\vdash t':\star}
     {\Sigma;\Gamma\vdash(\overline{t})\to t':\star}
-\\
+    \\
+    \inferrule[WFType-Record]
+    {\overline{\Sigma;\Gamma\vdash t:\star}}
+    {\Sigma;\Gamma\vdash \texttt{\%}\!\left\{\overline{k:t}\right\}:\star}\hfill
   \inferrule[WFType-Behaviour]
     {\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\
      \overline{\Sigma;\Gamma\vdash t:\star}}
@@ -846,69 +851,6 @@ There are four possible ways to proceed from here, listed here in the order of c
 %  \end{tabular}
 %  \caption{Component-wise intersection}
 %\end{figure}
-\begin{figure}
-  \begin{mathpar}
-    \inferrule[ElEnv-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon}\hfill
-    \inferrule[ElEnv-Expr]{\Sigma;\Gamma\vdash t:\star}{\Sigma,\Gamma\vdash x:t,\Gamma}\hfill
-    \inferrule[ElEnv-Type]{\Sigma;\Gamma\vdash t:\star}{\Sigma;\Gamma\vdash x=t,\Gamma}\\
-    \inferrule[ModEnv-ModuleType]
-      {\Sigma;\Gamma,\overline{x:\star}\vdash\left\{\overline{D}\right\}}
-      {\Sigma;\Gamma\vdash X=\overline{x}\mapsto\overline{D},\Sigma}\hfill
-    \inferrule[ModEnv-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon}\hfill
-    \inferrule[ModEnv-Module]
-      {\Sigma;\Gamma,\overline{x:\star}\vdash\left\{;\overline{B}\right\}}
-      {\Sigma;\Gamma\vdash X=\overline{x}\mapsto\overline{B},\Sigma}\\
-  \end{mathpar}
-  \caption{Formation rules for environments}
-\end{figure}
-\begin{figure}
-  \begin{mathpar}
-    \inferrule[EqPath-Empty]{\\}{\Sigma;\Gamma\vdash\epsilon\cong\epsilon}\hfill
-    \inferrule[EqPath-Add]
-      {\Sigma;\Gamma\vdash M_1\cong M_2\\\forall i.\Sigma,\Gamma\vdash t_i\cong t'_i}
-      {\Sigma;\Gamma\vdash M_1.X\left[\overline{x_i=t_i}\right] \cong
-        M_2.X\left[\overline{x_i=t'_i}\right]}\\
-  \end{mathpar}
-  \caption{Rules for path equivalence}\label{fig:pathequivalence}
-\end{figure}
-\begin{figure}
-  \begin{mathpar}
-      \inferrule[WF-Behave]{\Sigma;\Gamma\vdash \BX :
-        \overline{\tx:\star}\to \{D\} \\ \Sigma;\Gamma\vdash t_i:\star}
-                {\Sigma;\Gamma\vdash \BX[\overline{\tx_i=t_i}]}
-                
-    \inferrule[WF-ExportType]{\Sigma;\Gamma\vdash M :
-      \left\{\kwtp \tx = t\right\}\cup
-      \left\{\kwopq \tx\right\}}
-              {\Sigma;\Gamma\vdash M.\tx}\hfill
-    \inferrule[WF-Star]{\Sigma;\Gamma\vdash}
-              {\Sigma;\Gamma\vdash\star}\\
-    \inferrule[WF-Function]{\Sigma;\Gamma\vdash\\
-    \forall 0\leq j\leq n.\quad\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
-              {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}\\
-    \inferrule[WF-ModuleTypeNames]{\forall S_i\in\overline{S}.\Sigma(S_i)=\overline{x:\star}^i\mapsto \overline{D}^i\\
-      \left\{\overline{D}\right\} \preccurlyeq
-        \left\{\overline{\overline{x:[=\_]}^i\;\overline{D}^i}\right\}\\
-    \forall i\neq
-    j.(\dom\left(\overline{D}^i\right)\#\dom\left(\overline{D}^j\right)\text{
-      and } \overline{x}^i\#\overline{x}^j)\\
-    \Sigma;\Gamma\vdash\left\{\overline{D}\right\}}
-              {\Sigma;\Gamma\vdash\left\{\overline{S};\overline{D}\right\}}\left(S\neq\epsilon\right)\\
-    \inferrule[WF-ModuleTypeModule]{\Sigma;\Gamma\vdash T\\\Sigma;\Gamma,X:T\vdash\left\{\overline{D}\right\}}
-              {\Sigma;\Gamma\vdash\left\{(\kwmdl X:T)\overline{D}\right\}}\hfill
-    \inferrule[WF-ModuleTypeOpaque]{\Sigma;\Gamma,x:\star\vdash\left\{\overline{D}\right\}}
-              {\Sigma;\Gamma\vdash\left\{(\kwopq x)\overline{D}\right\}}\\
-    \inferrule[WF-ModuleTypeType]{\Sigma;\Gamma\vdash t\\\Sigma;\Gamma,x:[=t]\vdash\left\{\overline{D}\right\}}
-              {\Sigma;\Gamma\vdash\left\{(\kwtp x = t)\overline{D}\right\}}\hfill
-    \inferrule[WF-ModuleTypeCallback]{\overline{\Sigma;\Gamma\vdash T}\\\Sigma;\Gamma,x:\bigcap\overline{T}\vdash\left\{\overline{D}\right\}}
-              {\Sigma;\Gamma\vdash\left\{(\kwclbk x:\bigcap\overline{T})\overline{D}\right\}}
-  \end{mathpar}
-Plus the rules stating that a simple type other than path and behaviour is well-formed if all its components are well-formed.
-
-  \beppe{Many modifications needed:\begin{itemize}\item well-formedness of paths must be done, and in two variants (according to whether we want instantiation at the end or at each step) \end{itemize}}
-  \caption{Well-formedness rules for types \fbox{$\Sigma;\Gamma\vdash T$}}
-  \label{fig:wftypes}
-\end{figure}
 \section{Optional callbacks}
 
 Explain here how to extend the module system to allow optional callbacks, that is, callbacks that are not required by the behaviour but may be implemented by the module.

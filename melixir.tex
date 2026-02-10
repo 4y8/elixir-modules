@@ -98,13 +98,13 @@ combined with our types):
 defmodule !\negspace\textbf{\color{darkgreen}type}! GenServer(!{\color{bordeaux}request, reply}!) do
  # Types
  !\textcolor{typeGreen}{type}! option() = {:debug, debug()} | {:name, name()} | ...      !\color{typeAqua}//transparent!
- !\textcolor{typeGreen}{type}! result() = {:reply, !{\color{bordeaux}reply}!, state()} | ...                 !\color{typeAqua}//transparent!
+ !\textcolor{typeGreen}{type}! result() = {:reply, !{\color{bordeaux}reply}!, state()} | ...                   !\color{typeAqua}//transparent!
  !\textcolor{typeGreen}{type}! state()                                                   !\color{typeBlue}//opaque!
     !{\etc}!
  # Callbacks
  !\textcolor{typeGreen}{callback}! init :: init_arg() -> {:ok, state()} | :error      
- !\textcolor{typeGreen}{callback}! optional(handle_call) :: !{\color{bordeaux}request}!, pid(), state() -> result() 
- !\textcolor{typeGreen}{callback}! optional(handle_cast) :: !{\color{bordeaux}request}!, state() -> result()        
+ !\textcolor{typeGreen}{callback}! optional(handle_call) :: !{\color{bordeaux}request}!, pid(), state() -> result
+ !\textcolor{typeGreen}{callback}! optional(handle_cast) :: !{\color{bordeaux}request}!, state() -> result        
     !\etc!
  # Functions
  !\textcolor{typeGreen}{spec}! start :: GenServer(!{\color{bordeaux}request, reply}!), init_arg(), options() -> on_start()!\negspace!
@@ -456,7 +456,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
-    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a like a new constant of the basic type module())\\
+    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a new constant of the basic type module())\\
   %  &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\
     & | & \textcolor{OrangeRed}{\text{$\BH M$}} &\color{Gray} the singleton type of $M$ (modulo path equivalence)\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
@@ -501,13 +501,13 @@ Types are either the simple types $t$, or the module system types $T$. We have a
 
 \subsubsection{Stratification}\label{sec:stratification}
 
-The important point of our type system is that types are strictly stratified: module system types $T$ can contain simple types $t$, but not vice versa. This stratification has several important consequences. On the positive side, it allows us to define a semantic interpretation of simple types $t$ as sets of values, and therefore a semantic subtyping relation on simple types $t$, and a syntactic subtyping relation on module system types $T$. For this reason we hereafter we will also call simple types as \emph{semantic types} and $T$ types as syntactic types. On the negative side, the only proper subtypes of \texttt{module()} that can occur in simple types $t$ are (Boolean combinations of) fully instantiated behaviours $\BX[\overline{\tx=t}]$. This means that in a tuple or a map or a list of Elixir, only modules that implement some behaviour can occur in them. To palliate this limitation, we added to simple types the singleton types of fully instantiated modules. 
+The important point of our type system is that types are strictly stratified: module system types $T$ can contain simple types $t$, but not vice versa. This stratification has several important consequences. On the positive side, it allows us to define a semantic interpretation of simple types $t$ as sets of values, and therefore a semantic subtyping relation on simple types $t$, and a syntactic subtyping relation on module system types $T$. For this reason hereafter we will also call simple types as \emph{semantic types} and $T$ types as syntactic types. On the negative side, the only proper subtypes of \texttt{module()} that can occur in simple types $t$ are (Boolean combinations of) fully instantiated behaviours $\BX[\overline{\tx=t}]$. This means that in a tuple or a map or a list of Elixir, only modules that implement some behaviour can occur in them. To palliate this limitation, we added to simple types the singleton types of fully instantiated modules. 
 
 \begin{remark}
 In practice, one can envisage to provide the programmer some syntax to denote structural module types. A possibility is to add to the Elixir language of types the \texttt{like($M$)} syntax to denote the anonymous structural type of a (fully instantiated) module $M$ as well as a more programming friendly synatax \texttt{behaviour\_of($M$)} to denote the singleton type $\langle M\rangle$. Of course while \texttt{behaviour\_of($M$)} can be used in simple types $t$, the type \texttt{like($M$)} can be used only in module system types $T$. Such additions do not change the underlying type theory we present next.
 \end{remark}
 
-Next we are going to discuss the semantic interpretation of simple types $t$. As we will see we need a further stratification of simple types $t$ into the current Elixir types and the new types we added to handle modules.
+Next we are going to discuss the semantic interpretation of simple types $t$. As we will see, we need to introduce a further stratification that will separate simple types $t$ into the current Elixir types and the new types we added to handle modules.
 
 
 
@@ -516,11 +516,15 @@ Simple types, ranged over by $t$ are essentially the types of Elixir defined in 
 
 The Elixir types and the three additional forms are essentially different in their nature. The Elixir types have a clear semantics that it is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The three new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons: first we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; second, such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation of the types used in their instantiations; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
 
-For these reasons we will further stratify simple types $t$ into the current Elixir types, which we will call \emph{core types}, which are \emph{coinductively} defined by the following grammar:
-$$\tau ::= k\mid\texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{k:\tau}\right\} \mid \tau\vee\tau \mid \neg\tau\mid\alpha\mid\mathbb{O}$$
+For these reasons we will further stratify simple types $t$ into the current Elixir types---that we call \emph{core types}---, which are \emph{coinductively} defined by the following grammar:
+$$\tau ::= k\mid\texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{k:\tau}\right\} \mid
+    \tau \lor \tau \mid \lnot \tau \mid \Empty\mid \alpha
+  $$
 The simple types $t$ are then defined on the top of the core types $\tau$ \emph{inductively} by the following grammar:
-$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{\ell:t}\right\} \mid t\vee t \mid \neg t\mid M.\tx \mid \BH M \mid \BX[\overline{\tx=t}]$$
-This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giveing an interpretation parametric in the program, we just give an encoding of the new forms parametric into it.
+$$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{k:t}\right\} \mid
+    t \lor t \mid \lnot t \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
+  $$
+This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giving an interpretation of types parametric in the module and behaviour definitions, we just give an encoding of the new forms of types parametric into these definitions.
 
 Formally, we have the following definitions.
 
@@ -547,7 +551,7 @@ Formally, we have the following definitions.
     t \lor t \mid \lnot t \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
   \]
 \end{definition}
-Core types are a relevant subset the polymorphic types of Elixir defined in \cite{CDV24,CD25}. they include a singleton type $k$ for each atom $k$, the basic types \texttt{atom} of all atoms, \texttt{mod} of all modules, and \texttt{fun} of all functions, the arrow type $(\overline{\tau}) \to \tau$ for multi-arity functions, the open map type $\texttt{\%}\!\left\{\overline{k:\tau}\right\}$ mapping atom keys to core types, the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
+Core types are a relevant subset the polymorphic types of Elixir as defined in \cite{CDV24,CD25}. They include a singleton type $k$ for each atom $k$, the basic types \texttt{atom} of all atoms, \texttt{mod} of all modules, and \texttt{fun} of all functions, the arrow type $(\overline{\tau}) \to \tau$ for multi-arity functions, the open map type $\texttt{\%}\!\left\{\overline{k:\tau}\right\}$ mapping atom keys to core types, the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
 
 
 Coinduction accounts for recursive types, and it is coupled with a
@@ -560,13 +564,13 @@ or $ \tau = \lnot \tau $ (which cannot represent any set of values) do not
 satisfy the contractivity condition.
 Contractivity also gives an induction principle on the set of core types that allows us to apply the induction hypothesis
 below type connectives (union and negation),
-but not below type constructors (product and arrow).
+but not below type constructors (records and arrows).
 
-The subtyping relation for core types is defined semantically by interpreting them as sets of values,  and defining subtyping as the containment of the interpretations. The interpretation of functional core types is standard and can be found in \cite[Sections 3.1 and 4.2]{DubocThesis26} (see~\cite[Section 3.2]{Cas24} for a much simpler overview), and so is the interpretation of map types, which are interpreted as quasi-constant functions from labels to sets of values as in \cite{Cas23}. The only difference is that the set of labels contains not only the atoms but also all the type names $\tx$ and three special labels $\texttt{\@p}, \texttt{\@o}, \texttt{\@n}$, since we use them in our encoding of types into core types, as we will see later. 
+The subtyping relation for core types is defined semantically by interpreting them as sets of values,  and defining subtyping as the containment of the interpretations. The interpretation of functional core types is standard and can be found in \cite[Sections 3.1 and 4.2]{DubocThesis26} (see~\cite[Section 3.2]{Cas24} for a simpler presentation), and so is the interpretation of map types, which are interpreted as quasi-constant functions from labels to sets of values as in \cite{Cas23}. The only difference with the cited work is that in our case the set of labels contains not only all the atoms, but also some further labels that we use to encode simple types into core types, namely, the set of all type names $\tx$, as well as three distinguished labels \texttt{@p}, \texttt{@o}, and \texttt{@n}. For the reader convenience we recall the interpretation of our core types in Appendix~\ref{app:coretypes}.
 
 
-Pretypes are called as such because we will select among them the one that are well-formed with respect to a given definition of modules and behaviors.
-The include core types and their type constructors and connectives, plus the three new types for modules: the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$.
+We call the types of Definition \ref{def:types} "pretypes" because we need to identify which ones are well-formed for a given set of module and behaviour definitions.
+Pretypes include all core types along with their type constructors and connectives. Additionally, they include three new module-related types: $M.\tx$ (the type $\tx$ exported by module $M$), $\BX[\overline{\tx=t}]$ (the behaviour $\BX$ instantiated with types $\overline{t}$ for its parameters $\overline{\tx}$), and $\BH M$ (the singleton module type).
 
 
 We use the abbreviations
@@ -577,12 +581,13 @@ $, $
 $, and $
   \Any \eqdef \lnot \Empty
 $ (in particular, $\Any$ is the supertype of all types, denoted in Elixir by \elix{term()}).
-We refer to $ b $, $ \times $, and $ \to $ as \emph{type
+We refer to \texttt{atom}, \texttt{mod}, \texttt{fun}, $\texttt{\%}\!\left\{\right\}$, and $ \to $ as \emph{type
 constructors}, and to $ \lor $, $ \lnot $, $ \land $, and $ \setminus
 $ as \emph{type connectives.} As customary, connectives have priority
-over constructors and negation has the highest priority---e.g., $\neg
+over constructors and negation has the highest priority of all---e.g., $\neg
 s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
 
+To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we've identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally define what constitutes a behaviour definition and a module definition.
 
 \beppe{<UP TO HERE>}
 
@@ -864,4 +869,6 @@ There are four possible ways to proceed from here, listed here in the order of c
 Explain here how to extend the module system to allow optional callbacks, that is, callbacks that are not required by the behaviour but may be implemented by the module.
 
 \printbibliography
+
+\input appendix
 \end{document}

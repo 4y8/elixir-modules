@@ -551,7 +551,7 @@ Formally, we have the following definitions.
     t \lor t \mid \lnot t \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
   \]
 \end{definition}
-Core types are a relevant subset the polymorphic types of Elixir as defined in \cite{CDV24,CD25}. They include a singleton type $k$ for each atom $k$, the basic types \texttt{atom} of all atoms, \texttt{mod} of all modules, and \texttt{fun} of all functions, the arrow type $(\overline{\tau}) \to \tau$ for multi-arity functions, the open map type $\texttt{\%}\!\left\{\overline{k:\tau}\right\}$ mapping atom keys to core types, the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
+Core types are a relevant subset the polymorphic types of Elixir as defined in \cite{CDV24,CD25}. They include a singleton type $k$ for each atom $k$, the basic types \texttt{atom} of all atoms, \texttt{mod} of all modules, and \texttt{fun} of all functions, the arrow type $(\overline{\tau}) \to \tau$ for multi-arity functions, the open map type $\texttt{\%}\!\left\{\overline{k:\tau}\right\}$ mapping atom keys to core types, the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$. The types defined in \cite{CDV24,CD25} also include tuples, lists, possibly closed maps with non-atom keys and optional fields, as well as a larger range of basic types (e.g., integers, floats, processes, ports, strings, ...)  but we do not need them for our formalization.
 
 
 Coinduction accounts for recursive types, and it is coupled with a
@@ -587,7 +587,18 @@ $ as \emph{type connectives.} As customary, connectives have priority
 over constructors and negation has the highest priority of all---e.g., $\neg
 s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
 
-To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we've identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally define what constitutes a behaviour definition and a module definition.
+To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we have identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally associate to each behaviour its definition and to each module its type. These are given by the behaviour environments $\Sigma$ and the type environments $\Gamma$, defined in Figure~\ref{fig:modulelangsyntax}. A behaviour environment $\Sigma$ associates to each behaviour name $\BX$ its definition, that is, the list of its parameters and of its declarations. A type environment $\Gamma$ associates to each module name $X$ its type, that is, the list of its parameters, of the behaviours it implements, and of its declarations. Notice that the type environment $\Gamma$ also contains the typings of the definitions exported by modules, which are needed to define the encoding of well-formed types into core types.
+
+Given a behaviour environment $\Sigma$ and a type environment $\Gamma$, we can define the well-formed types inductively as those pretypes that satisfy the following conditions:
+\begin{itemize}
+\item a core type is always well-formed;
+\item every type occurring in the pre-type is well-formed;
+\item every behaviour $\BX$ occurring in the pre-type is fully instantiated (i.e., all its parameters are given a type);
+\item every path $M$ occurring in the pre-type is well-formed, that is, it effectively points to a fully instantiated module;
+\end{itemize}
+Notice that we do not require $\Sigma$ and $\Gamma$ to be well-formed, that is, we do not require that they contain only well-formed (module) types. This will be required for typing, but for defining the encoding of well-formed types into core types we just need to check that paths point somewhere and that all parameters declared for a module or a behaviour are instantiated with well-formed simple types.
+
+We can now give the intuition of the encoding of well-formed types into core types. For core types, the encoding is just the identity. 
 
 \beppe{<UP TO HERE>}
 
@@ -622,21 +633,6 @@ Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the se
 
 For what concerns the interpretation of $M.\tx$, we can always use the type of the module names that form $M$ to deduce the simple type $M.\tx$ denotes. This is either a transparent type $t$, in which case we can define the interpretation of $M.\tx$ as the interpretation of the type $t$, or it is an opaque type, in which case we consider $M.\tx$ as a type variable (modulo the equivalence of paths defined in Figure~\ref{fig:pathequivalence}). It is important to notice that $M.\tx$ must be well-formed, that is the last module in the path $M$ (or the also all the intermediates modules of the path if we use the more general syntax for paths) must be completely instantiated, so that we can always deduce the type bound to $\tx$.
 
-Formally, we have the following definition of pretypes, where we replaced product types for record types. Types will be defined as the well-formed pretypes.
-\begin{definition}[Pretypes]\label{def:types}
-  Let $X$ range over module names, $\BX$ over behaviour names, $\tx$ over type names, and $M$ over module paths.
-  The set $ \Types $ of \emph{pretypes} is the set of terms $ t $
-  that are coinductively produced by the following grammar
-  \[
-    t ::= b \mid t \times t \mid (\overline{t}) \to t \mid  M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M\mid
-    t \lor t \mid \lnot t \mid \Empty\mid \alpha
-  \]
-  and that satisfy two additional constraints: $(1)$ \emph{regularity}:
-          the term must have a finite number of different sub-terms; $(2)$ \emph{contractivity}:
-          every infinite branch must contain an infinite number
-          of occurrences of the product or arrow type constructors.
-\end{definition}
-(Pre)types include  basic types $b$ (including at least the basic type \textsf{int} for integers, \textsf{mod} for the top module type, and \textsf{fun} for the top function type). They include the product type $t_1 \times t_2$ for products, the arrow type $(\overline{t_1}) \to t_2$ for multi-arity functions, the type $M.\tx$ for the type $\tx$ exported by the module $M$, the behaviour type $\BX[\overline{\tx=t}]$ for the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$, and the singleton module type $\BH M$. They also include the set-theoretic connectives union $t_1 \lor t_2$, negation $\lnot t$, and the empty type $\Empty$, as well as type variables, ranged over by $\alpha$.
 
 
 
@@ -869,6 +865,6 @@ There are four possible ways to proceed from here, listed here in the order of c
 Explain here how to extend the module system to allow optional callbacks, that is, callbacks that are not required by the behaviour but may be implemented by the module.
 
 \printbibliography
-
+\appendix
 \input appendix
 \end{document}

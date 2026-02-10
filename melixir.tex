@@ -593,8 +593,23 @@ TODO:
 \aghilas{ there is still a question for the encoding to core types: if $M.\tx$
   is transparent equal to $t$ how to encode $t$ to a core type as it is not a
   subtype of $M.\tx$ and that it is not defined in the same $\Gamma$. Modifying
-  the syntax of declaration types to have: $\tx:[=\tau]$ would fix the issue. }
-
+  the syntax of declaration types to have: $\tx:[=\tau]$ would fix the issue. If
+  we note $\Sigma;\Gamma\vdash \wr t\wr =\tau$ the encoding. Then we express this
+  idea as the following rules.
+  \begin{mathpar}
+    \inferrule[Bind-Type]
+       {\Sigma;\Gamma\vdash t:\star\\
+         \Sigma;\Gamma\vdash \wr t\wr=\tau\\
+        \Sigma;\Gamma, x:[=\tau]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(x=\textsf{type }t\right)\overline{B}: \left(x:[=\tau]\right)\overline{D}}
+       \\
+\inferrule[Bind-Opaque]
+       {\Sigma;\Gamma\vdash t:\star\\
+         \Sigma;\Gamma\vdash \wr t\wr=\tau\\
+        \Sigma;\Gamma, x:[=\tau]\vdash\overline{B}:\overline{D}}
+       {\Sigma;\Gamma\vdash\left(x =\textsf{opaque }t\right)\overline{B}:  \left(x:\star\right)\overline{D}}
+  \end{mathpar}
+}
 
 Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
 Therefore, we can define the interpretation of $\BX[\overline{\tx=t}]$ as the set containing all the equivalent instantiations of the behaviour $\BX$, where $\BX[\overline{\tx=t}]\simeq\BX[\overline{\tx=t'}]$ iff for every $\tx_i=t_i$, we have $t_i\simeq t'_i$ (the order of the parameters does not matter, just their names and instantiations). Adding the \texttt{behaviour\_of($M$)} singleton types as suggested in Section \ref{sec:stratification} does not change the theory as these behaviours are singletons, modulo the equivalence on $M$ (see Figure~\ref{fig:pathequivalence}). Bottom line, behaviours are a new basic type handled exactly as \elix{atom()}.
@@ -652,7 +667,7 @@ semantic subtyping on simple types $t$ when needed.
 
 The main rules are the following:
 
-\paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{fig:wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
+\paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
 
 \beppe{TO BE CONTINUED}
 

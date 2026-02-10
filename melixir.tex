@@ -588,17 +588,12 @@ s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
 
 TODO: 
 \begin{itemize}
-\item definitions of $\Sigma$ and $\Gamma$
 \item encoding of well-formed types into core types, parametric in $\Sigma$ and $\Gamma$
-\item definition of semantic subtyping on core types
-\item definition of syntactic subtyping on module system types $T$
 \end{itemize}
-\aghilas{ points 1 and 4 are done, 3 is the usual semantics which is Guillaume's
-  thesis, there is still a question for the encoding to core types: if $M.\tx$
+\aghilas{ there is still a question for the encoding to core types: if $M.\tx$
   is transparent equal to $t$ how to encode $t$ to a core type as it is not a
   subtype of $M.\tx$ and that it is not defined in the same $\Gamma$. Modifying
-  the syntax of declaration types to have: $\tx:[=\tau]$ would fix the issue.
-}
+  the syntax of declaration types to have: $\tx:[=\tau]$ would fix the issue. }
 
 
 Let us start with the interpretation of $\BX[\overline{\tx=t}]$. Notice that we can deal with the type \texttt{module}, the top module type, in the same way as we did for \texttt{atom} in \cite{CD25}, as it can be considered as the infinite union of all the singleton types that form it. In the case of \texttt{atom} the singleton types are the single atoms. In the case of \texttt{module} the singleton types are all the fully instantiated behaviours, modulo the equivalence of their instantiation. Then every type contained in \texttt{module} is either a finite or a cofinite union of fully instantiated behaviours.
@@ -634,8 +629,6 @@ The types are essentially the same as in \cite{CDV24}, with the addition of the 
 
 TODO:
 \begin{itemize}
-  \item Define the types $t$ coinductively with the conditions of contractivity and regularity.
-  \item Define the good formation of types: this shoud be a judgment of the form $????\vdash t:\star$ checking that all the paths $M.\tx$ occurring in $t$ are well formed (i.e., $M$ is completely instantiated and $\tx$ is defined in the module type of $M$) and all behaviours are completely instantiated (with well-formed types).
   \item Define the interpretation of types $\llbracket t\rrbracket$ as sets of values. The one for behaviours needs type equivalence, the one for $M.\tx$ instead is not clear (indeed we avoided this problem by using coinductive definition but having paths in type implicitly introduces recursion variables). Maybe we can define it as follows:
     \begin{itemize}
       \item if $M.\tx$ is bound to a transparent type $t'$, then $\llbracket M.\tx\rrbracket = \llbracket t'\rrbracket$; (contractivity should guarantee that the definition is well founded)

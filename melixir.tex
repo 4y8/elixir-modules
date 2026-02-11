@@ -39,6 +39,7 @@
 \DeclareMathOperator{\dom}{\textsf{dom}}
 \newcommand{\tx}{\text{\rm x}}
 \newcommand{\ty}{\text{\rm y}}
+\newcommand{\tz}{\text{\rm z}}
 \newcommand{\BX}{\ensuremath{\mathcal{X}}}
 \newcommand{\BY}{\ensuremath{\mathcal{Y}}}
 \newcommand{\BH}[1]{\langle #1\rangle}
@@ -612,10 +613,10 @@ The type $\texttt{eq}(t)$ is never empty as it contains $(\mho,\mho)$.
 Thus if a behaviour, say \texttt{StackB}, has a parameter \texttt{elem}, then the encoding of \texttt{StackB[elem=integer()]} is the record type $\texttt{\%}\!\left\{\texttt{@n: :StackB},\texttt{elem}:\texttt{eq}(\texttt{integer()})\right\}$.
 
 
-The encoding of the singleton type $\BH M$ of a fully instantiated module $M$ is similar to the one of behaviours, but instead of using a special field \texttt{@n} for the name, we use the special ``path'' field \texttt{@p} to encode the path of the module $M$. The encoding of $\BH{X.Y[\tx=t]}$ is then the record type $\texttt{\%}\!\left\{\texttt{@p}: \atom{X.Y},\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. 
+The encoding of the singleton type $\BH M$ of a fully instantiated module $M$ is similar to the one of behaviours, but instead of using a special field \texttt{@n} for the name, we use the special ``path'' field \texttt{@p} to encode the path of the module $M$. The encoding of $\BH{X.Y[\tx=t]}$ is then the record type $\texttt{\%}\!\left\{\texttt{@p}: \atom{X.Y},\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. If 
 
 
-Finally, the encoding of $M.\tx$ is more convoluted. If $M.\tx$ is a transparent type, then since simple types are inductively defined, we can just unfold the path and encode it as the encoding of the type $t$ that $M.\tx$ is transparent equal to. If $M.\tx$ is an opaque type, then we can encode it as a fresh type variable univoquely identified by the path $M.\tx$, modulo equivalence of instantiations.
+Finally, the encoding of $M.\tx$ is slightly more complicated and it depends on whether the type exported by $M.\tx$ is opaque or transparent. If the type exported by $M.\tx$ is opaque then we can  use exactly the same technique we used for the previous two forms, this time using the \texttt{@o} ``opaque'' label to store the full path: for example the encoding of $X.Y[\tx=t].\tz$ will be $\texttt{\%}\!\left\{\texttt{@o}: \atom{X.Y.\tz},\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. Intuitively, this corresponds to introduce a new fresh type constant to represent the opaque type, which to all effects will behave exactly like a fresh monomorphic type variable. If the type exported by $M.\tx$ is transparent, then we can just try to unfold the path and encode it as the encoding of the type $t$ that $M.\tx$ is transparent equal to. Of course, this is not always possible: even if pretypes are inductively defined, the $\Gamma$ environment can not be well-formed, and therefore have circular or dangling definitions. However, when unfolding is possible, there is a final caveat: 
 
 
 

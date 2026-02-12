@@ -169,7 +169,7 @@ The full syntax of the surface language is given in Figure \ref{fig:surfacesynta
     $\mathcal B$ & ::= &$\kwdefmt \BX\kwdo \overline{P}\, \overline{D} \kwend$ \\
     $N$ & ::= & $x$ \\
     & | & $X$ \\
-    $S$ & ::= & $\kwbvr \BX$ \\
+    $S$ & ::= & $\kwbvr \BX[\,\overline{\tx=t}\,]$ \\
     $P$ &::= & \textcolor{Cerulean}{$\kwprm \tx$} \\
     $B$ &::= & $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ \\
     & | & $x = v$\\
@@ -259,8 +259,7 @@ The bindings $\overline{B}$ are used to define the actual implementation of the 
 In a \emph{type binding}, a type $t$ is bound to a (type) name $\tx$, and this binding may be transparent or opaque, as defined by the syntax $\kwtp \tx = t$ and $\kwopq \tx =t$, respectively. An opaque type definition makes the binding $\tx= t$ visible only inside the module, while a transparent one makes this binding visible also outside the module and it is also used to instantiate the parameters of the behaviours the module implements. Thus, for instance if the behaviour \elix{StackB} is defined as the above, then a module \elix{StackInt} implementing the behaviour for integers will be defined as
 \begin{minted}{elixir}
 defmodule StackInt do            
-  !\tp!behaviour StackB                       # declare that the module implements the behaviour StackB 
-  !\tp!type elem = integer()                  # instantiate the behaviour parameter
+  !\tp!behaviour StackB[elem = integer()]     # declare that it implements StackB for integers
   !\tp!opaque stack = list(integer())         # define the opaque type of the stack
 
   # callbacks implementations
@@ -281,8 +280,7 @@ higher-order function \elix{move}
 \begin{minted}{elixir}
 defmodule StackModule do
   !\tp!param elem
-  !\tp!behaviour StackB
-  !\tp!type elem = elem              # instantiate the behaviour parameter with the module parameter
+  !\tp!behaviour StackB[elem = elem]   # declare that it implements StackB for elem
   !\tp!opaque stack = list(elem)
 
   # callbacks implementations
@@ -404,7 +402,7 @@ The types for expressions are strictly stratified. There are the simple types, r
   One of the consequences of this stratification---actually, its main motivation---is that set-theoretic type connectives such as $\vee$, $\wedge$, and $\neg$ are not allowed in module system types, but only in simple types. The reason is that we do not have a semantic interpretation of the $T$ types and therefore we cannot define the set-theoretic connectives on them.
 
 
-  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type \texttt{like($M$)} intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\BX}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\BX_1}\cap...\cap{\BX_n}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
+  In practice, however we need intersection types on module system types in at least two cases: when we want to define a module $M$ that implements several behaviours (since the type of the module is its anonymous type \texttt{like($M$)} intersected with its properly instantiated behaviours), and when we want to define a multiclause function in which some clauses are defined for module system types (we expect the function to have an intersection of $(\overline{N:T})\to T$ arrows). Both cases are represented in the syntax of Figure~\ref{fig:surfacesyntax} by handling them syntactically. A module system type $\left\{\overline{S};\overline{D}\right\}$ represent the intersection of the anonymous type $\left\{\overline{D}\right\}$ with the behaviours $\overline{S}$, instantiated as indicated in $\overline{D}$. This will be clearer in the formalization where module types have the form $\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$ to be interpreted as the syntactic intersection $\{\overline D\}\cap{\BX_1[\,\overline{\tx_1=t_1}\,]}\cap...\cap{\BX_n[\,\overline{\tx_n=t_n}\,]}$. For the second case, we use the syntax $\bigcap \overline{T}$ to declare callback types and annotate exported functions. We use $\bigcap$, rather than $\bigwedge$ to stress that this is an intersection different from the one on simple types, the former being defined syntactically (via some explicit subtyping rules), the latter semantically (via a set theoretic interpretation of types).
 
   
 
@@ -417,7 +415,7 @@ For our formalization we will use a slightly different syntax, which is more con
 \begin{figure}
   \begin{tabular}{r c ll}
     $\mathcal B$ &::= &  $\!\!\BX: \Lambda(\overline{\tx:\star}).\{\overline{D}\}$ &\color{Gray} behaviour $\BX$ with parameters $\overline \tx$\\
-    $B$ &::= &  $\!\!X = \textcolor{Cerulean}{\Lambda(\overline{\tx:\star}).}\{\overline{B}\}_{\overline{\mathcal{X}}}$ &\color{Gray} module $X$ with parameters $\overline \tx$ implementing $\overline{\BX}$\\
+    $B$ &::= &  $\!\!X = \textcolor{Cerulean}{\Lambda(\overline{\tx:\star}).}\{\overline{B}\}_{\overline{\mathcal{X}[\,\overline{\tx=t}\,]}}$ &\color{Gray} module $X$ with parameters $\overline \tx$ implementing $\overline{\BX[\,\overline{\tx=t}\,]}$\\
     & | & $x = v$                                   &\color{Gray} exported definition \\
     & | & $x = \textsf{private }v$                  &\color{Gray} private definition\\
     & | & $\tx = \textsf{type }t$                     &\color{Gray} transparent type or behaviour argument\\
@@ -442,7 +440,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
-    & | & $\left\{\overline{D}\right\}_{\overline{\BX}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1}\cap...\cap{\BX_n}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
+    & | & $\left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1[\,\overline{\tx_1=t_1}\,]}\cap...\cap{\BX_n[\,\overline{\tx_n=t_n}\,]}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
     & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{it allows to pass around non instantiated parametric modules ... do we want it?} \\
      & | & \color{Gray} $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}}$ & isn't it enough to have only this one, instead of the previous one?\\[3mm] 
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
@@ -479,7 +477,7 @@ The main differences with respect to the Elixir syntax are the following:
 
 \begin{enumerate}
   \item The module type $\kwdefmt \BX\kwdo \overline{\kwprm \tx}\, \overline{D} \kwend$ is written as $\BX: \Lambda(\overline{\tx:\star}).\{\overline{D}\}$.
-  \item The module definition $\kwdefm X \kwdo \overline{\kwprm \tx}\; \overline{\kwbvr \mathcal{X}}\; \overline{B} \kwend$ is written as $X = \Lambda(\overline{\tx:\star}).\{\overline{B}\}_{\overline{\mathcal{X}}}$
+  \item The module definition $\kwdefm X \kwdo \overline{\kwprm \tx}\; \overline{\kwbvr \mathcal{X}[\,\overline{\tx=t}\,]}\; \overline{B} \kwend$ is written as $X = \Lambda(\overline{\tx:\star}).\{\overline{B}\}_{\overline{\mathcal{X}[\,\overline{\tx=t}\,]}}$
   \item We changed the syntax of module binding so that all the bindings are of the form (\emph{name $=$ definition}): this is the main motivation for the change of syntax in point 2 above.
   \item Likewise, the types of module bindings has been modified so that all the binding are of the form (\emph{name $:$ definition-type}). This is the main motivation for the change of syntax in point 1 above.
   \item Expression can be applied only to a list of names, and not to arbitrary expressions. It is however easy to encode the expression $E_0(E_1,...,E_n)$ as $\kwlet N_1 = E'_1 \kwin ... \kwlet N_n=E'_n\kwin E'_0(N_1,\dots,N_n)$, where $E'_i$ is the encoding of expression $E_i$, and $N_i$ are fresh names.  

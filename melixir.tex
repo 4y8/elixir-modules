@@ -611,7 +611,7 @@ The encoding of the singleton type $\BH M$ of a fully instantiated module $M$ is
 
 The encoding of $M.\tx$ is slightly more complicated and it depends on whether the type exported by $M.\tx$ is opaque or transparent. If the type exported by $M.\tx$ is opaque, then we can use exactly the same technique we used for the previous two forms, this time using the \texttt{@o} ``opaque'' label to store the full path: for example the encoding of $X.Y[\tx=t].\tz$ will be $\texttt{\%}\!\left\{\texttt{@o}: \atom{X.Y.\tz},\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. Intuitively, this corresponds to introduce a new fresh type constant to represent the opaque type, which to all effects will behave exactly like a fresh monomorphic type variable. If the type exported by $M.\tx$ is transparent, then we just unfold the path and encode it as the encoding of the type $t$ that $M.\tx$ is transparently equal to. The definition is straightforward since there are two possible cases: either the type exported by $M.\tx$ is of the form $[=\tau]$, then we encode $M.\tx$ by $\tau$, or it is of the form $M'.\ty$, in which case we encode $M.\tx$ by the encoding of $M'.\ty$. In general such an unfolding may not always be possible: even if pretypes are inductively defined, the $\Gamma$ environment can not be well-formed, and therefore have circular or dangling definitions. However, when typing we will always use well-formed environments that will ensure that such an unfolding always succeeds. 
 
-Finally, we encode a type names $\tx$ by the encoding it as $M.\tx$ where $M$ is the absolute path of the current module, instantiated with $[\tx=\tx]$. This is just a technical trick to be able to identify in a module $M$ the types $\tx$ and $M.\tx$ as being the same type.
+Finally, we encode a type names $\tx$ by the encoding it as $M.\tx$ where $M$ is the absolute path of the current module, instantiated with $[\overline{\tx=\tx}]$, and where type parameters are treated as opaque type declarations. This is just a technical trick to be able to identify inside a module $M$, the types $\tx$ and $M.\tx$ as being the same type.
 
 As the very last thing we have to define the encoding of the top module type \texttt{mod} and of the top record type. Since we want \texttt{mod} to be a supertype both of all behaviors and of all singleton module types (but not of the opaque variable), then it is encoded as the open record type $\texttt{\%}\!\left\{\texttt{@n:} \neg\texttt{atom},\texttt{@o}:\bot\right\}$. For the top record type $\texttt{\%}\!\left\{\right\}$ we want it to be a supertype of all records in which the special fields are undefined: therefore it will be encoded as the is the open record type $\texttt{\%}\!\left\{\texttt{@n}:\bot,\texttt{@p}:\bot, \texttt{@o}:\bot\right\}$.
  
@@ -676,7 +676,7 @@ The main rules are the following:
 
 \beppe{TO BE CONTINUED}
 
-\beppe{Observation: we need to add to types the case of a type name $\tx$, even if it is not preceded by a path. This is because it can be a type defined previously in the module, or it can be a parameter of the module. In both cases it must be present in $\Gamma$ as $\tx:\star$ to be a well-formed type, and we must encode it as an opaque type. Currently we do not have "empty" paths to obtain this special case}.
+
 
 
 \aghilas{ We have two different environments: $(1)$ the behaviour environment

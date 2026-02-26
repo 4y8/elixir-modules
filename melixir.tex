@@ -686,6 +686,37 @@ The rules in Figures~\ref{wf-behenv} define when a behaviour environment is well
 \paragraph{Good formation for value environments} 
 Figure~\ref{wf-valenv} defines when a value environment is well-formed. Rule \Rule{WFValEnv-Empty} states that the empty value environment is well-formed for any well-formed behaviour environment. Rule \Rule{WFValEnv-Opaque} states that if $\Gamma$ is well-formed, then adding an opaque type declaration $\tx:\star$ to $\Gamma$ yields a well-formed environment. Rule \Rule{WFValEnv-Trans} requires the good formation of the transparent type $t$. Likewise, rule \Rule{WFValEnv-Value} requires the good formation of the type $T$ of the module $X$ being declared. Again, for the sake of simplicity we examine only the case in which a module definition depends only on the module definitions that precede it, though in Elixir is possible to have mutually recursive module definitions. 
 
+\aghilas{
+  We miss a rule for values $x$, we may rename \Rule{WFValEnv-Value} to \Rule{WFValEnv-Module} and add the following rule.
+  \begin{mathpar}
+    \inferrule[WFValEnv-Value]{\overline{\Sigma;\Gamma\vdash T}}
+      {\Sigma;\Gamma\vdash\Gamma, x:\bigcap \overline{T}}
+  \end{mathpar}
+  In prose, it could be something like: Likewise, rules \Rule{WFValEnv-Module}
+  and \Rule{WFValEnv-Value} require the good formation of the types $T$ of the
+  value $X$ or $x$ being declared.
+
+  Also, is the judgement really of the form $\Sigma;\Gamma\vdash\Gamma'$? Isn't
+  $\Sigma\vdash \Gamma$ a better formulation? For behaviour environments, the
+  judgement has type $\vdash\Sigma$, not $\Sigma\vdash\Sigma'$. In all cases, the
+  \Rule{WFValEnv-Opaque} doesn't follow the same convention as the others in its
+  hypothesis.
+
+  Just replace the figure with the following one to take into account the
+  previous comments.
+
+\begin{figure}[h]
+  \begin{mathpar}
+    \inferrule[WFValEnv-Empty]{\vdash\Sigma}{\Sigma\vdash\epsilon}\hfill
+    \inferrule[WFValEnv-Opaque]{\Sigma\vdash\Gamma}{\Sigma\vdash\Gamma,\tx:\star}\hfill
+    \inferrule[WFValEnv-Trans]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash t:\star}{\Sigma\vdash\Gamma,\tx:[= t]}\hfill
+    \inferrule[WFValEnv-Value]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash T}{\Sigma\vdash\Gamma,X:T}
+    \inferrule[WFValEnv-Value]{\Sigma\vdash\Gamma\\\overline{\Sigma;\Gamma\vdash T}}
+      {\Sigma\vdash\Gamma, x:\bigcap \overline{T}}
+  \end{mathpar}
+  \caption{Good formation of value environments}\label{wf-valenv}
+\end{figure}
+}
 
 \begin{figure}[h]
   \begin{mathpar}
@@ -701,7 +732,7 @@ Figure~\ref{wf-valenv} defines when a value environment is well-formed. Rule \Ru
 \paragraph{Good formation for module system types} 
 We have to define when a module system type $T$ is well-formed. This is done by the rules in Figure~\ref{wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$ (besides in $T'$); $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$, the definitions $\overline{D}$ must contain at least the definitions of all callbacks of the behaviours $\overline{\BX}$, which must be (fully) instantiated as indicated in $\overline{\BX[\overline{\tx=t}]}$. 
 
-The first conditions is checked by the rule \Rule{WFModType-Arrow}, which tries to deduce the good formation of $T_{j+1}$ for all $j$ from the assumption that the names $N_i$ are available in the environment with their types $T_i$ for all $i\leq j$. 
+The first conditions is checked by the rule \Rule{WFModType-Arrow}, which tries to deduce the good formation of $T_{j+1}$ for all $j$ from the assumption that the names $N_i$ are available in the environment with their types $T_i$ for all $i\leq j$.
 
 
 \begin{figure}[h]
@@ -741,11 +772,6 @@ Core types are always well-formed (provided that they are checked under well-for
 A type name $\tx$ is well-formed if $\Gamma$ contains an association for it (rule \Rule{WFType-Name}). 
 The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the definition of $\BX$ with parameters $\overline{\tx}$ and these are instantiated by well-formed types (rule \Rule{WFType-Behaviour} also checks the good formation of the environments in case there were no instantiation).
 
-
-
-
-
-
 \begin{figure}[ht]
   \begin{mathpar}
   \inferrule[WFType-Core]{\Sigma\vdash\Gamma}
@@ -781,12 +807,17 @@ The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the de
   \caption{Good formation of types}\label{wf-type}
 \end{figure}
 
+\aghilas{
+\paragraph{Good formation for module system types} 
+I give here several versions of the rule
+
 \begin{figure}[ht]
   \begin{mathpar}
     \inferrule[Path-Empty]{\\}{\\}
   \end{mathpar}
   \caption{Good formation and typing of paths}
 \end{figure}
+}
 
 \begin{figure}
   \begin{mathpar}

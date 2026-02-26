@@ -809,15 +809,36 @@ The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the de
 
 \aghilas{
 \paragraph{Good formation for module system types} 
-I give here several versions of the rule
+We may want to change the name $M$ to $P$ in the syntax, as all not paths are
+valid modules as they may lack some instantiations, and there is no ``empty
+module'', even though we would like to have an empty path. To have more natural
+definitions, I redefine paths as: $M::= \epsilon| M.X | M.X[\overline{x=t}]$.
+The fact that there is no instanciation except for the last module has to be
+added as a side condition, however the rules I give later do not rely on that
+fact.
 
-\begin{figure}[ht]
-  \begin{mathpar}
-    \inferrule[Path-Empty]{\\}{\\}
-  \end{mathpar}
-  \caption{Good formation and typing of paths}
-\end{figure}
-}
+The rule has the type $\Sigma;\Gamma\vdash M:\overline{D}$, meaning that $M$ is
+well-formed in environments $\Sigma$ and $\Gamma$ and exports $\overline{D}$.
+The projection $M.\tx$ is then well-formed if and only if $\Sigma;\Gamma\vdash
+P:\overline{D}$ and $\tx\in \dom(\overline{D})$. The rule \Rule{Path-Empty} for
+the empty path states that the empty path is always well formed and exports what
+is in the current value environment, so that $\tx$ is a valid type in
+$\Sigma;\Gamma$ if and only if it is declared in $\Gamma$.
+\begin{mathpar}
+  \inferrule[Path-Empty]{\vdash\Sigma\\\Sigma\vdash\Gamma}
+    {\Sigma;\Gamma\vdash \epsilon:\Gamma}
+\end{mathpar}
+
+There are three cases of projections: $(1)$, if $M$ exports $X$ as a module of
+type ${\{\overline{D}\}}_{\_}$ without any parameters, then $M.X$ is well formed
+and exports $\overline{D}$; if $M$ exports $X$ as a module with parameters of
+type $(\overline(\tx:\star))\to {\{\overline{D}\}}_{\_}$ there are two cases:
+$(2)$, $M.X$ exports only the modules present in $\overline{D}$, and $(3)$
+$M.X[\overline{\tx = t}]$ exports all $\overline{D}$ if the paramaters are
+well-formed.
+
+The case $(2)$ could change to export more declarations, I gave the simplest one
+that is still sound.}
 
 \begin{figure}
   \begin{mathpar}

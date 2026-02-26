@@ -808,7 +808,7 @@ The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the de
 \end{figure}
 
 \aghilas{
-\paragraph{Good formation for module system types} 
+\paragraph{Good formation for paths} 
 We may want to change the name $M$ to $P$ in the syntax, as all not paths are
 valid modules as they may lack some instantiations, and there is no ``empty
 module'', even though we would like to have an empty path. To have more natural
@@ -830,15 +830,46 @@ $\Sigma;\Gamma$ if and only if it is declared in $\Gamma$.
 \end{mathpar}
 
 There are three cases of projections: $(1)$, if $M$ exports $X$ as a module of
-type ${\{\overline{D}\}}_{\_}$ without any parameters, then $M.X$ is well formed
-and exports $\overline{D}$; if $M$ exports $X$ as a module with parameters of
-type $(\overline(\tx:\star))\to {\{\overline{D}\}}_{\_}$ there are two cases:
-$(2)$, $M.X$ exports only the modules present in $\overline{D}$, and $(3)$
-$M.X[\overline{\tx = t}]$ exports all $\overline{D}$ if the paramaters are
-well-formed.
+type ${\{\overline{D'}\}}_{\_}$ without any parameters, then $M.X$ is well
+formed and exports $\overline{D'}$ (rule \Rule{Path-NoParam}); if $M$ exports
+$X$ as a module with parameters of type $(\overline(\tx:\star))\to
+{\{\overline{D'}\}}_{\_}$ there are two cases: $(2)$, $M.X$ exports only the
+modules present in $\overline{D'}$ using a function from value environments to
+value environments called \textsf{restrict} (rule \Rule{Path-NoInstantiation}),
+and $(3)$ $M.X[\overline{\tx = t}]$ exports all $\overline{D'}$ if the
+paramaters are well-formed (rule \Rule{Path-Instantiation}).
 
-The case $(2)$ could change to export more declarations, I gave the simplest one
-that is still sound.}
+\begin{mathpar}
+  \inferrule[Path-NoParam]{\Sigma;\Gamma\vdash M:\overline{D}\\
+    \overline{D}(X)={\{\overline{D'}\}}_{\_}}
+    {\Sigma;\Gamma\vdash M.X:\overline{D'}}\qquad
+  \inferrule[Path-NoInstantiation]{\Sigma;\Gamma\vdash M:\overline{D}\\
+    \overline{D}(X)=(\overline{\tx:\star})\to{\{\overline{D'}\}}_{\_}}
+    {\Sigma;\Gamma\vdash M.X:\textsf{restrict}(\overline{D'})}\\
+  \inferrule[Path-Instantiation]{\Sigma;\Gamma\vdash M:\overline{D}\\
+    \overline{D}(X)=(\overline{\tx:\star})\to{\{\overline{D'}\}}_{\_}\\
+    \overline{\Sigma;\Gamma\vdash t:\star}}
+    {\Sigma;\Gamma\vdash M.X[\overline{x=t}]:\overline{x:[=t]},\overline{D'}}
+\end{mathpar}
+
+We define \textsf{restrict} as follows.
+\begin{align*}
+  \textsf{restrict}(\epsilon) &:= \epsilon\\
+  \textsf{restrict}(X:t,\overline{D}) &:= X:t,\textsf{restrict}(\overline{D})\\
+  \textsf{restrict}(\_,\overline{D}) &:= \textsf{restrict}(\overline{D})\\
+\end{align*}
+
+The case $(2)$ could change to export more declarations by changing the
+\textsf{restrict} function, I gave the simplest one that is still sound and not
+useless. The only limitations on the choice of \textsf{restrict} is that it
+should respect the following lemma, and that
+$\textsf{restrict}(\overline{D})\subseteq \overline{D}$ for all $D$. For more
+involved rules for projection we might want to allow \textsf{restrict} to depend
+on $\Sigma$ and $\Gamma$.
+\begin{lemma}
+  For all $\Sigma,\Gamma, M$ and $\overline{D}$, if $\Sigma;\Gamma\vdash M:D$,
+  then $\Sigma\vdash\Gamma,\overline{D}$.
+\end{lemma}}
 
 \begin{figure}
   \begin{mathpar}

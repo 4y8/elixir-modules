@@ -244,7 +244,7 @@ defmodule M do
   end
 end
 \end{minted}
-which is thus conforms to the syntax of Figure~\ref{fig:surfacesyntax}, and the type-checker will check the call to \elix{Module.create/3} as any other call, and in particular it will check that the first argument is of type \elix{atom()} (since module names are atoms) and that the second argument is of type \elix{Macro.t()} (since the second argument of \elix{Module.create/3} must be a quoted expression) and that this argument is of type \elix{Macro.Env.t()} (which is the type of the options passed as third argument).
+which is thus conforms to the syntax of Figure~\ref{fig:surfacesyntax}, and the type-checker will check the call to \elix{Module.create/3} as any other call, and in particular it will check that the first argument is of type \elix{atom()} (since module names are atoms), that the second argument is of type \elix{Macro.t()} (since the second argument of \elix{Module.create/3} must be a quoted expression), and that the third argument is of type \elix{Macro.Env.t()} (which is the type of the options passed as third argument).
 
 
 \subsubsection{Module definitions}
@@ -441,7 +441,7 @@ For our formalization we will use a slightly different syntax, which is more con
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1[\,\overline{\tx_1=t_1}\,]}\cap...\cap{\BX_n[\,\overline{\tx_n=t_n}\,]}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
-    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{first class parametric modules. Maybe  $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}}$ suffices} \\[3mm] 
+    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{first class parametric modules. Maybe  $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}$ might suffice} \\[3mm] 
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
   %                &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\texttt{atom}$ \\
@@ -696,7 +696,7 @@ The main rules are the following:
 }
 
 \paragraph{Good formation of environments and types}
-The rules in Figures~\ref{wf-behenv} define when a behaviour environment is well-formed. Rule \Rule{WFBehEnv-Empty} states that the empty behaviour environment is well-formed. Rule \Rule{WFBehEnv-Beh} states that if from the assumption that the type names parameters of the behaviour {\BX} are well-formed types, we can deduce the good-formation of $\{\overline{D}\}$, then adding $\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}$ to the current behaviour environment yields a well-formed environment. Notice that no behaviour instantiation is given for $\{\overline{D}\}$ (i.e., we used  $\{\overline{D}\}$ rather than  $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$), since in Elixir behaviours cannot implement other behaviours. Also, for the sake of simplicity we examine only the case in which a behaviour definition depends only on the behaviour definitions that precede it, but not on any module definition even though in Elixir it is possible to have a behaviour definition that depends on a module definition (e.g., in Elixir the \elix{Logger.Backend} behaviour declares callbacks that use the type \elix{Logger.Event.t()} exported by the \elix{Logger.Event} module). We can easily extend the system to allow for such dependencies, but we do not want to complicate the presentation with this additional case, which would require the interleaving of behaviour and module definitions. With this presentation we can just require that the behaviour definitions are all given at the beginning of the program, and then the module definitions can follow in any order.
+The rules in Figures~\ref{wf-behenv} define when a behaviour environment is well-formed. Rule \Rule{WFBehEnv-Empty} states that the empty behaviour environment is well-formed. Rule \Rule{WFBehEnv-Beh} states that if from the assumption that the type names parameters of the behaviour {\BX} are well-formed types, we can deduce the good-formation of the list of declarations $\overline{D}$, then adding $\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}$ to the current behaviour environment yields a well-formed environment. Notice that no behaviour instantiation is given for $\{\overline{D}\}$ (i.e., we used  $\{\overline{D}\}$ rather than  $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$), since in Elixir behaviours cannot implement other behaviours. Also, for the sake of simplicity we examine only the case in which a behaviour definition depends only on the behaviour definitions that precede it, but not on any module definition, even though in Elixir it is possible to have a behaviour definition that depends on a module definition (e.g., in Elixir the \elix{Logger.Backend} behaviour declares callbacks that use the type \elix{Logger.Event.t()} exported by the \elix{Logger.Event} module). We can easily extend the system to allow for such dependencies, but we do not want to complicate the presentation with this additional case, which would require the interleaving of behaviour and module definitions: with this presentation we can just require that the behaviour definitions are all given at the beginning of the program, and then the module definitions can follow in any order.
 \begin{figure}[ht]
   \begin{mathpar}
     \inferrule[WFBehEnv-Empty]{\\}{\vdash\epsilon}\qquad\qquad
@@ -709,55 +709,55 @@ The rules in Figures~\ref{wf-behenv} define when a behaviour environment is well
 
 
 \paragraph{Good formation for value environments} 
-Figure~\ref{wf-valenv} defines when a value environment is well-formed. Rule \Rule{WFValEnv-Empty} states that the empty value environment is well-formed for any well-formed behaviour environment. Rule \Rule{WFValEnv-Opaque} states that if $\Gamma$ is well-formed, then adding an opaque type declaration $\tx:\star$ to $\Gamma$ yields a well-formed environment. Rule \Rule{WFValEnv-Trans} requires the good formation of the transparent type $t$. Likewise, rule \Rule{WFValEnv-Value} requires the good formation of the type $T$ of the module $X$ being declared. Again, for the sake of simplicity we examine only the case in which a module definition depends only on the module definitions that precede it, though in Elixir is possible to have mutually recursive module definitions. 
+Figure~\ref{wf-valenv} defines when a value environment is well-formed. Rule \Rule{WFVEnv-Empty} states that the empty value environment is well-formed for any well-formed behaviour environment. Rule \Rule{WFVEnv-Opaque} states that if $\Gamma$ is well-formed, then adding an opaque type declaration $\tx:\star$ to $\Gamma$ yields a well-formed environment. Rule \Rule{WFVEnv-Trans} requires the good formation of the transparent type $t$. Likewise, rules \Rule{WFVEnv-Module} and \Rule{WFEnv-Value} require the good formation of the type(s) $T$ of the module $X$ and value $x$ being declared. Again, for the sake of simplicity we examine only the case in which a module definition depends only on the module definitions that precede it, though in Elixir is possible to have mutually recursive module definitions. 
 
-\aghilas{
-  We miss a rule for values $x$, we may rename \Rule{WFValEnv-Value} to \Rule{WFValEnv-Module} and add the following rule.
-  \begin{mathpar}
-    \inferrule[WFValEnv-Value]{\overline{\Sigma;\Gamma\vdash T}}
-      {\Sigma;\Gamma\vdash\Gamma, x:\bigcap \overline{T}}
-  \end{mathpar}
-  In prose, it could be something like: Likewise, rules \Rule{WFValEnv-Module}
-  and \Rule{WFValEnv-Value} require the good formation of the types $T$ of the
-  value $X$ or $x$ being declared.
+% \aghilas{
+%   We miss a rule for values $x$, we may rename \Rule{WFVEnv-Value} to \Rule{WFVEnv-Module} and add the following rule.
+%   \begin{mathpar}
+%     \inferrule[WFVEnv-Value]{\overline{\Sigma;\Gamma\vdash T}}
+%       {\Sigma;\Gamma\vdash\Gamma, x:\bigcap \overline{T}}
+%   \end{mathpar}
+%   In prose, it could be something like: Likewise, rules \Rule{WFVEnv-Module}
+%   and \Rule{WFVEnv-Value} require the good formation of the types $T$ of the
+%   value $X$ or $x$ being declared.
 
-  Also, is the judgement really of the form $\Sigma;\Gamma\vdash\Gamma'$? Isn't
-  $\Sigma\vdash \Gamma$ a better formulation? For behaviour environments, the
-  judgement has type $\vdash\Sigma$, not $\Sigma\vdash\Sigma'$. In all cases, the
-  \Rule{WFValEnv-Opaque} doesn't follow the same convention as the others in its
-  hypothesis.
+%   Also, is the judgement really of the form $\Sigma;\Gamma\vdash\Gamma'$? Isn't
+%   $\Sigma\vdash \Gamma$ a better formulation? For behaviour environments, the
+%   judgement has type $\vdash\Sigma$, not $\Sigma\vdash\Sigma'$. In all cases, the
+%   \Rule{WFVEnv-Opaque} doesn't follow the same convention as the others in its
+%   hypothesis.
 
-  Just replace the figure with the following one to take into account the
-  previous comments.
+%   Just replace the figure with the following one to take into account the
+%   previous comments.
 
 \begin{figure}[h]
   \begin{mathpar}
-    \inferrule[WFValEnv-Empty]{\vdash\Sigma}{\Sigma\vdash\epsilon}\hfill
-    \inferrule[WFValEnv-Opaque]{\Sigma\vdash\Gamma}{\Sigma\vdash\Gamma,\tx:\star}\hfill
-    \inferrule[WFValEnv-Trans]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash t:\star}{\Sigma\vdash\Gamma,\tx:[= t]}\hfill
-    \inferrule[WFValEnv-Value]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash T}{\Sigma\vdash\Gamma,X:T}
-    \inferrule[WFValEnv-Value]{\Sigma\vdash\Gamma\\\overline{\Sigma;\Gamma\vdash T}}
+    \inferrule[WFVEnv-Empty]{\vdash\Sigma}{\Sigma\vdash\epsilon}\hfill
+    \inferrule[WFVEnv-Opaq]{\Sigma\vdash\Gamma}{\Sigma\vdash\Gamma,\tx:\star}\hfill
+    \inferrule[WFVEnv-Trans]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash t:\star}{\Sigma\vdash\Gamma,\tx:[= t]}\hfill
+    \inferrule[WFVEnv-Module]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash T}{\Sigma\vdash\Gamma,X:T}\hfill
+    \inferrule[WFVEnv-Value]{\Sigma\vdash\Gamma\\\overline{\Sigma;\Gamma\vdash T}}
       {\Sigma\vdash\Gamma, x:\bigcap \overline{T}}
   \end{mathpar}
   \caption{Good formation of value environments}\label{wf-valenv}
 \end{figure}
-}
+% }
 
-\begin{figure}[h]
-  \begin{mathpar}
-    \inferrule[WFValEnv-Empty]{\vdash\Sigma}{\Sigma;\epsilon\vdash\epsilon}\hfill
-    \inferrule[WFValEnv-Opaque]{\Sigma\vdash\Gamma}{\Sigma;\Gamma\vdash\Gamma,\tx:\star}\hfill
-    \inferrule[WFValEnv-Trans]{\Sigma;\Gamma\vdash t:\star}{\Sigma;\Gamma\vdash\Gamma,\tx:[= t]}\hfill
-    \inferrule[WFValEnv-Value]{\Sigma;\Gamma\vdash T}{\Sigma;\Gamma\vdash\Gamma,X:T}
-  \end{mathpar}
-  \caption{Good formation of value environments}\label{wf-valenv}
-\end{figure}
+% \begin{figure}[h]
+%   \begin{mathpar}
+%     \inferrule[WFVEnv-Empty]{\vdash\Sigma}{\Sigma;\epsilon\vdash\epsilon}\hfill
+%     \inferrule[WFVEnv-Opaque]{\Sigma\vdash\Gamma}{\Sigma;\Gamma\vdash\Gamma,\tx:\star}\hfill
+%     \inferrule[WFVEnv-Trans]{\Sigma;\Gamma\vdash t:\star}{\Sigma;\Gamma\vdash\Gamma,\tx:[= t]}\hfill
+%     \inferrule[WFVEnv-Value]{\Sigma;\Gamma\vdash T}{\Sigma;\Gamma\vdash\Gamma,X:T}
+%   \end{mathpar}
+%   \caption{Good formation of value environments}\label{wf-valenv}
+% \end{figure}
 
 
 \paragraph{Good formation for module system types} 
 We have to define when a module system type $T$ is well-formed. This is done by the rules in Figure~\ref{wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$ (besides in $T'$); $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$, the definitions $\overline{D}$ must contain at least the definitions of all callbacks of the behaviours $\overline{\BX}$, which must be (fully) instantiated as indicated in $\overline{\BX[\overline{\tx=t}]}$. 
 
-The first conditions is checked by the rule \Rule{WFModType-Arrow}, which tries to deduce the good formation of $T_{j+1}$ for all $j$ from the assumption that the names $N_i$ are available in the environment with their types $T_i$ for all $i\leq j$.
+The first condition is checked by the rule \Rule{WFModType-Arrow}, which tries to deduce the good formation of $T_{j+1}$ for all $j$ from the assumption that the names $N_i$ are available in the environment with their types $T_i$ for all $i\leq j$.
 
 
 \begin{figure}[h]
@@ -787,7 +787,7 @@ The first conditions is checked by the rule \Rule{WFModType-Arrow}, which tries 
 \end{figure}
 
 
-The second condition is checked by the rule \Rule{WFModType-Module}, by far the most complex one. This checks the good formation of the type of a module that implements the behaviours $\BX_i$ with instantiations $\overline{\tx=t}^i$. For that it checks that the definitions $\overline{D}$ are well-formed ($\Sigma;\Gamma\vdash\overline{D}$, using the rule \Rule{WFModType-DeclList}) and that all the $\overline{\,t\,}^i$ are well-formed ($\Sigma;\Gamma\vdash{\overline{t:\star}}^i$). Next it checks that for each behaviour $\BX_i$ implemented by the module, there is a definition in $\overline{D}^i$ in $\Sigma$ with the right parameters $\overline{\tx}^i$ (i.e., $\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma$). The rule then proceeds to a sanity check, which ensures that the implemented behaviours do not declare the same name (i.e., $\dom(\overline{D}^i)\#\dom(\overline{D}^j)$ for $i\neq j$) \beppe{\textbf{Not sure that the following is needed:} and that the parameters of the implemented behaviours do not have the same name (i.e., $\overline{x}^i\#\overline{x}^j$ for $i\neq j$)}. Once this sanity check is passed, the rule creates a new module type formed by all the declarations $\overline{D}^i$ of the implemented behaviours, where each type parameter $\tx$ is instantiated with the corresponding type $t$ given in the instantiation $\overline{\tx=t}^i$ of $\BX_i$ (i.e., $\{\overline{\overline{D}^i[\overline{\tx:=t}^i]}^{i=1..n}\}$). Finally, the rule checks that the module type $\{\overline{D}\}$ is a subtype of the module type formed by all the declarations of the implemented behaviours, which ensures that all the declarations required by the implemented behaviours are actually provided by the module with compatible types. Notice that the instatiantion is performed on the behaviour declarations $\overline{D}^i$ and not on the module type $\{\overline{D}\}$, since the module type $\{\overline{D}\}$ cannot refer to the parameters of the implemented behaviours.
+The second condition is checked by the rule \Rule{WFModType-Module}, by far the most complex one. This checks the good formation of the type of a module that implements the behaviours $\BX_i$ with instantiations $\overline{\tx=t}^i$. For that it checks that the definitions $\overline{D}$ are well-formed ($\Sigma;\Gamma\vdash\overline{D}$, using the rule \Rule{WFModType-DeclList}) and that all the $\overline{\,t\,}^i$ are well-formed ($\Sigma;\Gamma\vdash{\overline{t:\star}}^i$). Next it checks that for each behaviour $\BX_i$ implemented by the module, there is a definition in $\overline{D}^i$ in $\Sigma$ with the right parameters $\overline{\tx}^i$ (i.e., $\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma$). The rule then proceeds to a sanity check, which ensures that the implemented behaviours do not declare the same name (i.e., $\dom(\overline{D}^i)\#\dom(\overline{D}^j)$ for $i\neq j$) \beppe{\textbf{Not sure that the following is needed:} and that the parameters of different implemented behaviours do not have the same name (i.e., $\overline{x}^i\#\overline{x}^j$ for $i\neq j$)}. Once this sanity check is passed, the rule creates a new module type formed by all the declarations $\overline{D}^i$ of the implemented behaviours, where each type parameter $\tx$ is instantiated with the corresponding type $t$ given in the instantiation $\overline{\tx=t}^i$ of $\BX_i$ (i.e., $\{\overline{\overline{D}^i[\overline{\tx:=t}^i]}^{i=1..n}\}$). Finally, the rule checks that the module type $\{\overline{D}\}$ is a subtype of the module type formed by all the declarations of the implemented behaviours, which ensures that all the declarations required by the implemented behaviours are provided by the module, and that they have compatible types. Notice that the instantiation is performed on the behaviour declarations $\overline{D}^i$ and not on the module type $\{\overline{D}\}$, since the module type $\{\overline{D}\}$ cannot refer to the parameters of the implemented behaviours.
 
 Finally, the rule \Rule{WFModType-TArrow} is straightforward and just checks the good formation of the body of a parametric module type, under the assumption that the parameters are well-formed types.
 
@@ -795,7 +795,7 @@ Finally, the rule \Rule{WFModType-TArrow} is straightforward and just checks the
 \paragraph{Good formation of semantic types} To complete the good formation of types, we need to check that the pretypes are well-formed, that is they satisfy the conditions listed at the beginning of this section. This is done by the rules in Figure~\ref{wf-type}.
 Core types are always well-formed (provided that they are checked under well-formed environments) and the rules for type connectives and type constructors just check the good formation of their subterms, which is possible since pretypes are inductively defined.
 A type name $\tx$ is well-formed if $\Gamma$ contains an association for it (rule \Rule{WFType-Name}). 
-The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the definition of $\BX$ with parameters $\overline{\tx}$ and these are instantiated by well-formed types (rule \Rule{WFType-Behaviour} also checks the good formation of the environments in case there were no instantiation).
+The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the definition of $\BX$ with parameters $\overline{\tx}$ and these are instantiated by well-formed types (rule \Rule{WFType-Behaviour}, which also checks the good formation of the environments---$\Sigma\vdash\Gamma$---in case there were no instantiation).
 
 \begin{figure}[ht]
   \begin{mathpar}

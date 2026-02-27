@@ -739,6 +739,17 @@ Figure~\ref{wf-valenv} defines when a value environment is well-formed. Rule \Ru
     \inferrule[WFVEnv-Value]{\Sigma\vdash\Gamma\\\overline{\Sigma;\Gamma\vdash T}}
       {\Sigma\vdash\Gamma, x:\bigcap \overline{T}}
   \end{mathpar}
+  \beppe{Problem: a module can access to the definitions of outer modules only by using an absolute path starting from a top-level module name; now the rule \Rule{WFVEnv-Module} allows to check the type $T$ of a module $X$ by using the current environment $\Gamma$, which may contain definitions of the current module, which thus are not accessible by $X$. Probably we need to change the rule for good formation of $\overline{D}$ with a special case for $X:T$ \begin{mathpar}
+\inferrule[WFModType-DeclList]
+     {\Sigma;\Gamma\vdash \overline{D} \\ 
+      \Sigma;\Gamma\vdash X:T}
+      {\Sigma;\Gamma\vdash \overline{D},X:T}\qquad\qquad
+      \inferrule[WFModType-DeclList]
+     {\Sigma;\Gamma\vdash \overline{D} \\ 
+      \Sigma;\Gamma,\overline{D}\vdash D'}
+      {\Sigma;\Gamma\vdash \overline{D},D'}{D'\neq X:T}
+  \end{mathpar}
+ }
   \caption{Good formation of value environments}\label{wf-valenv}
 \end{figure}
 % }

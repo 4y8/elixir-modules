@@ -868,7 +868,7 @@ $\Sigma;\Gamma$ if and only if it is declared in $\Gamma$.
 There are three cases of projections: $(1)$, if $M$ exports $X$ as a module of
 type ${\{\overline{D'}\}}_{\_}$ without any parameters, then $M.X$ is well
 formed and exports $\overline{D'}$ (rule \Rule{Path-NoParam}); if $M$ exports
-$X$ as a module with parameters of type $(\overline(\tx:\star))\to
+$X$ as a module with parameters of type $(\overline{\tx:\star})\to
 {\{\overline{D'}\}}_{\_}$ there are two cases: $(2)$, $M.X$ exports only the
 modules present in $\overline{D'}$ using a function from value environments to
 value environments called \textsf{restrict} (rule \Rule{Path-NoInstantiation}),

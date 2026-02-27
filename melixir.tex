@@ -18,33 +18,6 @@
 \usepackage{calc}
 
 
-\DeclareMathOperator{\kwdefmt}{\textsf{defmodtype}}
-\DeclareMathOperator{\kwend}{\textsf{end}}
-\DeclareMathOperator{\kwdo}{\textsf{do}}
-\DeclareMathOperator{\kwbvr}{\textsf{\$behaviour}}
-\DeclareMathOperator{\kwlet}{\textsf{let}}
-\DeclareMathOperator{\kwin}{\textsf{in}}
-\DeclareMathOperator{\kwprm}{\textsf{\$param}}
-\DeclareMathOperator{\kwdefm}{\textsf{defmodule}}
-\DeclareMathOperator{\kwopq}{\textsf{\$opaque}}
-\DeclareMathOperator{\kwtp}{\textsf{\$type}}
-\DeclareMathOperator{\kwpr}{\textsf{\$private}}
-\DeclareMathOperator{\kwmdl}{\textsf{\$module}}
-\DeclareMathOperator{\kwclbk}{\textsf{\$callback}}
-\DeclareMathOperator{\kwfn}{\textsf{fn}}
-\DeclareMathOperator{\kwlike}{\textsf{like}}
-\DeclareMathOperator{\kwbeha}{\textsf{behaviour\!\_\!of}}
-\DeclareMathOperator{\kwint}{\textsf{int}}
-\DeclareMathOperator{\struct}{\textsf{struct}}
-\DeclareMathOperator{\dom}{\textsf{dom}}
-\newcommand{\tx}{\text{\rm x}}
-\newcommand{\ty}{\text{\rm y}}
-\newcommand{\tz}{\text{\rm z}}
-\newcommand{\BX}{\ensuremath{\mathcal{X}}}
-\newcommand{\BY}{\ensuremath{\mathcal{Y}}}
-\newcommand{\BH}[1]{\langle #1\rangle}
-\newcommand{\self}{\texttt{\_\_MODULE\_\_}}
-\newcommand{\atom}[1]{\ensuremath{\ulcorner#1\urcorner}}
 
 \author{Aghilas Y. Boussaa and Giuseppe Castagna}
 \sloppy
@@ -178,7 +151,7 @@ The full syntax of the surface language is given in Figure \ref{fig:surfacesynta
     & | & \textcolor{Cerulean}{$\kwopq \tx = t$} \\
     $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ \\ 
     & | & $X.M$ & \text{\small José version: only the last module of the path can be instantiated}\\
-        & | & $\textcolor{Cerulean}{M}.M$ & \text{\small More general version: every module of the path can be instantiated}\\
+        & | & $\textcolor{Cerulean}{M}.M$ & \text{\small More general but not considered: every module of the path can be instantiated}\\
 $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
@@ -209,8 +182,10 @@ $E$ &::= & $v$ \\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
     & | & $\textcolor{OrangeRed}{M.\tx}$ \\
+    & | & $\textcolor{OrangeRed}{\tx}$ & local type declaration or type parameter\\
+
     & | & $\textcolor{OrangeRed}{\BX[\,\overline{\tx=t}\,]}$ \\ %& shall we move this into $T$? Consequence no $\kwtp x = \elix{Stack}$ [which seems ok]
-    & | & \textcolor{Gray}{$\langle M\rangle$} & singleton type of M (modulo path equivalence)
+    & | & \textcolor{OrangeRed}{$\langle M\rangle$} & singleton type of $M$ (modulo path equivalence) concrete syntax: just $M$
  \\
     $f$ & ::= & $\ell : t$ & mandatory field \\%{\color{bordeaux}[should we use $T$ instead of $t$? Or $\BX[\overline{\tx=t}]$? Or $\{\overline{D}\}_{\overline{\BX}}$?]}\\
     & | & $\ell \;\texttt{=>}\; t$ & optional field\\ %{\color{bordeaux}[same questions as above]}\\
@@ -447,41 +422,41 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $\tx = \textsf{opaque }t$                   &\color{Gray} opaque type\\[3mm]
     $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$                 &\color{Gray} local module\\
  %   & | & $M.M$                                     &\color{Gray} imported module\\
-    & | & $X.M$                                     &\color{Gray} imported module (flat hierarchy): later we can study $M.M$\\[3mm]
+    & | & $X.M$                                     &\color{Gray} imported module (flat hierarchy): later we can study $M::=M.M$\\[3mm]
    $N$ & ::= & $x$ \\
     & | & $X$ \\[3mm]
    $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
     & | & $E(\overline{N})$ \\
-    & | & $\texttt{\%}\!\left\{\overline{\ell=E}\right\}$ \\
-    & | & $E.\ell$ \\
+    & | & $\texttt{\%}\!\left\{\overline{k=E}\right\}$ & $k$ ranges over keys\\
+    & | & $E.k$ \\
     & | & $(E\in t)?E:E$ \\
     & | & {\color{OrangeRed}\text{$M.x$}} \\
     & | & {\color{OrangeRed}\text{$M$}} \\
-    $v$ & ::= & $c$ \\
-    & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
+    $v$ & ::= & $k$ \\
+    & | & $\texttt{\%}\!\left\{\overline{k=v}\right\}$ \\
     & | & $\$\bigwedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
     & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1[\,\overline{\tx_1=t_1}\,]}\cap...\cap{\BX_n[\,\overline{\tx_n=t_n}\,]}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
-    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{it allows to pass around non instantiated parametric modules ... do we want it?} \\
-     & | & \color{Gray} $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}}$ & isn't it enough to have only this one, instead of the previous one?\\[3mm] 
+    & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{first class parametric modules. Maybe  $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX}}}$ suffices} \\[3mm] 
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\
   %                &&&\text{\small they are fully instantiated} $f(X:(\tx:\star)\to ...)\to ...X[\tx=\textsf{int}] ...$\\
     $t$ & ::= & $\texttt{atom}$ \\
     & | & $\texttt{mod}$ & top module type \\
     & | & $\texttt{fun}$ & top function type \\
     & | & $(\overline{\,t\,})\rightarrow t$\\
-    & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ \\
+    & | & $\texttt{\%}\!\left\{\overline{f}\right\}$ & if we want optional fields then $f::= k:t\mid k:t?$\\
     & | & $t\vee t$ \\
 %    & | & $t\wedge t$ & \aghilas{we can remove this one}\\
     & | & $\neg t$\\
     & | & $\alpha$ \\
     & | & $\mathbb{O}$ \\
-    & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
-    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a new constant of the basic type module())\\
+    & | & \textcolor{OrangeRed}{\text{$\tx$}}                          &\color{Gray} a type locally declared or a type parameter\\
+     & | & \textcolor{OrangeRed}{\text{$M.\tx$}}                          &\color{Gray} the type $\tx$ imported from module $M$\\
+   & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a new constant of the basic type module())\\
   %  &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\
     & | & \textcolor{OrangeRed}{\text{$\BH M$}} &\color{Gray} the singleton type of $M$ (modulo path equivalence)\\[3mm]
     $D$ & ::= & $X : T$                               &\color{Gray} exports a module $X$ of type $T$\\
@@ -492,7 +467,7 @@ For our formalization we will use a slightly different syntax, which is more con
     $\Sigma$ & ::= & $\overline{\mathcal B}$ &\color{Gray} behaviour environment\\[4mm]
   \end{tabular}
 
- where $\BX$ ranges over behaviour names, $X$ over module names, $x$ over variable names, $\tx$ over type names, and $\ell$ over map keys. 
+ where $\BX$ ranges over behaviour names, $X$ over module names, $x$ over variable names, $\tx$ over type names, and $k$ over atoms. 
   \caption{Module language syntax}\label{fig:modulelangsyntax}
 \end{figure}
 
@@ -529,7 +504,7 @@ Types are either the simple types $t$, or the module system types $T$. We have a
 The important point of our type system is that types are strictly stratified: module system types $T$ can contain simple types $t$, but not vice versa. This stratification has several important consequences. On the positive side, it allows us to define a semantic interpretation of simple types $t$ as sets of values, and therefore a semantic subtyping relation on simple types $t$, and a syntactic subtyping relation on module system types $T$. For this reason hereafter we will also call simple types as \emph{semantic types} and $T$ types as syntactic types. On the negative side, the only proper subtypes of \texttt{module()} that can occur in simple types $t$ are (Boolean combinations of) fully instantiated behaviours $\BX[\overline{\tx=t}]$. This means that in a tuple or a map or a list of Elixir, only modules that implement some behaviour can occur in them. To palliate this limitation, we added to simple types the singleton types of fully instantiated modules. 
 
 \begin{remark}
-In practice, one can envisage to provide the programmer some syntax to denote structural module types. A possibility is to add to the Elixir language of types the \texttt{like($M$)} syntax to denote the anonymous structural type of a (fully instantiated) module $M$ as well as a more programming friendly synatax \texttt{behaviour\_of($M$)} to denote the singleton type $\langle M\rangle$. Of course while \texttt{behaviour\_of($M$)} can be used in simple types $t$, the type \texttt{like($M$)} can be used only in module system types $T$. Such additions do not change the underlying type theory we present next.
+In practice, one can envisage to provide the programmer some syntax to denote structural module types. A possibility is to add to the Elixir language of types the \texttt{like($M$)} syntax to denote the anonymous structural type of a (fully instantiated) module $M$ as well as a more programming friendly synatax (e.g., \texttt{behaviour\_of($M$)} or probably just $M$) to denote the singleton type $\langle M\rangle$. Of course while \texttt{behaviour\_of($M$)} or $M$ can be used in simple types $t$, the type \texttt{like($M$)} can be used only in module system types $T$. Such additions do not change the underlying type theory we present next.
 \end{remark}
 
 Next we are going to discuss the semantic interpretation of simple types $t$. As we will see, we need to introduce a further stratification that will separate simple types $t$ into the current Elixir types and the new types we added to handle modules.
@@ -537,9 +512,9 @@ Next we are going to discuss the semantic interpretation of simple types $t$. As
 
 
 \subsubsection{Semantic subtyping for simple types}
-Simple types, ranged over by $t$ are essentially the types of Elixir defined in \cite{CDV24,CD25}, with the addition of the three new forms: $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$. The first denotes the type $\tx$ exported by the module $M$, the second the singleton type of the fully instantiated module $M$, while the third denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
+Simple types, ranged over by $t$ are essentially the types of Elixir defined in \cite{CDV24,CD25}, with the addition of the four new forms: $\tx$, $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$. The first is used in a module and denotes either a type locally defined or a type parameter; the second denotes  the type $\tx$ exported by the module $M$; the third denotes the singleton type of the (fully instantiated) module $M$, while the fourth denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
 
-The types currently present in Elixir and the three additional forms are essentially different in their nature. The Elixir types have a clear semantics that it is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The three new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons. First, we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type definition like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; these definitions make the module/behaviour become recursive. Second, the presence of such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation  of the types $\overline t$ used in their instantiations---equivalent types require equivalent instantiations---; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
+These four additional forms are essentially different in nature from types currently present in Elixir. The Elixir types have a clear semantics, that is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The four new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $\tx$ depends on the module it is used in, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons. First, we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type definition like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; these definitions make the module/behaviour become recursive. Second, the presence of such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation  of the types $\overline t$ used in their instantiations---equivalent types require equivalent instantiations---; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
 
 For these reasons we will further stratify simple types $t$ into the current Elixir types---that we call \emph{core types}---, which are \emph{coinductively} defined by the following grammar:
 $$\tau ::= k\mid\texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{k:\tau}\right\} \mid
@@ -547,14 +522,14 @@ $$\tau ::= k\mid\texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overlin
   $$
 The simple types $t$ are then defined on the top of the core types $\tau$ \emph{inductively} by the following grammar:
 $$t ::= \tau \mid  (\overline{t})\to t \mid \texttt{\%}\!\left\{\overline{k:t}\right\} \mid
-    t \lor t \mid \lnot t \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
+    t \lor t \mid \lnot t \mid \tx\mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
   $$
-This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giving an interpretation of types parametric in the module and behaviour definitions, we just give an encoding of the new forms of types parametric into these definitions.
+This stratification allows us to define the semantic interpretation of core types as sets of values, and the semantic of the simple types by giving an encoding of the new forms $\tx$, $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$ into core types. This encoding will be parametric in the definitions of the modules and behaviours of the program, since the semantics of these new forms depends on the definitions of the modules and behaviours they refer to. In this way instead of giving an interpretation of types parametric in the module and behaviour definitions, we just give an encoding of the new forms of types parametric into these definitions.
 
 Formally, we have the following definitions.
 
 \begin{definition}[Core Types]\label{def:coretypes}
-  Let $k$ range over atoms, $\BX$ over behaviour names, $\tx$ over type names, and $M$ over module paths.
+  Let $k$ range over atoms and $\alpha$ over type variables.
   The set $ \Coretypes $ of \emph{core types} is the set of terms $ \tau $
   that are \underline{coinductively} produced by the following grammar
   \[
@@ -589,11 +564,11 @@ The subtyping relation for core types is defined semantically by interpreting th
   that are \underline{inductively} produced by the following grammar
   \[
     t ::=  \tau \mid  (\overline{t}) \to t \mid \texttt{\%}\!\left\{\overline{k:t}\right\} \mid
-    t \lor t \mid \lnot t \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
+    t \lor t \mid \lnot t \mid \tx \mid M.\tx \mid \BX[\overline{\tx=t}] \mid \BH M
   \]
 \end{definition}
 %
-Pretypes include all core types along with their type constructors and connectives. Additionally, they include three new module-related types: $M.\tx$ (the type $\tx$ exported by module $M$), $\BX[\overline{\tx=t}]$ (the behaviour $\BX$ instantiated with types $\overline{t}$ for its parameters $\overline{\tx}$), and $\BH M$ (the singleton module type). We call the types of Definition \ref{def:types} ``pretypes'' because we need to identify which ones are well-formed for a given set of module and behaviour definitions as we show below.
+Pretypes include all core types along with their type constructors and connectives. Additionally, they include four new module-related types: $\tx$ (the name of a type parameter or of a locally declared type), $M.\tx$ (the type $\tx$ exported by module $M$), $\BX[\overline{\tx=t}]$ (the behaviour $\BX$ instantiated with types $\overline{t}$ for its parameters $\overline{\tx}$), and $\BH M$ (the singleton module type). We call the types of Definition \ref{def:types} ``pretypes'' because we need to identify which ones are well-formed for a given set of module and behaviour definitions as we show below.
 
 
 We use the abbreviations
@@ -611,26 +586,29 @@ over constructors and negation has the highest priority of all---e.g., $\neg
 s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
 
 \subsubsection{Encoding of simple types into core types}\label{sec:encoding}
-To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we have identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally associate to each behaviour its definition and to each module its type. These are given by the behaviour environments $\Sigma$ and the type environments $\Gamma$, defined in Figure~\ref{fig:modulelangsyntax}. A behaviour environment $\Sigma$ associates to each behaviour name $\BX$ its definition, that is, the list of its parameters and of its declarations (which has the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$). A type environment $\Gamma$ associates to each module name $X$ its type, that is, the list of its parameters, of the behaviours it implements, and of its declarations (which has the form $(\overline{\tx:\star})\to\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$). Notice that the type environment $\Gamma$ also contains the typings of the definitions exported by modules, which are needed to define the encoding of well-formed types into core types. In practice however all environments will be well-formed since they will be generated by the typing rules.
+To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we have identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally associate to each behaviour its definition and to each module its type. These are given by the behaviour environments $\Sigma$ and the type environments $\Gamma$, defined in Figure~\ref{fig:modulelangsyntax}. A behaviour environment $\Sigma$ associates to each behaviour name $\BX$ its definition, that is, the list of its parameters and of its declarations (which has the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$). A type environment $\Gamma$ associates to each module name $X$ its type, that is, the list of its parameters, of the behaviours it implements, and of its declarations (which has the form $(\overline{\tx:\star})\to\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$). It also contains associations of the form $\tx:\star$, stating that the type name $\tx$ is locally available.
 
 Given a behaviour environment $\Sigma$ and a type environment $\Gamma$, we can define the well-formed types inductively as those pretypes that satisfy the following conditions:
 \begin{itemize}
 \item a core type is always well-formed;
+\item a type name $\tx$ is well-formed if $\Gamma$ contains the association $\tx:\star$;
 \item every type occurring in the pre-type is well-formed;
 \item every behaviour $\BX$ occurring in the pre-type is fully instantiated (i.e., all its parameters are given a type);
 \item every path $M$ occurring in the pre-type is well-formed, that is, it effectively points to a fully instantiated module;
 \end{itemize}
-Notice that we do not require $\Sigma$ and $\Gamma$ to be well-formed. In particular, we do not require that they contain only well-formed module system types. This will be required for typing, but for defining the encoding of well-formed types into core types we just need to check that paths point somewhere and that all parameters declared for a module or a behaviour are instantiated with well-formed simple types: module system types $T$ do not play any role in the encoding.
+Notice that we do not require $\Sigma$ and $\Gamma$ to be well-formed. In particular, we do not require that they contain only well-formed module system types. This will be required for typing, but for defining the encoding of well-formed types into core types we just need to check that paths point somewhere and that all parameters declared for a module or a behaviour are instantiated with well-formed simple types: module system types $T$ do not play any role in the encoding. In practice however all environments that we will use will be well-formed, since they will be all generated by the typing rules, which enforce well-formedness for environments.
 
 We can now give the intuition of the encoding of well-formed types into core types. For core types, the encoding is just the identity. The simplest encoding is the one for behaviours. In Elixir behaviours use name subtyping: the only proper subtype of a (fully instantiated) behaviour is the same behaviour instantiated with equivalent types.\footnote{Two type are equivalent if they have the same interpretation, that is if they are one subtype of each other.} If we denote by \atom{\BX} the atom of the name of the behaviour $\BX$,\footnote{As a curiosity, Elixir provides syntax for it, namely \texttt{:"$\BX$"} since, say, \felix{Atom == :"Elixir.Atom"} returns \felix{true}.} then the idea is to encode $\BX[\overline{\tx=t}]$ by a record with a special ``name'' field \texttt{@n} containing the \emph{negation} of the atom \atom{\BX} (the reason of the negation will become clear when encoding singleton module types), together with a field $\tx$ for each parameter $\tx$ of $\BX$, containing the encoding of the type $t$ used to instantiate $\tx$. While the record type abstracts over the order of the instantiations, there are still two caveats: first the type used to for the parameter fields must be invariant; second, the encoding must not be empty even if an instantiation is empty. To this end given a type $t$, we define: \( \texttt{eq}(t) \eqdef (t\cup\{\mho\})\times (\neg t\cup\{\mho\})\), where $\mho$ is a distinguished constant of the interpretation domain. The construction $\texttt{eq}(t)$ is invariant on the type $t$ and it is never empty (since  it contains $(\mho,\mho)$). 
 \begin{lemma}
 Let $t$ and $t'$ be two types, then $\texttt{eq}(t)\leq\texttt{eq}(t')$ if and only if $t\simeq t'$.
 \end{lemma}
-Then the encoding of $\BX[\overline{\tx=t}]$ is the record type $\texttt{\%}\!\left\{\texttt{@n: $\neg\atom{\BX}$},\;\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. As a concrete example consider the behaviour \texttt{StackB} with a single parameter \texttt{elem}, then the encoding of \texttt{StackB[elem=integer()]} is the record type $\texttt{\%}\!\left\{\texttt{@n: $\neg$:StackB},\;\texttt{elem}:\texttt{eq}(\texttt{integer()})\right\}$.
+Then the encoding of $\BX[\overline{\tx=t}]$ is the record type $\texttt{\%}\!\left\{\texttt{@n: $\neg\atom{\BX}$},\;\overline{\tx:\texttt{eq}(t')}\right\}$, where $t'$ is the encoding of $t$. As a concrete example consider the behaviour \texttt{StackB} with a single parameter \texttt{elem}, then the encoding of \texttt{StackB[elem=integer()]} is the record type $\texttt{\%}\!\left\{\texttt{@n: $\neg$:StackB},\;\texttt{elem}:\texttt{eq}(\texttt{integer()})\right\}$.
 
 The encoding of the singleton type $\BH M$ of a fully instantiated module $M$ is similar to the one of behaviours, but instead of using a special field \texttt{@n} for the behaviour name, it uses the special ``path'' field \texttt{@p} to encode the path of the module $M$. The encoding of $\BH{X.Y[\tx=t]}$ is then a record type with at least the fields $\texttt{@p}: \atom{X.Y}$ and $\tx:\texttt{eq}(t')$, where $t'$ is the encoding of $t$. But besides the fields for the path and the instantiation, there may be further fields in the case $M$ implements some behaviour $\BX$, since  we want the encoding of the singleton type $\BH M$ to be a subtype of all (the encodings of) the behaviours it implements. So if $\Gamma$ states that $M$ implements $\overline{\BX[\overline{\tx=t}]}$, then the encoding of $\BH M$ will also contain the field (\texttt{@n: $\bigwedge_{\BX\in\overline{\BX}} \neg \atom{\BX}$}) to account for the name of the behaviours implemented by $M$, as well as a field $\tx:\texttt{eq}(t')$ for each parameter $\tx$ of each behaviour $\BX$ implemented by $M$, where $t'$ is the encoding of the type $t$ used to instantiate $\tx$ in the implementation of $\BX$ by $M$. We now see the reason of the use of a negation in the encoding of behaviours: by specifying in the field \texttt{@n} of the encoding of $\BH M$ the intersection of the negations of the atoms of the names of the behaviours implemented by $M$, we ensure that the encoding of $\BH M$ is a subtype of the encoding of all the behaviours implemented by $M$ (without the negation such an intersection would be empty). 
 
-Finally, the encoding of $M.\tx$ is slightly more complicated and it depends on whether the type exported by $M.\tx$ is opaque or transparent. If the type exported by $M.\tx$ is opaque, then we can use exactly the same technique we used for the previous two forms, this time using the \texttt{@o} ``opaque'' label to store the full path: for example the encoding of $X.Y[\tx=t].\tz$ will be $\texttt{\%}\!\left\{\texttt{@o}: \atom{X.Y.\tz},\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. Intuitively, this corresponds to introduce a new fresh type constant to represent the opaque type, which to all effects will behave exactly like a fresh monomorphic type variable. If the type exported by $M.\tx$ is transparent, then we can just try to unfold the path and encode it as the encoding of the type $t$ that $M.\tx$ is transparent equal to. The definition is straightforward since there are two possible cases: either the type exported by $M.\tx$ is of the form $[=\tau]$, then we encode $M.\tx$ by $\tau$, or it is of the form $M'.\ty$, in which case we encode we encode $M.\tx$ by the encoding of $M'.\ty$. In general such an unfolding may not always be possible: even if pretypes are inductively defined, the $\Gamma$ environment can not be well-formed, and therefore have circular or dangling definitions. However, when typing we will always use well formed environments that will ensure that such an unfolding always succeeds. 
+The encoding of $M.\tx$ is slightly more complicated and it depends on whether the type exported by $M.\tx$ is opaque or transparent. If the type exported by $M.\tx$ is opaque, then we can use exactly the same technique we used for the previous two forms, this time using the \texttt{@o} ``opaque'' label to store the full path: for example the encoding of $X.Y[\tx=t].\tz$ will be $\texttt{\%}\!\left\{\texttt{@o}: \atom{X.Y.\tz},\tx:\texttt{eq}(t')\right\}$, where $t'$ is the encoding of $t$. Intuitively, this corresponds to introduce a new fresh type constant to represent the opaque type, which to all effects will behave exactly like a fresh monomorphic type variable. If the type exported by $M.\tx$ is transparent, then we just unfold the path and encode it as the encoding of the type $t$ that $M.\tx$ is transparently equal to. The definition is straightforward since there are two possible cases: either the type exported by $M.\tx$ is of the form $[=\tau]$, then we encode $M.\tx$ by $\tau$, or it is of the form $M'.\ty$, in which case we encode $M.\tx$ by the encoding of $M'.\ty$. In general such an unfolding may not always be possible: even if pretypes are inductively defined, the $\Gamma$ environment can not be well-formed, and therefore have circular or dangling definitions. However, when typing we will always use well-formed environments that will ensure that such an unfolding always succeeds. 
+
+Finally, we encode a type names $\tx$ by the encoding it as $M.\tx$ where $M$ is the absolute path of the current module, instantiated with $[\overline{\tx=\tx}]$, and where type parameters are treated as opaque type declarations. This is just a technical trick to be able to identify inside a module $M$, the types $\tx$ and $M.\tx$ as being the same type.
 
 As the very last thing we have to define the encoding of the top module type \texttt{mod} and of the top record type. Since we want \texttt{mod} to be a supertype both of all behaviors and of all singleton module types (but not of the opaque variable), then it is encoded as the open record type $\texttt{\%}\!\left\{\texttt{@n:} \neg\texttt{atom},\texttt{@o}:\bot\right\}$. For the top record type $\texttt{\%}\!\left\{\right\}$ we want it to be a supertype of all records in which the special fields are undefined: therefore it will be encoded as the is the open record type $\texttt{\%}\!\left\{\texttt{@n}:\bot,\texttt{@p}:\bot, \texttt{@o}:\bot\right\}$.
  
@@ -691,9 +669,12 @@ semantic subtyping on simple types $t$ when needed.
 
 The main rules are the following:
 
-\paragraph{Type good formation.} First of all, we have to define when a module system type $T$ is well formed. This is done by the rules in Figure~\ref{wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$; $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX}}$, the definitions $\overline{D}$ must contain at least the definitions of all the parameters and callbacks of the behaviours $\overline{\BX}$, instantiated as indicated in $\overline{D}$. 
+
 
 \beppe{TO BE CONTINUED}
+
+
+
 
 \aghilas{ We have two different environments: $(1)$ the behaviour environment
   (noted $\Sigma$) maps behaviour names ($\BX,\BY,\ldots$) to behaviours:
@@ -712,46 +693,113 @@ The main rules are the following:
     \item Good formation of module system types: $\Sigma;\Gamma\vdash T$ (Figure~\ref{wf-modtype});
     \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}_{\mathcal{X}}\}$.
   \end{itemize}
+}
 
+\paragraph{Good formation of environments and types}
+The rules in Figures~\ref{wf-behenv} define when a behaviour environment is well-formed. Rule \Rule{WFBehEnv-Empty} states that the empty behaviour environment is well-formed. Rule \Rule{WFBehEnv-Beh} states that if from the assumption that the type names parameters of the behaviour {\BX} are well-formed types, we can deduce the good-formation of $\{\overline{D}\}$, then adding $\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}$ to the current behaviour environment yields a well-formed environment. Notice that no behaviour instantiation is given for $\{\overline{D}\}$ (i.e., we used  $\{\overline{D}\}$ rather than  $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$), since in Elixir behaviours cannot implement other behaviours. Also, for the sake of simplicity we examine only the case in which a behaviour definition depends only on the behaviour definitions that precede it, but not on any module definition even though in Elixir it is possible to have a behaviour definition that depends on a module definition (e.g., in Elixir the \elix{Logger.Backend} behaviour declares callbacks that use the type \elix{Logger.Event.t()} exported by the \elix{Logger.Event} module). We can easily extend the system to allow for such dependencies, but we do not want to complicate the presentation with this additional case, which would require the interleaving of behaviour and module definitions. With this presentation we can just require that the behaviour definitions are all given at the beginning of the program, and then the module definitions can follow in any order.
 \begin{figure}[ht]
   \begin{mathpar}
-    \inferrule[WFBehEnv-Empty]{\\}{\vdash\epsilon}\hfill
-    \inferrule[WFBehEnv-Beh]{\Sigma;\overline{\tx:\star}\vdash\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}{\Sigma\vdash\Sigma,\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}}
+    \inferrule[WFBehEnv-Empty]{\\}{\vdash\epsilon}\qquad\qquad
+    \inferrule[WFBehEnv-Beh]{\vdash\Sigma \\ \Sigma;\overline{\tx:\star}\vdash\overline{D}}{\vdash\Sigma,\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}}
   \end{mathpar}
   \caption{Good formation of behaviour environments}\label{wf-behenv}
 \end{figure}
-\begin{figure}[ht]
+
+
+
+
+\paragraph{Good formation for value environments} 
+Figure~\ref{wf-valenv} defines when a value environment is well-formed. Rule \Rule{WFValEnv-Empty} states that the empty value environment is well-formed for any well-formed behaviour environment. Rule \Rule{WFValEnv-Opaque} states that if $\Gamma$ is well-formed, then adding an opaque type declaration $\tx:\star$ to $\Gamma$ yields a well-formed environment. Rule \Rule{WFValEnv-Trans} requires the good formation of the transparent type $t$. Likewise, rule \Rule{WFValEnv-Value} requires the good formation of the type $T$ of the module $X$ being declared. Again, for the sake of simplicity we examine only the case in which a module definition depends only on the module definitions that precede it, though in Elixir is possible to have mutually recursive module definitions. 
+
+\aghilas{
+  We miss a rule for values $x$, we may rename \Rule{WFValEnv-Value} to \Rule{WFValEnv-Module} and add the following rule.
   \begin{mathpar}
-    \inferrule[WFValEnv-Empty]{\\}{\Sigma;\epsilon\vdash\epsilon}\hfill
-    \inferrule[WFValEnv-Opaque]{\\}{\Sigma;\Gamma\vdash\Gamma,\tx:\star}\hfill
-    \inferrule[WFValEnv-Concrete]{\Sigma;\Gamma\vdash t}{\Sigma;\Gamma\vdash\Gamma,\tx:[= t]}\\
+    \inferrule[WFValEnv-Value]{\overline{\Sigma;\Gamma\vdash T}}
+      {\Sigma;\Gamma\vdash\Gamma, x:\bigcap \overline{T}}
+  \end{mathpar}
+  In prose, it could be something like: Likewise, rules \Rule{WFValEnv-Module}
+  and \Rule{WFValEnv-Value} require the good formation of the types $T$ of the
+  value $X$ or $x$ being declared.
+
+  Also, is the judgement really of the form $\Sigma;\Gamma\vdash\Gamma'$? Isn't
+  $\Sigma\vdash \Gamma$ a better formulation? For behaviour environments, the
+  judgement has type $\vdash\Sigma$, not $\Sigma\vdash\Sigma'$. In all cases, the
+  \Rule{WFValEnv-Opaque} doesn't follow the same convention as the others in its
+  hypothesis.
+
+  Just replace the figure with the following one to take into account the
+  previous comments.
+
+\begin{figure}[h]
+  \begin{mathpar}
+    \inferrule[WFValEnv-Empty]{\vdash\Sigma}{\Sigma\vdash\epsilon}\hfill
+    \inferrule[WFValEnv-Opaque]{\Sigma\vdash\Gamma}{\Sigma\vdash\Gamma,\tx:\star}\hfill
+    \inferrule[WFValEnv-Trans]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash t:\star}{\Sigma\vdash\Gamma,\tx:[= t]}\hfill
+    \inferrule[WFValEnv-Value]{\Sigma\vdash\Gamma\\\Sigma;\Gamma\vdash T}{\Sigma\vdash\Gamma,X:T}
+    \inferrule[WFValEnv-Value]{\Sigma\vdash\Gamma\\\overline{\Sigma;\Gamma\vdash T}}
+      {\Sigma\vdash\Gamma, x:\bigcap \overline{T}}
+  \end{mathpar}
+  \caption{Good formation of value environments}\label{wf-valenv}
+\end{figure}
+}
+
+\begin{figure}[h]
+  \begin{mathpar}
+    \inferrule[WFValEnv-Empty]{\vdash\Sigma}{\Sigma;\epsilon\vdash\epsilon}\hfill
+    \inferrule[WFValEnv-Opaque]{\Sigma\vdash\Gamma}{\Sigma;\Gamma\vdash\Gamma,\tx:\star}\hfill
+    \inferrule[WFValEnv-Trans]{\Sigma;\Gamma\vdash t:\star}{\Sigma;\Gamma\vdash\Gamma,\tx:[= t]}\hfill
     \inferrule[WFValEnv-Value]{\Sigma;\Gamma\vdash T}{\Sigma;\Gamma\vdash\Gamma,X:T}
   \end{mathpar}
   \caption{Good formation of value environments}\label{wf-valenv}
 \end{figure}
-\begin{figure}[ht]
+
+
+\paragraph{Good formation for module system types} 
+We have to define when a module system type $T$ is well-formed. This is done by the rules in Figure~\ref{wf-modtype}, which essentially check the following conditions: $(1)$ in a function type $(\overline{N:T})\to T'$, the names $N_i$ are  used only in the types $T_j$ for $j>i$ (besides in $T'$); $(2)$ in a module type $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$, the definitions $\overline{D}$ must contain at least the definitions of all callbacks of the behaviours $\overline{\BX}$, which must be (fully) instantiated as indicated in $\overline{\BX[\overline{\tx=t}]}$. 
+
+The first conditions is checked by the rule \Rule{WFModType-Arrow}, which tries to deduce the good formation of $T_{j+1}$ for all $j$ from the assumption that the names $N_i$ are available in the environment with their types $T_i$ for all $i\leq j$.
+
+
+\begin{figure}[h]
   \begin{mathpar}
-    \inferrule[WFModType-Arrow]{\forall 0\leq j\leq n.\quad\Sigma;\Gamma,\overline{N_i:T_i}^{i=1,\ldots,j}\vdash T_{j+1}}
-              {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}\hfill
-    \inferrule[WFModType-TArrow]{\Sigma;\Gamma,\overline{\tx:\star}\vdash T}{\Sigma;\Gamma\vdash(\overline{\tx:\star})\to T}\\
+    \inferrule[WFModType-Arrow]{\text{for } j=0..n\quad\Sigma;\Gamma,\overline{N_i:T_i}^{i=1..j}\vdash T_{j+1}}
+              {\Sigma;\Gamma\vdash \left(\overline{N_i:T_i}^{i=1,\ldots,n}\right)\to T_{n+1}}
+    \qquad
+    \inferrule[WFModType-TArrow]{\Sigma;\Gamma,\overline{\tx:\star}\vdash T}{\Sigma;\Gamma\vdash(\overline{\tx:\star})\to T}
+    \qquad
+    \inferrule[WFModType-DeclList]
+     {\Sigma;\Gamma\vdash D \\ 
+      \Sigma;\Gamma,D\vdash \overline{D}}
+      {\Sigma;\Gamma\vdash D,\overline{D}}
+    \\
     \inferrule[WFModType-Module]
-              {\forall \BX_i\in\overline{\BX}.\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma\\
-      \Sigma;\Gamma\left\{\overline{D}\right\} \preccurlyeq
-        \left\{\overline{\overline{D}^i}\right\}\\
-        \overline{\Sigma;\Gamma\vdash{\overline{t:\star}}^i} \\
-    \forall i\neq
-    j.(\dom\left(\overline{D}^i\right)\#\dom\left(\overline{D}^j\right)\text{
-      and } \overline{x}^i\#\overline{x}^j)\\
-    \Sigma;\Gamma\vdash\overline{D}}
-              {\Sigma;\Gamma\vdash\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}
+      { \Sigma;\Gamma\vdash\overline{D}\\ 
+        (\text{for }i=1..n\quad \Sigma;\Gamma\vdash{\overline{t:\star}}^i\\\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma)\\
+        \forall i\neq j.
+             (\dom(\overline{D}^i)\#\dom(\overline{D}^j)\text{ and } \overline{x}^i\#\overline{x}^j)\\
+        \Sigma;\Gamma\vdash\left\{\overline{D}\right\} \preccurlyeq
+             \left\{\overline{\overline{D}^i[\overline{\tx:=t}^i]}^{i=1..n}\right\}\\
+     }
+      {\Sigma;\Gamma\vdash\{\overline{D}\}_{\overline{\BX_i[\;\overline{\tx=t}^i\,]}^{i=1..n}}}
 
   \end{mathpar}
   \caption{Good formation of module system types}\label{wf-modtype}
 \end{figure}
 
+
+The second condition is checked by the rule \Rule{WFModType-Module}, by far the most complex one. This checks the good formation of the type of a module that implements the behaviours $\BX_i$ with instantiations $\overline{\tx=t}^i$. For that it checks that the definitions $\overline{D}$ are well-formed ($\Sigma;\Gamma\vdash\overline{D}$, using the rule \Rule{WFModType-DeclList}) and that all the $\overline{\,t\,}^i$ are well-formed ($\Sigma;\Gamma\vdash{\overline{t:\star}}^i$). Next it checks that for each behaviour $\BX_i$ implemented by the module, there is a definition in $\overline{D}^i$ in $\Sigma$ with the right parameters $\overline{\tx}^i$ (i.e., $\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma$). The rule then proceeds to a sanity check, which ensures that the implemented behaviours do not declare the same name (i.e., $\dom(\overline{D}^i)\#\dom(\overline{D}^j)$ for $i\neq j$) \beppe{\textbf{Not sure that the following is needed:} and that the parameters of the implemented behaviours do not have the same name (i.e., $\overline{x}^i\#\overline{x}^j$ for $i\neq j$)}. Once this sanity check is passed, the rule creates a new module type formed by all the declarations $\overline{D}^i$ of the implemented behaviours, where each type parameter $\tx$ is instantiated with the corresponding type $t$ given in the instantiation $\overline{\tx=t}^i$ of $\BX_i$ (i.e., $\{\overline{\overline{D}^i[\overline{\tx:=t}^i]}^{i=1..n}\}$). Finally, the rule checks that the module type $\{\overline{D}\}$ is a subtype of the module type formed by all the declarations of the implemented behaviours, which ensures that all the declarations required by the implemented behaviours are actually provided by the module with compatible types. Notice that the instatiantion is performed on the behaviour declarations $\overline{D}^i$ and not on the module type $\{\overline{D}\}$, since the module type $\{\overline{D}\}$ cannot refer to the parameters of the implemented behaviours.
+
+Finally, the rule \Rule{WFModType-TArrow} is straightforward and just checks the good formation of the body of a parametric module type, under the assumption that the parameters are well-formed types.
+
+
+\paragraph{Good formation of semantic types} To complete the good formation of types, we need to check that the pretypes are well-formed, that is they satisfy the conditions listed at the beginning of this section. This is done by the rules in Figure~\ref{wf-type}.
+Core types are always well-formed (provided that they are checked under well-formed environments) and the rules for type connectives and type constructors just check the good formation of their subterms, which is possible since pretypes are inductively defined.
+A type name $\tx$ is well-formed if $\Gamma$ contains an association for it (rule \Rule{WFType-Name}). 
+The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the definition of $\BX$ with parameters $\overline{\tx}$ and these are instantiated by well-formed types (rule \Rule{WFType-Behaviour} also checks the good formation of the environments in case there were no instantiation).
+
 \begin{figure}[ht]
   \begin{mathpar}
-  \inferrule[WFType-Core]{\\}
+  \inferrule[WFType-Core]{\Sigma\vdash\Gamma}
     {\Sigma;\Gamma\vdash\tau:\star}\hfill
   \inferrule[WFType-Union]
     {\Sigma;\Gamma\vdash t:\star\\\Sigma;\Gamma\vdash t':\star}
@@ -763,13 +811,18 @@ The main rules are the following:
     {\overline{\Sigma;\Gamma\vdash t:\star}\\\Sigma;\Gamma\vdash t':\star}
     {\Sigma;\Gamma\vdash(\overline{t})\to t':\star}
     \\
-    \inferrule[WFType-Record]
+  \inferrule[WFType-Record]
     {\overline{\Sigma;\Gamma\vdash t:\star}}
-    {\Sigma;\Gamma\vdash \texttt{\%}\!\left\{\overline{k:t}\right\}:\star}\hfill
+    {\Sigma;\Gamma\vdash \texttt{\%}\!\left\{\overline{k:t}\right\}:\star}
+    \hfill
+  \inferrule[WFType-Name]
+    {\Sigma\vdash\Gamma\\\tx\in\dom(\Gamma)}
+    {\Sigma;\Gamma\vdash \tx:\star}
+    \hfill
   \inferrule[WFType-Behaviour]
-    {\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\
+    {\Sigma\vdash\Gamma\\\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}\in\Sigma\\
      \overline{\Sigma;\Gamma\vdash t:\star}}
-    {\Sigma;\Gamma\vdash\BX[\overline{x=t}]:\star}\hfill
+    {\Sigma;\Gamma\vdash\BX[\overline{x=t}]:\star}\\
   \inferrule[WFType-Singleton]
     {\Sigma;\Gamma\vdash M:\texttt{mod}}
     {\Sigma;\Gamma\vdash\langle M\rangle:\star}\\
@@ -779,12 +832,69 @@ The main rules are the following:
   \caption{Good formation of types}\label{wf-type}
 \end{figure}
 
-\begin{figure}[ht]
-  \begin{mathpar}
-    \inferrule[Path-Empty]{\\}{\\}
-  \end{mathpar}
-  \caption{Good formation and typing of paths}
-\end{figure}
+\aghilas{
+\paragraph{Good formation for paths} 
+We may want to change the name $M$ to $P$ in the syntax, as all not paths are
+valid modules as they may lack some instantiations, and there is no ``empty
+module'', even though we would like to have an empty path. To have more natural
+definitions, I redefine paths as: $M::= \epsilon| M.X | M.X[\overline{x=t}]$.
+The fact that there is no instanciation except for the last module has to be
+added as a side condition, however the rules I give later do not rely on that
+fact.
+
+The rule has the type $\Sigma;\Gamma\vdash M:\overline{D}$, meaning that $M$ is
+well-formed in environments $\Sigma$ and $\Gamma$ and exports $\overline{D}$.
+The projection $M.\tx$ is then well-formed if and only if $\Sigma;\Gamma\vdash
+P:\overline{D}$ and $\tx\in \dom(\overline{D})$. The rule \Rule{Path-Empty} for
+the empty path states that the empty path is always well formed and exports what
+is in the current value environment, so that $\tx$ is a valid type in
+$\Sigma;\Gamma$ if and only if it is declared in $\Gamma$.
+\begin{mathpar}
+  \inferrule[Path-Empty]{\vdash\Sigma\\\Sigma\vdash\Gamma}
+    {\Sigma;\Gamma\vdash \epsilon:\Gamma}
+\end{mathpar}
+
+There are three cases of projections: $(1)$, if $M$ exports $X$ as a module of
+type ${\{\overline{D'}\}}_{\_}$ without any parameters, then $M.X$ is well
+formed and exports $\overline{D'}$ (rule \Rule{Path-NoParam}); if $M$ exports
+$X$ as a module with parameters of type $(\overline(\tx:\star))\to
+{\{\overline{D'}\}}_{\_}$ there are two cases: $(2)$, $M.X$ exports only the
+modules present in $\overline{D'}$ using a function from value environments to
+value environments called \textsf{restrict} (rule \Rule{Path-NoInstantiation}),
+and $(3)$ $M.X[\overline{\tx = t}]$ exports all $\overline{D'}$ if the
+paramaters are well-formed (rule \Rule{Path-Instantiation}).
+
+\begin{mathpar}
+  \inferrule[Path-NoParam]{\Sigma;\Gamma\vdash M:\overline{D}\\
+    \overline{D}(X)={\{\overline{D'}\}}_{\_}}
+    {\Sigma;\Gamma\vdash M.X:\overline{D'}}\qquad
+  \inferrule[Path-NoInstantiation]{\Sigma;\Gamma\vdash M:\overline{D}\\
+    \overline{D}(X)=(\overline{\tx:\star})\to{\{\overline{D'}\}}_{\_}}
+    {\Sigma;\Gamma\vdash M.X:\textsf{restrict}(\overline{D'})}\\
+  \inferrule[Path-Instantiation]{\Sigma;\Gamma\vdash M:\overline{D}\\
+    \overline{D}(X)=(\overline{\tx:\star})\to{\{\overline{D'}\}}_{\_}\\
+    \overline{\Sigma;\Gamma\vdash t:\star}}
+    {\Sigma;\Gamma\vdash M.X[\overline{x=t}]:\overline{x:[=t]},\overline{D'}}
+\end{mathpar}
+
+We define \textsf{restrict} as follows.
+\begin{align*}
+  \textsf{restrict}(\epsilon) &:= \epsilon\\
+  \textsf{restrict}(X:t,\overline{D}) &:= X:t,\textsf{restrict}(\overline{D})\\
+  \textsf{restrict}(\_,\overline{D}) &:= \textsf{restrict}(\overline{D})\\
+\end{align*}
+
+The case $(2)$ could change to export more declarations by changing the
+\textsf{restrict} function, I gave the simplest one that is still sound and not
+useless. The only limitations on the choice of \textsf{restrict} is that it
+should respect the following lemma, and that
+$\textsf{restrict}(\overline{D})\subseteq \overline{D}$ for all $D$. For more
+involved rules for projection we might want to allow \textsf{restrict} to depend
+on $\Sigma$ and $\Gamma$.
+\begin{lemma}
+  For all $\Sigma,\Gamma, M$ and $\overline{D}$, if $\Sigma;\Gamma\vdash M:D$,
+  then $\Sigma\vdash\Gamma,\overline{D}$.
+\end{lemma}}
 
 \begin{figure}
   \begin{mathpar}
@@ -834,9 +944,9 @@ The main rules are the following:
   \end{mathpar}
   \caption{Subtyping rules}
 \end{figure}
-}
 
-The equivalence of two lists $\overline{\tx=t}$ and $\overline{ty=t'}$, noted
+
+The equivalence of two lists $\overline{\tx=t}$ and $\overline{\ty=t'}$, noted
 $\overline{\tx=t} \simeq \overline{\ty=t'}$ means that both lists have the same
 set of labels and that the types associated to a same label are equivalent.
 

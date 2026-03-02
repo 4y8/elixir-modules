@@ -667,16 +667,7 @@ since module system types are stratified and therefore we can define subtyping
 on the module types $T$ by structural induction on their syntax, using the
 semantic subtyping on simple types $t$ when needed.
 
-The main rules are the following:
-
-
-
-\beppe{TO BE CONTINUED}
-
-
-
-
-\aghilas{ We have two different environments: $(1)$ the behaviour environment
+We have two different environments: $(1)$ the behaviour environment
   (noted $\Sigma$) maps behaviour names ($\BX,\BY,\ldots$) to behaviours:
   $\mathcal{B}$; $(2)$ the value environment (noted $\Gamma$) which contains
   four types of mappings: $D$.
@@ -693,7 +684,7 @@ The main rules are the following:
     \item Good formation of module system types: $\Sigma;\Gamma\vdash T$ (Figure~\ref{wf-modtype});
     \item Good formation and typing of paths: $\Sigma;\Gamma\vdash M:\{\overline{D}_{\mathcal{X}}\}$.
   \end{itemize}
-}
+
 
 \paragraph{Good formation of environments and types}
 The rules in Figures~\ref{wf-behenv} define when a behaviour environment is well-formed. Rule \Rule{WFBehEnv-Empty} states that the empty behaviour environment is well-formed. Rule \Rule{WFBehEnv-Beh} states that if from the assumption that the type names parameters of the behaviour {\BX} are well-formed types, we can deduce the good-formation of the list of declarations $\overline{D}$, then adding $\BX:\Lambda(\overline{\tx:\star}).\{\overline{D}\}$ to the current behaviour environment yields a well-formed environment. Notice that no behaviour instantiation is given for $\{\overline{D}\}$ (i.e., we used  $\{\overline{D}\}$ rather than  $\{\overline{D}\}_{\overline{\BX[\overline{\tx=t}]}}$), since in Elixir behaviours cannot implement other behaviours. Also, for the sake of simplicity we examine only the case in which a behaviour definition depends only on the behaviour definitions that precede it, but not on any module definition, even though in Elixir it is possible to have a behaviour definition that depends on a module definition (e.g., in Elixir the \elix{Logger.Backend} behaviour declares callbacks that use the type \elix{Logger.Event.t()} exported by the \elix{Logger.Event} module). We can easily extend the system to allow for such dependencies, but we do not want to complicate the presentation with this additional case, which would require the interleaving of behaviour and module definitions: with this presentation we can just require that the behaviour definitions are all given at the beginning of the program, and then the module definitions can follow in any order.

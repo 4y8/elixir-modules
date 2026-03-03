@@ -842,15 +842,15 @@ We may want to change the name $M$ to $P$ in the syntax, as all not paths are
 valid modules as they may lack some instantiations, and there is no ``empty
 module'', even though we would like to have an empty path. To have more natural
 definitions, I redefine paths as: $M::= \epsilon| M.X | M.X[\overline{x=t}]$.
-The fact that there is no instanciation except for the last module has to be
+The fact that there is no instantiation except for the last module has to be
 added as a side condition, however the rules I give later do not rely on that
 fact.
 
 The rule has the type $\Sigma;\Gamma\vdash M:\overline{D}$, meaning that $M$ is
 well-formed in environments $\Sigma$ and $\Gamma$ and exports $\overline{D}$.
 The projection $M.\tx$ is then well-formed if and only if $\Sigma;\Gamma\vdash
-P:\overline{D}$ and $\tx\in \dom(\overline{D})$. The rule \Rule{Path-Empty} for
-the empty path states that the empty path is always well formed and exports what
+M:\overline{D}$ and $\tx\in \dom(\overline{D})$ (notice that since $\tx$ ranges over type names, then in $\overline{D}$ can only be declared as $\tx:\star$ or $\tx:[=t]$). The rule \Rule{Path-Empty} for
+the empty path states that the empty path is always well-formed and exports what
 is in the current value environment, so that $\tx$ is a valid type in
 $\Sigma;\Gamma$ if and only if it is declared in $\Gamma$.
 \begin{mathpar}

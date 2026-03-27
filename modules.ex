@@ -17,13 +17,18 @@ defmodule Animals do
 
       def meow do
         "Meow!" <> Animals.Mammals.Canines.bark() <> breathe()
+        "Meow!" <> Mammals.Canines.bark() <> breathe()         # should fail since Mammals is not top-level
+        "Meow!" <> Canines.bark() <> breathe()         # should fail since Canine is not in the same module
+
       end
 
       def scratch do
         "Scratching the post..." <> Animals.Mammals.Felines.breathe() # fails because breathe is private
       end
     end
-
+    def test do
+      "Testing..." <> Animals.Mammals.Felines.meow()
+    end
 
   end
 

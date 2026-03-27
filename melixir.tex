@@ -348,18 +348,18 @@ There are two possible syntaxes for paths with instantiations.
  The former is more general (and it can be easily encoded in 1ML), but can be quite demanding to the programmer, especially if the system requires all parametric modules in a path to be explicitly instantiated.
 
 
- The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. \beppe{Explain that this is important for refactoring} This second choice however imposes to carefully define the scoping rules of types in a module. In particular:
+ The latter is simpler, it reflects the current implementation of Elixir, where the nesting of modules is just a syntactic facility since all modules are flat and the nesting is handled by the compiler by naming each nested module with the full and unique path to it. \beppe{Explain that this is important for refactoring} This second choice however imposes to carefully define the scoping rules of types in a module. In particular a set of sufficient scoping rules is the following:
  \begin{itemize}  
   \item the parameters of a module $X$ are not visible in the modules nested in $X$;
   \item a type $\tx$ defined in a module $X$ is visible in all modules nested in $X$ only if all the types used in the definition of $\tx$ are visible in the nested modules.
   \item a value $x$ defined in a module $X$ is visible in all modules nested in $X$ only if all the types used in the type of $x$ are visible in the nested modules.
  \end{itemize}
  This implies that to use a type or a value non-visible in a nested module, we must use a full and explicitly (and terminally) instantiated path to denote it.
- Actually this is completely in line with the current Elixir implementation, where nested modules do not have access to the types and values defined in their enclosing module(s), unless these are explicitly denoted by their full path.
+ Actually this set of scoping rules is completely in line with the current Elixir implementation, which uses more restrictive rules:  \textbf{nested modules do not have access to the types and values defined in their enclosing module(s) (nor in their submodules? question for José), unless these are explicitly denoted by their full path.}
 
 The reader may have noticed that we used a different color in three terms of the syntax: the parameters $\kwdefm X \kwdo \textcolor{Cerulean}{\overline{P}}\, \overline{S}\, \overline{B} \kwend$ in module definitions; the type of modules $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$; the instantiation $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$ in module denotations. The colored syntax denotes all the modifications to the syntax of Elixir \textbf{expressions} that are needed to implement parametric modules. In the current  Elixir expression syntax, a module is denoted only by its name since there are no parametric modules, therefore no parameter instantiation: paths are only of the form \elix{Mod1.Mod2.Mod3} rather than, say, \elix{Mod1[x=integer()].Mod2.Mod2[z=proc()]} (in the variant that corresponds to $M::= M.M \mid X[\overline{\tx=t}]$), or its terminal variant \elix{Mod1.Mod2.Mod2[z=proc()]} (corresponding to $M::= X.M\mid X[\overline{\tx=t}]$)
 
-If do not want to extend the current Elixir syntax for expressions to allow parametrized modules such as \elix{StackModule}, it suffices to remove the syntax colored in blue  from Figure~\ref{fig:surfacesyntax}, that is, instantiations in module, and the type parameters in module types and definitions (the two definitions of paths in that case collapse).\footnote{Of course, we will still replace Typespec specifications with our new syntax for types.} Then all the modifications to type the Elixir module system will be confined to types and type-related definitions, and the expressions will remain unchanged. In particular, type parameters will be confined to behaviours. 
+If we do not want to extend the current Elixir syntax for expressions to allow parametrized modules such as \elix{StackModule}, it suffices to remove the syntax colored in blue  from Figure~\ref{fig:surfacesyntax}, that is, instantiations in module, and the type parameters in module types and definitions (the two definitions of paths in that case collapse).\footnote{Of course, we will still replace Typespec specifications with our new syntax for types.} Then all the modifications to type the Elixir module system will be confined to types and type-related definitions, and the expressions will remain unchanged. In particular, type parameters will be confined to behaviours. 
 
 
 \paragraph{Inference.} A second important consequence of parametric modules is that we have to decide how much inference we want to (and can) do for the type arguments of a parametrized module. This is more a matter of programming style than of formalization, though the choice may have some consequences on the formalization.
@@ -429,7 +429,7 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\
     & | & $E(\overline{N})$ \\
-    & | & $\texttt{\%}\!\left\{\overline{k=E}\right\}$ & $k$ ranges over keys\\
+    & | & $\texttt{\%}\!\left\{\overline{k=E}\right\}$ & $k$ ranges over keys (for starting, just atoms)\\
     & | & $E.k$ \\
     & | & $(E\in t)?E:E$ \\
     & | & {\color{OrangeRed}\text{$M.x$}} \\
@@ -514,7 +514,7 @@ Next we are going to discuss the semantic interpretation of simple types $t$. As
 \subsubsection{Semantic subtyping for simple types}
 Simple types, ranged over by $t$ are essentially the types of Elixir defined in \cite{CDV24,CD25}, with the addition of the four new forms: $\tx$, $M.\tx$, $\BH M$, and $\BX[\overline{\tx=t}]$. The first is used in a module and denotes either a type locally defined or a type parameter; the second denotes  the type $\tx$ exported by the module $M$; the third denotes the singleton type of the (fully instantiated) module $M$, while the fourth denotes the behaviour $\BX$ instantiated with the types $\overline{t}$ for its parameters $\overline{\tx}$.
 
-These four additional forms are essentially different in nature from types currently present in Elixir. The Elixir types have a clear semantics, that is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The four new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $\tx$ depends on the module it is used in, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons. First, we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type definition like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; these definitions make the module/behaviour become recursive. Second, the presence of such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation  of the types $\overline t$ used in their instantiations---equivalent types require equivalent instantiations---; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
+These four additional forms are essentially different in nature from types that are currently already present in Elixir. The Elixir types have a clear semantics, that is independent of the program they are used in. Furthermore, they are conductively defined in order to account for recursive types. The four new forms instead have a semantics that is strictly related to the program they are used in: in particular, the semantics of $\tx$ depends on the module it is used in, the semantics of $M.\tx$ and $\BH M$ depends on the definition of the module $M$, while the semantics of $\BX[\overline{\tx=t}]$ depends on the definition of the behaviour $\BX$. Furthermore, we do not want to allow recursion to traverse these new forms, and this for two reasons. First, we do not want a non-recursive module or behaviour to become recursive by using instantiation: think of a recursive  type definition like $\mu \alpha .\BH{X[t=\alpha]}$ where $X$ is a non-recursive module, or $\mu \alpha .\BX[\tx=\alpha]$ where $\BX$ is a non-recursive behaviour; these definitions make the module/behaviour become recursive. Second, the presence of such a recursion would complicate the semantic definitions, by introducing a new circularity: types such as $\BH{X[\overline{\tx=t}]}$ and $\BX[\overline{\tx=t}]$, must be interpreted as singletons modulo the interpretation  of the types $\overline t$ used in their instantiations---equivalent types require equivalent instantiations---; so to interpret these types we must determine the equivalence of the types of their instantiations, for which we need the interpretation of all the types, them included.
 
 For these reasons we will further stratify simple types $t$ into the current Elixir types---that we call \emph{core types}---, which are \emph{coinductively} defined by the following grammar:
 $$\tau ::= k\mid\texttt{atom} \mid \texttt{mod} \mid \texttt{fun} \mid (\overline{\tau})\to\tau \mid \texttt{\%}\!\left\{\overline{k:\tau}\right\} \mid
@@ -568,7 +568,7 @@ The subtyping relation for core types is defined semantically by interpreting th
   \]
 \end{definition}
 %
-Pretypes include all core types along with their type constructors and connectives. Additionally, they include four new module-related types: $\tx$ (the name of a type parameter or of a locally declared type), $M.\tx$ (the type $\tx$ exported by module $M$), $\BX[\overline{\tx=t}]$ (the behaviour $\BX$ instantiated with types $\overline{t}$ for its parameters $\overline{\tx}$), and $\BH M$ (the singleton module type). We call the types of Definition \ref{def:types} ``pretypes'' because we need to identify which ones are well-formed for a given set of module and behaviour definitions as we show below.
+Pretypes include all core types along with their type constructors and connectives. Additionally, they include four new module-related types: $\tx$ (the name of a type parameter or of a locally declared type), $M.\tx$ (the type $\tx$ exported by module $M$), $\BX[\overline{\tx=t}]$ (the behaviour $\BX$ instantiated with types $\overline{t}$ for its parameters $\overline{\tx}$), and $\BH M$ (the singleton module type). We call the types of Definition \ref{def:types} ``pretypes'' because we need to identify which ones are well-formed for a given set of module and behaviour definitions as we show below (e.g., to ensure that all paths point to valid definitions).
 
 
 We use the abbreviations
@@ -586,7 +586,7 @@ over constructors and negation has the highest priority of all---e.g., $\neg
 s{\vee}t\to u{\wedge}v$ denotes $((\neg s){\vee}t)\to (u{\wedge}v)$.
 
 \subsubsection{Encoding of simple types into core types}\label{sec:encoding}
-To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we have identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally associate to each behaviour its definition and to each module its type. These are given by the behaviour environments $\Sigma$ and the type environments $\Gamma$, defined in Figure~\ref{fig:modulelangsyntax}. A behaviour environment $\Sigma$ associates to each behaviour name $\BX$ its definition, that is, the list of its parameters and of its declarations (which has the form $\Lambda(\overline{\tx:\star}).\{\overline D\}$). A type environment $\Gamma$ associates to each module name $X$ its type, that is, the list of its parameters, of the behaviours it implements, and of its declarations (which has the form $(\overline{\tx:\star})\to\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$). It also contains associations of the form $\tx:\star$, stating that the type name $\tx$ is locally available.
+To proceed, we need to identify which pretypes are well-formed for a given set of module and behaviour definitions. Once we have identified the well-formed pretypes, we can encode them into core types. Both of these tasks require us to first formally associate to each behaviour its definition and to each module its type. These are given by the behaviour environments $\Sigma$ and the type environments $\Gamma$, defined in Figure~\ref{fig:modulelangsyntax}. A behaviour environment $\Sigma$ associates to each behaviour name $\BX$ its definition $\Lambda(\overline{\tx:\star})\{\overline D\}$, that is, the list of its parameters $\overline\tx$ and of its declarations $\overline D$. A type environment $\Gamma$ associates to each module name $X$ its type $(\overline{\tx:\star})\to\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$, that is, the list of its parameters $\overline{\tx:\star}$, of the behaviours it implements $\overline{\BX[\,\overline{\tx=t}\,]}$, and of its declarations $\overline D$. A type environment $\Gamma$ also contains associations of the form $\tx:\star$, stating that the type name $\tx$ is locally available.
 
 Given a behaviour environment $\Sigma$ and a type environment $\Gamma$, we can define the well-formed types inductively as those pretypes that satisfy the following conditions:
 \begin{itemize}
@@ -594,7 +594,7 @@ Given a behaviour environment $\Sigma$ and a type environment $\Gamma$, we can d
 \item a type name $\tx$ is well-formed if $\Gamma$ contains the association $\tx:\star$;
 \item every type occurring in the pre-type is well-formed;
 \item every behaviour $\BX$ occurring in the pre-type is fully instantiated (i.e., all its parameters are given a type);
-\item every path $M$ occurring in the pre-type is well-formed, that is, it effectively points to a fully instantiated module;
+\item every path $M$ occurring in the pre-type is well-formed, that is, it effectively points to a module and it fully instantiates it.
 \end{itemize}
 Notice that we do not require $\Sigma$ and $\Gamma$ to be well-formed. In particular, we do not require that they contain only well-formed module system types. This will be required for typing, but for defining the encoding of well-formed types into core types we just need to check that paths point somewhere and that all parameters declared for a module or a behaviour are instantiated with well-formed simple types: module system types $T$ do not play any role in the encoding. In practice however all environments that we will use will be well-formed, since they will be all generated by the typing rules, which enforce well-formedness for environments.
 
@@ -670,7 +670,7 @@ semantic subtyping on simple types $t$ when needed.
 We have two different environments: $(1)$ the behaviour environment
   (noted $\Sigma$) maps behaviour names ($\BX,\BY,\ldots$) to behaviours:
   $\mathcal{B}$; $(2)$ the value environment (noted $\Gamma$) which contains
-  four types of mappings: $D$.
+  four types of mappings: $D$.\beppe{I would prefer "type environment" instead of "value environment" since it declares the types of the names (not the values)}
   A value environment is, in fact, a list of declarations, the good formation
   rules for both are thus the same.
 
@@ -730,7 +730,7 @@ Figure~\ref{wf-valenv} defines well-formed value environments. Rule \Rule{WFVEnv
     \inferrule[WFVEnv-Value]{\Sigma\vdash\Gamma\\\overline{\Sigma;\Gamma\vdash T}}
       {\Sigma\vdash\Gamma, x:\bigcap \overline{T}}
   \end{mathpar}
-  \beppe{Problem: a module can access to the definitions of outer modules only by using an absolute path starting from a top-level module name; now the rule \Rule{WFVEnv-Module} allows to check the type $T$ of a module $X$ by using the current environment $\Gamma$, which may contain definitions of the current module, which thus are not accessible by $X$. Probably we need to change the rule for good formation of $\overline{D}$ with a special case for $X:T$ \begin{mathpar}
+  \beppe{Problem: a module can access to the definitions of outer modules only by using an absolute path starting from a top-level module name; now the rule \Rule{WFVEnv-Module} allows to check the type $T$ of a module $X$ by using the current environment $\Gamma$, which may contain definitions of the current module, which thus are not accessible by $X$. Probably we need to change the rule for good formation of $\overline{D}$ (Figure~\ref{wf-modtype})with a special case for $X:T$ \begin{mathpar}
 \inferrule[WFModType-DeclList]
      {\Sigma;\Gamma\vdash \overline{D} \\ 
       \Sigma;\Gamma\vdash X:T}
@@ -740,7 +740,7 @@ Figure~\ref{wf-valenv} defines well-formed value environments. Rule \Rule{WFVEnv
       \Sigma;\Gamma,\overline{D}\vdash D'}
       {\Sigma;\Gamma\vdash \overline{D},D'}{D'\neq X:T}
   \end{mathpar}
- }
+in words, when we check the good formation of $X:T$ we can use the current environment $\Gamma$, but not the definitions that pertain the current module. }
   \caption{Good formation of value environments}\label{wf-valenv}
 \end{figure}
 % }
@@ -775,7 +775,7 @@ The first requirement is enforced by rule \Rule{WFModType-Arrow}: for each $j$, 
     \\
     \inferrule[WFModType-Module]
       { \Sigma;\Gamma\vdash\overline{D}\\ 
-        (\text{for }i=1..n\quad \Sigma;\Gamma\vdash{\overline{t:\star}}^i\\\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma)\\
+        (\text{for }i=1..n\quad \overline{\Sigma;\Gamma\vdash{t:\star}}^i\\\BX_i:\Lambda(\overline{\tx:\star}^i).\{\overline{D}^i\}\in\Sigma)\\
         \forall i\neq j.
              (\dom(\overline{D}^i)\#\dom(\overline{D}^j)\text{ and } \overline{x}^i\#\overline{x}^j)\\
         \Sigma;\Gamma\vdash\left\{\overline{D}\right\} \preccurlyeq
@@ -797,7 +797,7 @@ We also have the rule \Rule{WFModType-TArrow} which is straightforward since jus
 
 
 \paragraph{Good formation of semantic types} To complete the good formation of types, we need to check that the pretypes are well-formed, that is they satisfy the conditions listed at the beginning of this section. This is done by the rules in Figure~\ref{wf-type}.
-Core types are always well-formed (provided that they are checked under well-formed environments) and the rules for type connectives and type constructors just check the good formation of their subterms, which is possible since pretypes are inductively defined.
+Core types are always well-formed (provided that they are checked under well-formed environments) and the rules for type connectives and type constructors just check the good formation of their subterms, which is possible since pretypes are inductively defined (these checks are performed by the first five rules in Figure~\ref{wf-type}).
 A type name $\tx$ is well-formed if $\Gamma$ contains an association for it (rule \Rule{WFType-Name}). 
 The behaviour $\BX[\overline{\tx=t}]$ is well-formed if $\Sigma$ contains the definition of $\BX$ with parameters $\overline{\tx}$ and these are instantiated by well-formed types (rule \Rule{WFType-Behaviour}, which also checks the good formation of the environments---$\Sigma\vdash\Gamma$---in case there were no instantiation).
 

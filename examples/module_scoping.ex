@@ -15,6 +15,8 @@ defmodule Animals do
         "Breathing air..."
       end
 
+      IO.inspect __ENV__.aliases
+
       def meow do
         "Meow!" <> Animals.Mammals.Canines.bark() <> breathe()
         "Meow!" <> Mammals.Canines.bark() <> breathe()         # should fail since Mammals is not top-level
@@ -23,7 +25,7 @@ defmodule Animals do
       end
 
       def scratch do
-        "Scratching the post..." <> Animals.Mammals.Felines.breathe() # fails because breathe is private
+        "Scratching the post..." #<> Animals.Mammals.Felines.breathe() # fails because breathe is private
       end
     end
     def test do
@@ -34,9 +36,15 @@ defmodule Animals do
 
   defmodule Birds do
     defmodule Songbirds do
+      defmodule Canines do
+        def bird_bark do
+          "Tweet!"
+        end
+      end
       def sing do
         "Chirp chirp!"
       end
+      IO.inspect __ENV__.aliases
 
       def fly do
         "Flying through the sky..."

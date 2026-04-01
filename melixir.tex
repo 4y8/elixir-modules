@@ -652,6 +652,21 @@ As the very last thing we have to define the encoding of the top module type \te
 
 \paragraph{Module scoping rules.} A module has access to all its definitions, including the private ones, and to all the definitions of the modules in its scope. Order is important thus at a given point of the module only the preceding definitions are available. A module can access to the definitions  of outer modules only by using an absolute path starting from a top-level module name; in that case however it has access to all (public) definitions of the outer module, even those defined after the inner module.
 
+This may come to a surprise to an Elixir programmer, since in a Elixir program it is possible to refer to the definition of an outer module without using an absolute path. For instance, in the following code snippet the inner module 
+\begin{minted}{elixir}
+  defmodule Outer do
+    def module A do
+      def f() do :ok end
+    end
+    def module B do
+      def g() do A.f() end
+    end
+  end
+\end{minted}
+can refer to the definition of the module \elix{A} without using the absolute path\elix{Outer.A}. However, this just syntactic sugar that the Elixir compiler replaces with the full path, \emph{before} performing type checking. Therefore, from the point of view of the type system all paths are either absolute or are relative to the current module.
+
+Finally, public local definitions of a module can be accessed within the module by using either by just their name or by their absolute path. Our system allows both and makes no distinction between the two, even in practice the paths may point to different definitions in case of hot code reloading, but we do not want to complicate the theory with this additional case, for now.
+  
 
 
 \aghilas{\paragraph{Applicative vs. Generative} Type application should be

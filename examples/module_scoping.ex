@@ -18,6 +18,7 @@ defmodule Animals do
       IO.inspect __ENV__.aliases
 
       def meow do
+       IO.inspect __ENV__.aliases
         "Meow!" <> Animals.Mammals.Canines.bark() <> breathe()
         "Meow!" <> Mammals.Canines.bark() <> breathe()         # should fail since Mammals is not top-level
         "Meow!" <> Canines.bark() <> breathe()         # should fail since Canine is not in the same module
@@ -44,7 +45,6 @@ defmodule Animals do
       def sing do
         "Chirp chirp!"
       end
-      IO.inspect __ENV__.aliases
 
       def fly do
         "Flying through the sky..."

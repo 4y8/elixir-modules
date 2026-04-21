@@ -1,0 +1,360 @@
+\documentclass[12pt]{article}
+\usepackage{ebproof}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{xcolor}
+
+\newcommand{\tx}{\text{\rm x}}
+\newcommand{\Beh}{\ensuremath{\mathcal{B}}}
+\newcommand{\BX}{\ensuremath{\mathcal{X}}}
+\newcommand{\Next}{\ensuremath{\mathcal{N}}}
+\newcommand{\Parts}{\ensuremath{\mathcal{P}_\text{fin}}}
+
+\newcommand{\vdashlamb}{\vdash_\Lambda}
+\newcommand{\vdashgam}{\vdash_\Gamma}
+\newcommand{\vdashsig}{\vdash_\Sigma}
+\newcommand{\vdashbx}{\vdash_\BX}
+\newcommand{\vdashbxinst}{\vdash_{\BX_{\text{inst}}}}
+\newcommand{\vdashtyp}{\vdash_T}
+\newcommand{\vdashpath}{\vdash_M}
+\newcommand{\ident}{\text{ident}}
+\newcommand{\dom}{\text{dom}}
+\newcommand{\find}[2]{\text{find}_{#1}(#2)}
+\NewDocumentCommand{\BXdecl}{O{\tx} O{D} }{
+  \Lambda \left(\overline{#1 : \star}\right) \{ \overline {#2} \}
+}
+\NewDocumentCommand{\Moddecl}{O{D} O{\BX} O{\tx} O{t} }{
+   \{ \overline {#1} \}_{\overline{#2 [\overline{#3 = #4}]}}
+}
+
+
+\ebproofset{right label template=\small\textsc{\inserttext}}
+
+\begin{document}
+
+\section{Behavior environments}
+
+\[
+    \begin{prooftree}
+        \infer0{ \vdashlamb \Lambda ()  }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \vdashlamb \Lambda (\overline{\tx : \star})  }
+        \hypo{ \tx' \notin \overline \tx  }
+        \infer2{ \vdashlamb \Lambda \left(\overline{\tx : \star}, \tx' : \star\right) }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \vdashlamb \Lambda (\overline{\tx : \star})  }
+        \hypo{  \Sigma; \overline{\tx : \star} \vdashtyp \overline D }
+        \infer2{ \Sigma \vdashbx \BX : \BXdecl }
+    \end{prooftree}
+\]
+\\
+
+\[
+    \begin{prooftree}
+        \infer0{ \vdashsig \epsilon }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \vdashsig \Sigma }
+        \hypo{ \Sigma \vdashbx \Beh }
+        \infer2{ \vdashsig \Sigma, \Beh }
+    \end{prooftree}
+\]
+
+\section{Some functions}
+
+All behavior and type environments that appear in this section are assumed to be well formed.
+
+We define extended names:
+$$\Next ::= N \;| \; \tx$$
+
+\subsection{ident}
+
+We define $\ident: \left\{ \begin{array}{c}
+        \Beh \rightarrow \BX \\
+        D \rightarrow \Next
+    \end{array}  \right.$ by:
+
+$$\ident(\BX : \BXdecl) = \BX$$
+
+\[
+    \ident(\tx : \star) = \tx
+    \qquad
+    \ident(\tx : [= t]) = \tx
+\]
+
+\[
+    \ident(X : T) = X
+    \qquad
+    \ident(x: \bigcap \overline{T}) = x
+\]
+
+\subsection{find}
+
+We define find: $\left\{ \begin{array}{c}
+        \Sigma \times \BX \rightharpoonup \Beh \\
+        \Gamma \times \Next \rightharpoonup D
+    \end{array}  \right.$
+($\rightharpoonup$ means find is only partially defined) by:
+
+\[
+    \begin{prooftree}
+        \infer0{ \find{\Sigma, \BX : \BXdecl}{\BX} = \BX : \BXdecl }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \find{\Sigma}{\BX} = \Beh }
+        \hypo{ \ident(\Beh') \neq \BX }
+        \infer2{ \find{\Sigma, \Beh'}{\BX} = \Beh }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \infer0{ \find{\Gamma, X : T}{X} = X : T }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \infer0{ \find{\Gamma, x : \bigcap \overline{T}}{x} =  x : \bigcap \overline{T} }
+    \end{prooftree}
+\]
+\[
+    \begin{prooftree}
+        \infer0{ \find{\Gamma, \tx : \star}{\tx} = \tx : \star }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \infer0{ \find{\Gamma, \tx : [= t]}{\tx} = \tx : [= t] }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \hypo{ \find{\Gamma}{\Next} = T }
+        \hypo{ \ident(D) \neq \Next }
+        \infer2{ \find{\Gamma, D}{\Next} = T }
+    \end{prooftree}
+\]
+\\
+
+We also define:
+\[
+    \begin{prooftree}
+        \hypo{ \find{\Sigma}{\BX} = \BX : \BXdecl }
+        \infer1{ \find{\Sigma}{\BX[\overline{\tx = t}]} = \overline{D_{[\overline{t/x}]}} }
+    \end{prooftree}
+\]
+
+Note that find is a partial function.
+If the derivation rules above are not applicable to the inputs, then find is not defined.
+
+\subsection{dom}
+
+We define $\dom: \left\{ \begin{array}{c}
+        \Sigma \rightarrow \Parts(\BX)   \\
+        \Gamma \rightarrow \Parts(\Next) \\
+        \Beh \rightarrow \Parts(\Next)
+    \end{array}  \right.$ by:
+
+\[
+    \dom(\epsilon) = \emptyset
+\]
+\[
+    \dom(\Sigma, \BX : \Beh) = \dom(\Sigma) \;\cup\; \{ \ident(\Beh) \}
+    \qquad
+    \dom(\Gamma, D) = \dom(\Gamma) \;\cup\; \{ \ident(D) \}
+\]
+\[
+    \dom(\BX : \BXdecl) = \left( \bigcup \overline{\{\tx\}} \right) \cup \left(\bigcup\overline{\dom(D)} \right)
+\]
+NOTE: or just $\left(\bigcup\overline{\dom(D)} \right)$?
+
+\subsection{destruct}
+
+$\text{destruct} : D \rightharpoonup \Parts(D)$ will allow us to destruct module paths later:
+
+$$
+    \text{destruct} : \left\{ \begin{array}{ll}
+        X : \Moddecl                                      & \mapsto \{ \overline{D} \} \\
+        X : (\overline{\tx : \star}) \rightarrow \Moddecl & \mapsto \{\overline{D}\}   \\
+        \_                                                & \mapsto \text{undefined}
+    \end{array} \right.
+$$
+
+\section{Types}
+
+For the sake of brevity, all type and behavior environments used on the left of $\vdash$ are implicitely assumed to be well-formed in this section.
+
+\[
+    \begin{prooftree}
+        \infer0{ \Sigma; \Gamma \vdashtyp \tau }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \tx \in \dom(\Gamma) }
+        \infer1{ \Sigma; \Gamma \vdashtyp \tx }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
+        \hypo { \Sigma; \Gamma \vdashtyp \overline t }
+        \hypo { \find{\Sigma}{\BX} = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
+        \infer2{ \Sigma; \Gamma \vdashtyp \BX [\overline{\tx = t}]  }
+    \end{prooftree}
+\]
+
+\subsection{Functions}
+
+\[
+    \begin{prooftree}
+        \infer0{ \Sigma; \Gamma \vdashlamb () }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
+        \hypo { \Sigma; \Gamma \vdashlamb (\overline{N : T}) }
+        \hypo { \Sigma; \Gamma, \overline{N : T} \vdashtyp T' }
+        \hypo { N' \notin \overline{N}}
+        \infer3{ \Sigma; \Gamma \vdashlamb (\overline{N : T}, N': T')  }
+    \end{prooftree}
+\]
+\\
+\[
+    \begin{prooftree}
+        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
+        \hypo { \Sigma; \Gamma \vdashlamb (\overline{N : T}) }
+        \hypo { \Sigma; \Gamma, \overline{N : T} \vdashtyp T'}
+        \infer2{ \Sigma; \Gamma \vdashtyp (\overline{N : T}) \rightarrow T' }
+    \end{prooftree}
+\]
+
+\subsection{Module types}
+
+\[
+    \begin{prooftree}
+        \infer0{ \Sigma; \Gamma \vdashbxinst \epsilon }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
+        \hypo { \Sigma; \Gamma \vdashtyp \BX [\overline{\tx = t}]  }
+        \infer1{ \Sigma; \Gamma \vdashbxinst \BX [\overline{\tx = t}]  }
+    \end{prooftree}
+\]
+\\
+We disallow implementation of conflicting behaviors:
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gamma \vdashbxinst \overline{\BX[\overline{\tx = t}]}}
+        \hypo { \Sigma; \Gamma \vdashbxinst \BX' [\overline{\tx = t}] }
+        \hypo { \left(\bigcup \overline{\dom(\find{\Sigma}{\BX})}\right) \cap \dom(\find{\Sigma}{\BX'}) = \emptyset }
+        \infer3{ \Sigma; \Gamma \vdashbxinst \overline{\BX [\overline{\tx = t}]}, \BX'[\overline{\tx = t}]  }
+    \end{prooftree}
+\]
+\\
+
+NOTE: should we check that $\overline{D}$ implements the behaviors here?
+\[
+    \begin{prooftree}
+        \hypo{ \Sigma; \Gamma \vdashtyp \overline D }
+        \hypo{ \Sigma; \Gamma \vdashbxinst \overline {\BX [\overline{\tx = t}]} }
+        \hypo{\color{gray} \left(\bigcup \overline{\find{\Sigma}{\BX[\overline{\tx = t}]}}\right) \subset \overline{D}}
+        \infer3{ \Sigma; \Gamma \vdashtyp \Moddecl}
+    \end{prooftree}
+\]
+
+
+\[
+    \begin{prooftree}
+        \hypo{ \vdashlamb \Lambda (\overline{\tx : \star})  }
+        \hypo{ \Sigma; \Gamma, \overline{\tx : \star} \vdashtyp T }
+        \infer2{ \Sigma; \Gamma \vdashtyp (\overline{\tx : \star}) \rightarrow T }
+    \end{prooftree}
+\]
+
+\subsection{Singleton type from path}
+
+/!\textbackslash Work in progress
+
+\[
+    \begin{prooftree}
+        \hypo { \find{\Gamma}{X} = X : \Moddecl }
+        \infer1{ \Sigma; \Gamma \vdashtyp \langle X \rangle \twoheadrightarrow \Moddecl }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo { \find{\Gamma}{X} = X : (\overline{\tx = t}) \rightarrow \Moddecl }
+        \infer1{ \Sigma; \Gamma \vdashtyp \langle X[\overline{\tx = t}] \rangle\twoheadrightarrow \Moddecl }
+    \end{prooftree}
+\]
+
+WARNING: this does not work - to resolve  $\langle M \rangle$ we should only use $\overline{D}$,
+but $\overline{D'}$ may need the entire $\Gamma$ to be well formed. We should review those rules when
+type environments' well-formedness is formally defined.
+Probably we will need to separate path resolution from well formedness
+
+\[
+    \begin{prooftree}
+        \hypo { \text{destruct}(\find{\Gamma}{X}) = \{\overline{D}\} }
+        \hypo { \Sigma; \overline{D} \vdashtyp \langle M \rangle \twoheadrightarrow \Moddecl[D'] }
+        \infer2{ \Sigma; \Gamma \vdashtyp \langle X.M \rangle \twoheadrightarrow \Moddecl[D']  }
+    \end{prooftree}
+\]
+
+\subsection{Exported type}
+
+\[
+    \begin{prooftree}
+        \hypo{ \Sigma; \Gamma \vdashtyp \langle M \rangle \twoheadrightarrow \Moddecl }
+        \hypo{ \epsilon; \overline{D} \vdashtyp \tx }
+        \infer2{ \Sigma; \Gamma \vdash M.\tx }
+    \end{prooftree}
+\]
+
+\section{Type environments}
+
+Elixir does not seem to like type redefinition
+
+\[
+    \begin{prooftree}
+        \infer0{ \Sigma \vdashgam \epsilon }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo { \Sigma \vdashgam \Gamma }
+        \hypo { \tx \notin \dom(\Gamma) }
+        \infer2 { \Sigma \vdashgam \Gamma, \tx : \star  }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo { \Sigma \vdashgam \Gamma }
+        \hypo { \Sigma; \Gamma \vdashtyp t }
+        \hypo { \tx \notin \dom(\Gamma) }
+        \infer3{ \Sigma \vdashgam \Gamma, \tx : [= t]  }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma \vdashgam \Gamma }
+        \hypo { \Sigma; \Gamma \vdashtyp \overline{T} }
+        \hypo { x \notin \dom(\Gamma) }
+        \infer3 { \Sigma \vdashgam \Gamma, x : \bigcap \overline{T}  }
+    \end{prooftree}
+\]
+\\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma \vdashgam \Gamma }
+        \hypo { \Sigma; \Gamma \vdashtyp T }
+        \hypo { \color{gray} X \notin \dom(\Gamma) }
+        \infer3 { \Sigma \vdashgam \Gamma, X : T  }
+    \end{prooftree}
+\]
+\end{document}

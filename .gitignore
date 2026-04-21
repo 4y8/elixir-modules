@@ -5,10 +5,13 @@
 *.blg
 *.bbl
 *.fdb_latexmk
+*.synctex.gz
+*.pyg
 _minted-melixir
 main.run.xml
-melixir.pdf
+*.pdf
 melixir.bbl-SAVE-ERROR
 melixir.bcf
 melixir.run.xml
 melixir.bcf-SAVE-ERROR
+wellformed.pdf

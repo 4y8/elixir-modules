@@ -164,14 +164,18 @@ We define $\dom: \left\{ \begin{array}{c}
     \dom(\epsilon) = \emptyset
 \]
 \[
-    \dom(\Sigma, \BX : \Beh) = \dom(\Sigma) \;\cup\; \{ \ident(\Beh) \}
+    \dom(\Sigma, \Beh) = \dom(\Sigma) \;\cup\; \{ \ident(\Beh) \}
     \qquad
     \dom(\Gamma, D) = \dom(\Gamma) \;\cup\; \{ \ident(D) \}
 \]
+
 \[
     \dom(\BX : \BXdecl) = \left( \bigcup \overline{\{\tx\}} \right) \cup \left(\bigcup\overline{\dom(D)} \right)
 \]
 NOTE: or just $\left(\bigcup\overline{\dom(D)} \right)$?
+
+NOTE: we may need an explicit way to disambiguate the domain of a behavior and the domain of a
+behavior environment of size one.
 
 \subsection{destruct}
 
@@ -318,22 +322,29 @@ Probably we will need to separate path resolution from well formedness
 
 \section{Type environments}
 
+$$P ::= \epsilon \;|\; P.X $$
+$$M ::= P.X \;|\; P.X[\overline{\tx = t}]$$
+
+NB: We will treat A.B.C as A.B.C : { ... }, not A: {B: {C: {...}, ...}, ...}
+TODO: we must remember the path of the current module during type check.
+After type checking, the modules should not be allowed to export other modules anymore (type checking must flatten)
+
 Elixir does not seem to like type redefinition
 
 \[
     \begin{prooftree}
-        \infer0{ \Sigma \vdashgam \epsilon }
+        \infer0{ \Sigma\vdashgam \epsilon }
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \hypo { \Sigma \vdashgam \Gamma }
+        \hypo { \Sigma \vdashgam \Gamma, P.X : T }
         \hypo { \tx \notin \dom(\Gamma) }
         \infer2 { \Sigma \vdashgam \Gamma, \tx : \star  }
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \hypo { \Sigma \vdashgam \Gamma }
-        \hypo { \Sigma; \Gamma \vdashtyp t }
+        \hypo { P.X; \Sigma \vdashgam \Gamma }
+        \hypo { P.X; \Sigma; \Gamma \vdashtyp t }
         \hypo { \tx \notin \dom(\Gamma) }
         \infer3{ \Sigma \vdashgam \Gamma, \tx : [= t]  }
     \end{prooftree}
@@ -351,7 +362,7 @@ Elixir does not seem to like type redefinition
 
 \[
     \begin{prooftree}
-        \hypo { \Sigma \vdashgam \Gamma }
+        \hypo { \Sigma \vdashgam D, \overline{D} }
         \hypo { \Sigma; \Gamma \vdashtyp T }
         \hypo { \color{gray} X \notin \dom(\Gamma) }
         \infer3 { \Sigma \vdashgam \Gamma, X : T  }

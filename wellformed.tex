@@ -8,35 +8,15 @@
 \newcommand{\Beh}{\ensuremath{\mathcal{B}}}
 \newcommand{\BX}{\ensuremath{\mathcal{X}}}
 \newcommand{\Next}{\ensuremath{\mathcal{N}}}
-\newcommand{\Parts}{\ensuremath{\mathcal{P}_\text{fin}}}
 
-\newcommand{\vdashlamb}{\vdash_\Lambda}
-\newcommand{\vdashgam}{\vdash_\Gamma}
-\newcommand{\vdashsig}{\vdash_\Sigma}
-\newcommand{\vdashbx}{\vdash_\BX}
-\newcommand{\vdashbxinst}{\vdash_{\BX_{\text{inst}}}}
-\newcommand{\vdashtyp}{\vdash_T}
-\newcommand{\vdashpath}{\vdash_M}
-\newcommand{\vdashdecl}{\vdash_D}
-\newcommand{\ident}{\text{ident}}
+\newcommand{\Gammatop}{\ensuremath{\Gamma_\top}}
+\newcommand{\Gammabot}{\ensuremath{\Gamma_\bot}}
+
 \newcommand{\dom}{\text{dom}}
-\newcommand{\decls}{\text{decls}}
-\newcommand{\find}[1]{\text{find}_{#1}}
-\newcommand{\flatten}{\text{flatten}}
-\newcommand{\merge}{\text{merge}}
-\newcommand{\withargs}{\text{withargs}}
-\newcommand{\local}{\text{local}}
-\newcommand{\modules}{\text{modules}}
-\newcommand{\makeenv}{\text{makeenv}}
+\newcommand{\name}{\text{name}}
 
-\NewDocumentCommand{\BXdecl}{O{\tx} O{D} }{
-  \Lambda \left(\overline{#1 : \star}\right) \{ \overline {#2} \}
-}
 \NewDocumentCommand{\Moddecl}{O{\overline D} O{\BX} O{\tx} O{t} }{
    \{ #1 \}_{\overline{#2 [\overline{#3 = #4}]}}
-}
-\NewDocumentCommand{\Pushenv}{O{\Gamma} O{P} O{D} }{
-   #1 \triangleleft  \ulcorner #2 : \{#3\} \urcorner 
 }
 
 \ebproofset{right label template=\small\textsc{\inserttext}}
@@ -45,400 +25,315 @@
 
 \section{Definitions}
 
-We define (non-empty) paths, module names and extended names:
+We define non-empty paths, possibly empty paths, module names and declaration names:
 
-$$P ::= X \;|\; P.X $$
-$$M ::= P \;|\; P[\overline{\tx = t}]$$
-$$\Next ::= N \;| \; \tx$$
+\begin{align*}
+    P     & ::= X \;|\; X.P                   \\
+    \pi   & ::= \epsilon \;|\; P              \\
+    M     & ::= P \;|\; P[\overline{\tx = t}] \\
+    \Next & ::= N \;|\; \tx
+\end{align*}
 
-Note that modules names are flattened.
-Module $P.X$ is no longer a child of $P$; they are two distinct, incomparable paths. \\
-
-We define module declaration and redefine type environments:
-
-$$\mathfrak{M} ::= \Moddecl \;|\; (\overline{\tx : \star}) \rightarrow \Moddecl $$
-$$\Gamma ::= \overline{P : \mathfrak{M}}, \overline{D}$$
+We redefine type environments:
+$$\Gamma ::= \overline{D}; \overline{D}$$
 
 The environment contains a module environment followed by local declarations (both can be empty).
-For the environment to be well formed, the declarations $D$ should never have the form $X : T$.
-This will be formalized in the corresponding section.
+We will denote: $\Gamma = \Gammatop; \Gammabot$ when we need to distinguish both parts.
+
+We may also denote the empty environment $\epsilon$ instead of $\epsilon; \epsilon$. \\
+
+We define $\name: \left\{\begin{array}{ll}
+        X : T                    & \mapsto X   \\
+        x : \bigcap \overline{T} & \mapsto x   \\
+        \tx : \star              & \mapsto \tx \\
+        \tx : [=t]               & \mapsto \tx
+    \end{array}\right.$  \\
+
+We consider behavior environments and declaration lists as partial functions
+from $\BX$ and $\Next$ to $\Beh$ and $D$, respectively.
+If the name appears multiple time in the list, the right-most occurrence is returned, as one would expect.
 
 We also define:
 
-$$\local(\overline{P : \mathfrak{M}}, \overline{D}) = \overline{D}
-    \quad\text{ and }\quad
-    \modules(\overline{P : \mathfrak{M}}, \overline{D}) = \overline{P : \mathfrak{M}}$$
-
-
-\subsection{ident}
-
-We define $\ident :\forall \alpha \beta.\; \alpha : \beta \rightarrow \alpha$ by:
-
-$$\ident(\alpha : \beta) = \alpha$$
-
-\subsection{find}
-
-We define find: $\forall \alpha \beta.\; \overline{\alpha : \beta} \times \alpha \rightharpoonup \alpha : \beta$,
-where $\rightharpoonup$ means find is only partially defined.
-
-\[
-    \begin{prooftree}
-        \infer0{ \find{\gamma, \alpha : \beta}(\alpha) = \alpha : \beta }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo{ \find{\gamma}(\alpha) = \alpha : \beta }
-        \hypo{ \alpha' \neq \alpha }
-        \infer2{ \find{\gamma, \alpha' : \beta'}(\alpha) = \alpha : \beta }
-    \end{prooftree}
-\]
-
-If the derivation rules above are not applicable to the inputs, then find is not defined.
-
-We also define:
-\[
-    \begin{prooftree}
-        \hypo{ \find{\Sigma}(\BX) = \BX : \BXdecl }
-        \infer1{ \find{\Sigma}(\BX[\overline{\tx = t}]) = \overline{D_{[\overline{t/x}]}} }
-    \end{prooftree}
-\]
+$$
+    (\Gammatop; \Gammabot)(\Next) = \left\{\begin{array}{l}
+        \Gammabot(\Next) \text{ if } \Next \in \dom(\Gammabot) \\
+        \Gammatop(\Next) \text{ otherwise }
+    \end{array}\right.
+$$
 
 and
-\[
-    \find{\Gamma}(\Next) = \find{\local(\Gamma)}(\Next) \qquad
-    \find{\Gamma}(P) = \find{\modules(\Gamma)}(P)
-\]
 
-\subsection{dom}
-
-We define $\dom: \forall \alpha \beta.\; \overline{\alpha : \beta} \rightarrow \Parts(\alpha)$ by:
-
-\[
-    \dom(\epsilon) = \emptyset
-    \qquad
-    \dom(\gamma, \alpha : \beta) = \dom(\gamma) \;\cup\; \{ \alpha \}
-\] \\
-
-We also define: $\dom(\Gamma) = \dom(\modules(\Gamma)) \cup \dom(\local(\Gamma))$.
-
-Note that $ \dom(\modules(\Gamma))$ and $\dom(\local(\Gamma))$ are disjoint.
-
-\subsection{decls}
-
-\[
-    \decls(\BX : \BXdecl) = \{\overline{\tx}\} \cup \left(\bigcup\overline{\dom(D)} \right)
-\]
+$$\Gamma(X.P) = \Gamma(X)(P)$$
 
 \section{Behavior environments}
 
 \[
     \begin{prooftree}
-        \infer0{ \vdashlamb \Lambda ()  }
+        \infer0{ \vdash \epsilon }
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \hypo{ \vdashlamb \Lambda (\overline{\tx : \star})  }
-        \hypo{ \tx' \notin \overline \tx  }
-        \infer2{ \vdashlamb \Lambda \left(\overline{\tx : \star}, \tx' : \star\right) }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo{ \vdashlamb \Lambda (\overline{\tx : \star})  }
-        \hypo{  \Sigma; \overline{\tx : \star} \vdashtyp \overline D }
-        \infer2{ \Sigma \vdashbx \BX : \BXdecl }
-    \end{prooftree}
-\]
-\\
-
-\[
-    \begin{prooftree}
-        \infer0{ \vdashsig \epsilon }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo{ \vdashsig \Sigma }
-        \hypo{ \Sigma \vdashbx \Beh }
-        \infer2{ \vdashsig \Sigma, \Beh }
+        \hypo{ \vdash \Sigma }
+        \hypo{\epsilon; \Sigma; \epsilon \vdash \overline{\tx : \star}}
+        \hypo{ \epsilon; \Sigma; \overline{\tx : \star} \vdash \overline D }
+        \infer3{ \vdash \Sigma, \BX : \Lambda (\overline{\tx : \star}).\{\overline{D}\} }
     \end{prooftree}
 \]
 
 \section{Type environments}
 
-TO BE CONFIRMED: a declaration cannot access declarations below itself.
-But can it use "@behavior B"? I assume it can't for now
+\subsection{Local environments}
 
-We define possibly empty paths:
-$$\pi ::= \epsilon \;|\; P $$
+We define two notations: $\Gamma[P \leftarrow T]$ and $\Gamma[\pi \texttt{+=} D]$ as follows.
 
-We define $\flatten, \merge$ and $\withargs$ by:
+\begin{figure}[h]
+    \[
+        \begin{array}{ll}
+            \Gamma[X \leftarrow T]                                               & = \Gamma, X : T                              \\
+            \left(\Gamma, X : T' \right)[X.P \leftarrow T]                       & = \Gamma, X : \{ T'[P \leftarrow \{ T \}] \} \\
+            \left(\Gamma, D\right)[X.P \leftarrow T] \text{ if } X \neq \name(D) & = \Gamma[X.P \leftarrow T], D                \\
+        \end{array}
+    \]
+    \caption{Notation $\Gamma[P \leftarrow T]$}
+\end{figure}
 
-$$
-    \left\{\begin{array}{ll}
-        \flatten(P : \Moddecl[])                                        & = P : \Moddecl[]                                                                       \\
-        \flatten\left(P : \Moddecl[X : T, \overline{D}]\right)          & = \flatten\left(P : \Moddecl\right), \flatten(P.X : T)                                 \\
-        \flatten\left(P : \Moddecl[D, \overline{D'}]\right)             & = \merge\left(P : \Moddecl[D], \flatten\left(P : \Moddecl[\overline{D'}]\right)\right) \\
-        \flatten\left(P : (\overline{\tx : \star}) \rightarrow T\right) & = \withargs_{\overline{\tx}} \left( \flatten(P: T) \right)                             \\
-    \end{array}\right.
-$$
 
-$$
+By abuse of notation the above definition has used:
+\[
     \begin{array}{ll}
-        \withargs_{\overline{\tx}}\left(P : \Moddecl, \overline{P' : \mathfrak{M}}\right) = \left( P : (\overline{\tx : \star}) \rightarrow \Moddecl\right), \overline{P' : \mathfrak{M}} \\ \\
-        \merge\left(P : \Moddecl[D'], P : \Moddecl, \overline{P' : \mathfrak{M}}\right) = P : \Moddecl[D', \overline{D}], \overline{P' : \mathfrak{M}}
+        \left(\Moddecl\right)[P \leftarrow T]                                      & =  \Moddecl[\overline{D}[P \leftarrow T]]                                     \\
+        \left((\overline{\tx : \star}) \rightarrow \Moddecl\right)[P \leftarrow T] & = (\overline{\tx : \star}) \rightarrow \Moddecl[\overline{D}[P \leftarrow T]] \\
     \end{array}
-$$
-
-We define $\Pushenv$ (TODO use a better syntax) by:
-
-$$
-    \left\{\begin{array}{lll}
-        \Pushenv[\Gamma][\pi][X : T]                                                                 & = \Gamma, \flatten(\pi.X : T)                       \\
-        \Pushenv[\Gamma, P : \{ \overline{D'} \}] \text{ if } \ident(D) \notin \dom(\overline{D'}) & = \Gamma, P : \{ \overline{D'}, D \}              \\
-        \Pushenv[\Gamma, P' : \{ \overline{D'} \}] \text{ if } P' \neq P                           & = \left(\Pushenv\right), P' : \{ \overline{D'} \} \\
-        \Pushenv[\Gamma, D']                                                                       & = \left(\Pushenv\right), D'                       \\
-        \Pushenv                                                                                   & \text{undefined otherwise}
-    \end{array}\right.
-$$
-
-We will denote $\vdash \Pushenv$ whenever $\Pushenv$ is well defined.
-This is roughly equivalent to saying that $\Gamma$ does not contain a module $P$ that already exports $\ident(D)$.
-Note that $\Pushenv$ being defined does not necessarily imply that it is well formed. \\
-
-We can always declare a new module:
-
-\[
-    \begin{prooftree}
-        \hypo{ \pi; \Sigma \vdashgam \Gamma}
-        \infer1{ \pi; \Sigma\vdashgam \modules(\Gamma), \pi.X : \{\}, \local(\Gamma)}
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo{ \pi; \Sigma \vdashgam \Gamma}
-        \infer1{ \pi.X; \Sigma\vdashgam \modules(\Gamma), \pi.X : \{\}}
-    \end{prooftree}
 \]
 
-We can also always inject local declarations without exporting them:
+\begin{figure}[h]
+    \[
+        \begin{array}{ll}
+            \Gamma[\epsilon \texttt{+=} \{ X : T \}]                                & = \Gamma[X \leftarrow T]                                          \\
+            \left(\Gamma, X : \{ \overline{D'} \}\right)[X \texttt{+=} D]           & = \Gamma, X : \{ \overline{D'}, D \}                              \\
+            \left(\Gamma, X : \{ \overline{D'} \}\right)[X.P \texttt{+=} D]         & = (\Gamma, X : \{ \left(\overline{D'}\right)[P \texttt{+=} D] \}) \\
+            \left(\Gamma, D'\right)[X.P \texttt{+=} D] \text{ if } X \neq \name(D') & = (\Gamma[X.P \texttt{+=} D], D')
+        \end{array}
+    \]
+    \caption{Notation $\Gamma[\epsilon \texttt{+=} D]$}
+\end{figure}
+
+Note that $\Gamma[X.P \leftarrow T]$ and $\Gamma[X.\pi \texttt{+=} D]$ are not defined if $X \notin \dom(\Gamma)$ and
+$\Gamma[\epsilon \texttt{+=} D]$ is not defined if $D$ is not $X : T$.
+That's because only modules can be exported at the toplevel, and it's not possible to add a declaration to a module that does not exist.
+
+We will denote $P; \Sigma; \Gamma \vdash \overline{T}$ to say that all types in $\overline{T}$ are
+well-formed. Note that $P; \Sigma; \Gamma \vdash \overline{D}$ will NOT mean the same for declarations (see next section).
+
+The above notations and definitions allow us to propose the following rules for well-formedness of type environments:
 
 \[
     \begin{prooftree}
-        \hypo{ \pi; \Sigma \vdashgam \Gamma}
-        \infer1{ \pi; \Sigma\vdashgam \Gamma, D}
-    \end{prooftree}
-\]
-
-This rule will be used to check wellformedness of arrow types and parametric modules,
-when it is necessary to temporarily add the parameters in the environment.
-
-It is important to note that exported modules will never be added to the local environment.
-Although the environment would be technically wellformed, a declaration that tries to refer
-to an exported module using a relative path would not - as formalized below.
-
-\paragraph{Wellformedness rules:}
-
-We will denote $P; \Sigma; \Gamma \vdashtyp \overline{T}$ to say that all types in $\overline{T}$
-are well formed. Note that $P; \Sigma; \Gamma \vdashdecl \overline{D}$ will NOT mean the same, as
-formalized in the next section.
-
-We define: $\makeenv$:
-
-\[
-    \makeenv : \left\{\begin{array}{ll}
-        (\Gamma, P : \{ \tx : \star \})              & \mapsto \left(\Pushenv[\Gamma][P][\tx : \star]\right), \tx : \star                           \\
-        (\Gamma, P : \{ \tx : [= t] \})              & \mapsto \left(\Pushenv[\Gamma][P][\tx : [= t]]\right), \tx : [= t]                           \\
-        (\Gamma, P : \{ x : \bigcap \overline{T} \}) & \mapsto \left(\Pushenv[\Gamma][P][x : \bigcap \overline{T}]\right), x : \bigcap \overline{T} \\
-        (\Gamma, \pi : \{ X : \mathfrak{M} \})       & \mapsto  \left(\Pushenv[\modules(\Gamma)][\pi.X][\mathfrak{M}]\right), \local(\Gamma)
-    \end{array}\right.
-\]
-
-\[
-    \begin{prooftree}
-        \infer0{ \epsilon; \Sigma\vdashgam \epsilon }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo { P; \Sigma \vdashgam \Gamma }
-        \hypo { \vdash \Pushenv[\Gamma][P][\tx : \star] }
-        \infer2 { P; \Sigma \vdashgam \makeenv(\Gamma, P : \{ \tx : \star \}) }
+        \infer0{ \pi; \Sigma; \Gammatop \vdash \epsilon }
     \end{prooftree}
 \]
 
 \[
     \begin{prooftree}
-        \hypo { P; \Sigma \vdashgam \Gamma }
-        \hypo { \vdash \Pushenv[\Gamma][P][\tx : [= t]] }
-        \hypo { P; \Sigma; \Gamma \vdashtyp t }
-        \infer3 { P; \Sigma \vdashgam \makeenv(\Gamma, P : \{ \tx : [= t] \}) }
+        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \infer1{ P; \Sigma; \Gammatop \vdash \Gammabot, \tx : \star }
+    \end{prooftree}
+\]
+\[
+    \begin{prooftree}
+        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash t }
+        \infer2{ P; \Sigma; \Gammatop \vdash \Gammabot, \tx : [= t] }
+    \end{prooftree}
+\]
+\[
+    \begin{prooftree}
+        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \overline{T} }
+        \infer2{ P; \Sigma; \Gammatop \vdash \Gammabot, x : \bigcap \overline{T} }
+    \end{prooftree}
+\]
+\[
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ \pi.X; \Sigma; \Gammatop[\pi.X \leftarrow \{\}]; \Gammabot \vdash T }
+        \infer2{ \pi; \Sigma; \Gammatop \vdash \Gammabot, X : T }
+    \end{prooftree}
+\]
+
+The attentive reader will have noticed that $T$ does have access to the local environment $\Gammabot$
+in the last rule. This is intended. We will drop the local environment only when checking well-formedness
+of $\Moddecl$.
+
+\subsection{Global environments}
+
+\[
+    \begin{prooftree}
+        \hypo { \epsilon; \Sigma; \epsilon; \epsilon \vdash \Gammatop }
+        \infer1{ \Sigma \vdash \Gammatop }
+    \end{prooftree}
+\]
+
+FIXME: this is probably a cyclic definition.
+I must figure this out.
+
+\section{Declaration list}
+
+\[
+    \begin{prooftree}
+        \infer0{ \pi; \Sigma; \Gammatop; \Gammabot \vdash \epsilon }
     \end{prooftree}
 \]
 
 \[
     \begin{prooftree}
-        \hypo { P; \Sigma \vdashgam \Gamma }
-        \hypo { \vdash \Pushenv[\Gamma][P][x : \bigcap \overline{T}] }
-        \hypo { P; \Sigma; \Gamma \vdashtyp \overline{T} }
-        \infer3 { P; \Sigma \vdashgam \makeenv(\Gamma, P : \{ x : \bigcap \overline{T} \}) }
-    \end{prooftree}
-\]
-
-\[
-    \begin{prooftree}
-        \hypo { \pi; \Sigma \vdashgam \Gamma }
-        \hypo { \pi.X; \Sigma; \modules(\Gamma), \pi.X : \{ \} \vdashtyp \mathfrak{M} }
-        \infer2 { \pi; \Sigma \vdashgam\makeenv(\Gamma, \pi : \{ X : T \})  }
-    \end{prooftree}
-\]
-
-\section{Declaration lists}
-
-For the sake of brevity, all type and behavior environments used on the left of $\vdash$ are implicitely assumed to be well-formed
-in this section and the next section.
-
-We extend the definition of $\makeenv$ with:
-
-$$\makeenv(\Gamma, (\overline{\pi : \{ D \}}, \pi' : \{ D' \})) = \makeenv(\makeenv(\Gamma, \overline{\pi : \{ D \}}), \pi' : \{ D' \})$$
-
-\[
-    \begin{prooftree}
-        \infer0{ \pi; \Sigma; \Gamma \vdashtyp \epsilon }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo{ \pi; \Sigma; \Gamma \vdashdecl \overline{D} }
-        \hypo{ \pi; \Sigma; \makeenv(\Gamma, \overline{\pi : \{D\}}) \vdashdecl D' }
-        \infer2{ \Sigma; \Gamma \vdashdecl \overline{D}, D' }
-    \end{prooftree}
-\]
-
-\[
-    \begin{prooftree}
-        \hypo { \pi; \Sigma \vdashgam \makeenv(\Gamma, \pi : \{D\}) }
-        \infer1 { \pi; \Sigma; \Gamma \vdashdecl D  }
-    \end{prooftree}
-\]
-
-
-\section{Types}
-
-\[
-    \begin{prooftree}
-        \infer0{ \pi; \Sigma; \Gamma \vdashtyp \tau }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo{ \tx \in \dom(\Gamma) }
-        \infer1{\pi;  \Sigma; \Gamma \vdashtyp \tx }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
-        \hypo { \pi; \Sigma; \Gamma \vdashtyp \overline t }
-        \hypo { \find{\Sigma}(\BX) = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
-        \infer2{ \pi; \Sigma; \Gamma \vdashtyp \BX [\overline{\tx = t}]  }
-    \end{prooftree}
-\]
-
-\subsection{Functions}
-
-\[
-    \begin{prooftree}
-        \infer0{ \Sigma; \Gamma \vdashlamb () }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
-        \hypo { \Sigma; \Gamma \vdashlamb (\overline{N : T}) }
-        \hypo { \Sigma; \Gamma, \overline{N : T} \vdashtyp T' }
-        \hypo { N' \notin \overline{N}}
-        \infer3{ \Sigma; \Gamma \vdashlamb (\overline{N : T}, N': T')  }
-    \end{prooftree}
-\]
-\\
-
-\[
-    \begin{prooftree}
-        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
-        \hypo { \Sigma; \Gamma \vdashlamb (\overline{N : T}) }
-        \hypo { \pi; \Sigma; \Gamma, \overline{N : T} \vdashtyp T'}
-        \infer2{ \pi; \Sigma; \Gamma \vdashtyp (\overline{N : T}) \rightarrow T' }
-    \end{prooftree}
-\]
-
-\subsection{Module types}
-
-\[
-    \begin{prooftree}
-        \infer0{ \pi;\Sigma; \Gamma \vdashbxinst \epsilon }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
-        \hypo { \pi;\Sigma; \Gamma \vdashtyp \BX [\overline{\tx = t}]  }
-        \infer1{ \pi; \Sigma; \Gamma \vdashbxinst \BX [\overline{\tx = t}]  }
-    \end{prooftree}
-\]
-\\
-We disallow implementation of conflicting behaviors:
-
-\[
-    \begin{prooftree}
-        \hypo { \pi;\Sigma; \Gamma \vdashbxinst \overline{\BX[\overline{\tx = t}]}}
-        \hypo { \pi;\Sigma; \Gamma \vdashbxinst \BX' [\overline{\tx = t}] }
-        \hypo { \left(\bigcup \overline{\decls(\find{\Sigma}(\BX))}\right) \cap \decls(\find{\Sigma}(\BX')) = \emptyset }
-        \infer3{ \pi; \Sigma; \Gamma \vdashbxinst \overline{\BX [\overline{\tx = t}]}, \BX'[\overline{\tx = t'}]  }
-    \end{prooftree}
-\]
-\\
-
-\[
-    \begin{prooftree}
-        \hypo{  \pi;\Sigma; \Gamma \vdashdecl \overline D }
-        \hypo{  \pi;\Sigma; \Gamma \vdashbxinst \overline {\BX [\overline{\tx = t}]} }
-        \hypo{\left(\bigcup \overline{\find{\Sigma}(\BX[\overline{\tx = t}])}\right) \subset \overline{D}}
-        \infer3{  \pi;\Sigma; \Gamma \vdashtyp \Moddecl}
-    \end{prooftree}
-\]
-
-Here we consider unordered set inclusion, although $\overline{D}$ is an ordered set.
-
-\[
-    \begin{prooftree}
-        \hypo{ \vdashlamb \Lambda (\overline{\tx : \star})  }
-        \hypo{  \pi;\Sigma; \Gamma, \overline{\tx : \star} \vdashtyp T }
-        \infer2{  \pi;\Sigma; \Gamma \vdashtyp (\overline{\tx : \star}) \rightarrow T }
-    \end{prooftree}
-\]
-
-\subsection{Singleton type from path}
-
-\[
-    \begin{prooftree}
-        \hypo { \find{\Gamma}(P) = P : \Moddecl }
-        \infer1{  \pi;\Sigma; \Gamma \vdashtyp \langle P \rangle \twoheadrightarrow \Moddecl }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo { \find{\Gamma}(P) = P : (\overline{\tx : \star}) \rightarrow \Moddecl }
-        \infer1{ \pi; \Sigma; \Gamma \vdashtyp \langle P[\overline{\tx = t}] \rangle\twoheadrightarrow \Moddecl }
+        \hypo{ \pi; \Sigma; \Gammatop \vdash \Gammabot, D }
+        \hypo{ \pi; \Sigma; \Gammatop[\pi \texttt{+=} D]; \Gammabot, D \vdash \overline{D'} }
+        \infer2{ \pi; \Sigma; \Gammatop; \Gammabot \vdash D, \overline{D} }
     \end{prooftree}
 \] \\
 
-And of course:
+
+Alternative rules if we don't want to add modules to the local environment:
+
+$$\mathfrak{M} ::= \Moddecl \;|\; (\overline{\tx : \star}) \rightarrow \Moddecl $$
 
 \[
     \begin{prooftree}
-        \hypo {  \pi;\Sigma; \Gamma \vdashtyp \langle M \rangle \twoheadrightarrow \Moddecl }
-        \infer1{  \pi;\Sigma; \Gamma \vdashtyp \langle M \rangle }
+        \hypo{ \pi; \Sigma; \Gammatop \vdash \Gammabot, D }
+        \hypo{ \mbox{
+                \begin{tabular}{c}
+                    $ D \neq X : \mathfrak{M}$ \\
+                    $\name(D) \notin \dom(\Gammabot)$
+                \end{tabular}
+            } }
+        \hypo{ \pi; \Sigma; \Gammatop[\pi \texttt{+=} D]; \Gammabot, D \vdash \overline{D'} }
+        \infer3{ \pi; \Sigma; \Gammatop; \Gammabot \vdash D, \overline{D} }
     \end{prooftree}
 \]
 
-\subsection{Exported type}
+\[
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \Gammatop \vdash \Gammabot, X : \mathfrak{M} }
+        \hypo{ \pi; \Sigma; \Gammatop[\pi \texttt{+=} X : \mathfrak{M}]; \Gammabot \vdash \overline{D'} }
+        \infer2{ \pi; \Sigma; \Gammatop; \Gammabot \vdash X:\mathfrak{M}, \overline{D} }
+    \end{prooftree}
+\]
+
+
+\section{Pretypes}
 
 \[
     \begin{prooftree}
-        \hypo{  \pi;\Sigma; \Gamma \vdashtyp \langle M \rangle \twoheadrightarrow \Moddecl }
-        \hypo{ \tx \in \dom(\overline{D})}
-        \infer2{ \pi; \Sigma; \Gamma \vdash M.\tx }
+        \infer0{ \pi; \Sigma; \Gamma \vdash \tau }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \Gamma \vdash \overline{t}, t' }
+        \infer1{ \pi; \Sigma; \Gamma \vdash (\overline{t}) \rightarrow t' }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \Gamma \vdash \overline{t} }
+        \infer1{ \%\{ \overline{k: t} \} }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \Gamma \vdash t }
+        \hypo{ \pi; \Sigma; \Gamma \vdash t' }
+        \infer2{ t \vee  t' }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \Gamma \vdash t }
+        \infer1{ \lnot t }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \hypo{ \tx \in \dom(\Gammabot) }
+        \infer1{\pi;  \Sigma; \Gammatop; \Gammabot \vdash \tx }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
+        \hypo { \pi; \Sigma; \Gammatop; \Gammabot \vdash \overline t }
+        \hypo { \Sigma(\BX) = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
+        \hypo { \pi; \Sigma; \epsilon \vdash \overline{\tx : \star} }
+        \infer3{ \pi; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\tx = t}]  }
+    \end{prooftree}
+\]
+
+When we check $\overline{\tx : \star}$, we use an empty type environment, because we want to allow the
+parameters name to shadow local declarations. Checking well-formedness of $\overline{\tx : \star}$
+does not need the type environment anyway.
+
+\subsection{Singleton module type}
+
+\[
+    \begin{prooftree}
+        \hypo { \Gamma(P) = P : \Moddecl }
+        \infer1{  \pi;\Sigma; \Gamma \vdash \langle P \rangle \preceq  \Moddecl }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo { \Gamma(P) = P : (\overline{\tx : \star}) \rightarrow \Moddecl }
+        \infer1{ \pi; \Sigma; \Gamma \vdash \langle P[\overline{\tx = t}] \rangle \preceq  \Moddecl }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \hypo{  \pi;\Sigma; \Gamma \vdash \langle M \rangle \preceq  \{\tx : \star\} }
+        \infer1{ \pi; \Sigma; \Gamma \vdash M.\tx }
+    \end{prooftree}
+\]
+
+\section{Types}
+
+It's unclear why the parameters and the return type of a function are in $T$
+and not $t$.
+
+NOTE: if we want to allow the names in $\overline{N}$ to shadow local declarations,
+we may consider $\pi; \Sigma; (\Gammatop, \Gammabot); \epsilon \vdash \overline{N : T}$ instead.
+
+
+\[
+    \begin{prooftree}
+        \hypo { \pi; \Sigma; \Gamma  \vdash \overline{N : T} }
+        \hypo { \pi; \Sigma;\Gamma , \overline{N : T} \vdash  T' }
+        \hypo { \forall i \neq j.\; \overline{N}^i \neq \overline{N}^j }
+        \infer3{ \pi; \Sigma;\Gamma  \vdash (\overline{N : T}) \rightarrow T' }
+    \end{prooftree}
+\]
+
+If $\Sigma(\BX) = \BX : \Lambda (\overline{\tx : \star}) \{\overline{D}\}$ and
+$\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$,
+we denote $\Sigma \vdash \BX \# \BX'$ if and only if $\BX \neq \BX'$ and $\dom(\overline D) \cap \dom(\overline{D'}) = \emptyset$.
+
+\[
+    \begin{prooftree}
+        \hypo{\mbox{
+                \begin{tabular}{c}
+                    $\pi; \Sigma; \Gammatop \vdash \Gammabot \quad
+                        \pi;\Sigma; \Gammatop \vdash \overline D \quad
+                    \pi; \Sigma; \Gammatop \vdash \overline{\BX[\overline{\tx = t}]}$ \\
+                    $\forall i \neq j. \; \overline{\BX}^i \# \overline{\BX}^j \quad
+                        \forall i. \; \pi; \Sigma; \Gammatop \vdash \{\overline{D}\} \preceq \overline{\BX}^i[\overline{\tx = t}]$
+                \end{tabular}
+            }
+        }
+        \infer1{ \pi;\Sigma; \Gammatop; \Gammabot \vdash \Moddecl }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \hypo{ \pi; \Sigma; \epsilon \vdash \overline{\tx : \star} }
+        \hypo{  \pi;\Sigma; \Gamma, \overline{\tx : \star} \vdash T }
+        \infer2{  \pi;\Sigma; \Gamma \vdash (\overline{\tx : \star}) \rightarrow T }
     \end{prooftree}
 \]
 

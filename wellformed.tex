@@ -14,6 +14,9 @@
 
 \newcommand{\dom}{\text{dom}}
 \newcommand{\name}{\text{name}}
+\newcommand{\atom}{\text{atom}}
+\renewcommand{\mod}{\text{mod}}
+\newcommand{\fun}{\text{fun}}
 
 \NewDocumentCommand{\Moddecl}{O{\overline D} O{\BX} O{\tx} O{t} }{
    \{ #1 \}_{\overline{#2 [\overline{#3 = #4}]}}
@@ -259,10 +262,9 @@ $$\mathfrak{M} ::= \Moddecl \;|\; (\overline{\tx : \star}) \rightarrow \Moddecl 
     \qquad
     \begin{prooftree}
         %\hypo{ \Sigma; \Gamma \vdash \BX : \Lambda \left( \overline{\tx : \star} \right) \{ \overline D \} }
-        \hypo { \pi; \Sigma; \Gammatop; \Gammabot \vdash \overline t }
+        \hypo { \pi; \Sigma; \Gamma \vdash \overline t }
         \hypo { \Sigma(\BX) = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
-        \hypo { \pi; \Sigma; \epsilon \vdash \overline{\tx : \star} }
-        \infer3{ \pi; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\tx = t}]  }
+        \infer2{ \pi; \Sigma; \Gamma \vdash \BX [\overline{\tx = t}]  }
     \end{prooftree}
 \]
 
@@ -302,7 +304,7 @@ we may consider $\pi; \Sigma; (\Gammatop, \Gammabot); \epsilon \vdash \overline{
 
 \[
     \begin{prooftree}
-        \hypo { \pi; \Sigma; \Gamma  \vdash \overline{N : T} }
+        \hypo { \forall i.\; \pi; \Sigma; \Gamma, \overline{N : T}^{0..i}  \vdash \overline{N : T}^{i} }
         \hypo { \pi; \Sigma;\Gamma , \overline{N : T} \vdash  T' }
         \hypo { \forall i \neq j.\; \overline{N}^i \neq \overline{N}^j }
         \infer3{ \pi; \Sigma;\Gamma  \vdash (\overline{N : T}) \rightarrow T' }
@@ -321,7 +323,7 @@ we denote $\Sigma \vdash \BX \# \BX'$ if and only if $\BX \neq \BX'$ and $\dom(\
                         \pi;\Sigma; \Gammatop \vdash \overline D \quad
                     \pi; \Sigma; \Gammatop \vdash \overline{\BX[\overline{\tx = t}]}$ \\
                     $\forall i \neq j. \; \overline{\BX}^i \# \overline{\BX}^j \quad
-                        \forall i. \; \pi; \Sigma; \Gammatop \vdash \{\overline{D}\} \preceq \overline{\BX}^i[\overline{\tx = t}]$
+                        \forall i. \; \pi; \Sigma; \Gammatop \vdash \{\overline{D}\} \preceq \overline{\Sigma(\BX)[\overline{\tx := t}]}^i$
                 \end{tabular}
             }
         }
@@ -334,6 +336,131 @@ we denote $\Sigma \vdash \BX \# \BX'$ if and only if $\BX \neq \BX'$ and $\dom(\
         \hypo{ \pi; \Sigma; \epsilon \vdash \overline{\tx : \star} }
         \hypo{  \pi;\Sigma; \Gamma, \overline{\tx : \star} \vdash T }
         \infer2{  \pi;\Sigma; \Gamma \vdash (\overline{\tx : \star}) \rightarrow T }
+    \end{prooftree}
+\]
+
+\section{Subtyping}
+
+\[
+    \begin{prooftree}
+        \infer0{ P; \Sigma; \Gamma \vdash k \preceq \atom }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \infer0{ P; \Sigma; \Gamma \vdash \bigwedge \overline{ (\overline{t}) \rightarrow t'} \preceq \bigcap \overline{ (\overline{\_ : t }) \rightarrow t'} }
+    \end{prooftree}
+\]
+where $\_$ can be replaced with any name (as long as the type is well formed) \\
+
+\[
+    \begin{prooftree}
+        \infer0{ \forall i. \; P; \Sigma; \Gamma \vdash \bigcap \overline{T} \preceq  \overline{T}^i }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}
+        \hypo{ P; \Sigma; \Gamma \vdash \Sigma(\BX) = \Lambda (\overline{\tx : \star}).\{\overline{D}\} }
+        \infer1{ P; \Sigma; \Gamma \vdash \BX[\overline{\tx = t}] \preceq \left\{ \overline{D[\overline{\tx := t}]} \right\} }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \infer0{ \forall i. \; P; \Sigma; \Gamma \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}} \preceq \overline{\BX[\overline{\tx = t}]}^i }
+    \end{prooftree}
+\] \\
+
+\section{Expressions}
+
+\[
+    \begin{prooftree}
+        \hypo{ P; \Sigma; \Gamma \vdash E : T }
+        \hypo{ P; \Sigma; \Gamma \vdash T \preceq T' }
+        \infer2{ P; \Sigma; \Gamma \vdash E: T' }
+    \end{prooftree}
+\] \\
+
+Note: it must be necessary to adapt the rules to allow variable shadowing.
+Let's assume that all names are fresh for now.
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash \overline{E : t} }
+        \infer1{ P; \Sigma; \Gamma \vdash \%\{\overline{k = E}\} : \%\{\overline{k : t}\} }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash \overline{(\overline{t}) \rightarrow t'} }
+        \hypo { \overline{P; \Sigma; \Gamma, \overline{x : t} \vdash E: t'} }
+        \infer2{ P; \Sigma; \Gamma \vdash \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E : \bigwedge \overline{ (\overline{t}) \rightarrow t'} }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash \overline{(\overline{N : T}) \rightarrow T'} }
+        \hypo { \overline{P; \Sigma; \Gamma, \overline{N : T} \vdash E: T'} }
+        \infer2{ P; \Sigma; \Gamma \vdash \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E : \bigcap \overline{ (\overline{N : T }) \rightarrow T'} }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash E : T }
+        \hypo { P; \Sigma; \Gamma, N : T \vdash E' : T' }
+        \infer2{ P; \Sigma; \Gamma \vdash \text{let } N = E \text{ in } E' : T' }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { \forall i. \; P; \Sigma; \Gamma,  \overline{N : T}^{0..i} \vdash \overline{N : T}^{i} }
+        \hypo { P; \Sigma; \Gamma \vdash E : (\overline{N' : T}) \rightarrow T'}
+        \infer2{ P; \Sigma; \Gamma \vdash E(\overline{N}) : T' }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash E : \%\{ k : t \}  }
+        \infer1{ P; \Sigma; \Gamma \vdash E.k : t }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash E' : T }
+        \hypo { P; \Sigma; \Gamma \vdash E'' : T  }
+        \infer2{ P; \Sigma; \Gamma \vdash \left((E \in t) ? E' : E''\right) : T }
+    \end{prooftree}
+\]
+
+Note: if $E'$ and $E''$ want to use the type of $E$ we can consider eg:
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma, N : \Gamma(N) \wedge t \vdash E : T }
+        \hypo { P; \Sigma; \Gamma, N : \Gamma(N) \wedge \lnot t \vdash E' : T  }
+        \infer2{ P; \Sigma; \Gamma \vdash \left((N \in t) ? E : E'\right) : T }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash M : \left\{ x : \bigcap \overline{T} \right\} }  
+        \infer1{ P; \Sigma; \Gamma \vdash M.x : \bigcap \overline{T} }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gamma \vdash \langle M \rangle }  
+        \infer1{ P; \Sigma; \Gamma \vdash M : \langle M \rangle }
     \end{prooftree}
 \]
 

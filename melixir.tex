@@ -165,9 +165,9 @@ $E$ &::= & $v$ \\
    $v$ & ::= & $c$ \\
     & | & $\texttt{\%}\!\left\{\overline{\ell=v}\right\}$ \\
     & | & $\$\bigwedge \overline{(\,\overline{\,t\,}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & \textcolor{OrangeRed}{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$} \\
+    & | & \textcolor{OrangeRed}{$\$\bigcap \overline{\left(\overline{N:t}\right)\rightarrow t} \kwfn \overline{N}\rightarrow E$} \\
     $T$ & ::= & $t$ \\
-    & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
+    & | & $\left(\overline{N:t}\right)\rightarrow t$ \\
   %  & | & $[\overline{\tx:\star}]\to T$ & do we want this syntax or remove it and have $\left\{\overline P;\overline{S};\overline{D}\right\}$?\\
     & | & $\left\{\textcolor{Cerulean}{\overline{P}};\overline{S};\overline{D}\right\}$ & the programmer should be able to denote this type only via \textsf{like($M$)}\\
     $t$ & ::= & \texttt{:}k & singleton atom type\\
@@ -437,9 +437,9 @@ For our formalization we will use a slightly different syntax, which is more con
     $v$ & ::= & $k$ \\
     & | & $\texttt{\%}\!\left\{\overline{k=v}\right\}$ \\
     & | & $\$\bigwedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
+    & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:t}\right)\rightarrow t} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
     $T$ & ::= & $t$ \\
-    & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
+    & | & $\left(\overline{N:t}\right)\rightarrow t$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1[\,\overline{\tx_1=t_1}\,]}\cap...\cap{\BX_n[\,\overline{\tx_n=t_n}\,]}$}: ($\BX$'s instantiations given in $\overline{D}$)\\
     & | & $\textcolor{Cerulean}{(\overline{\tx:\star})\to T}$        & \text{first class parametric modules. Maybe  $\textcolor{Gray}{(\overline{\tx:\star})\to \left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}$ might suffice} \\[3mm] 
   %  & | & $\star$ &\text{\small I would remove this production: we do not want to pass around modules unless}\\

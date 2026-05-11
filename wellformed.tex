@@ -17,6 +17,18 @@
 \newcommand{\atom}{\text{atom}}
 \renewcommand{\mod}{\text{mod}}
 \newcommand{\fun}{\text{fun}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Comments
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\definecolor{darkgreen}{rgb}{0, 0.2, 0.13}
+\definecolor{lessdarkgreen}{rgb}{0, 0.3, 0.13}
+\definecolor{bordeaux}{rgb}{0.5, 0, 0.13}
+\definecolor{darkblue}{RGB}{51, 102, 255}
+
+	\newcommand{\beppe}[1]{{\color{bordeaux}\textbf{[ Beppe: } #1\textbf{]}}}
+	\newcommand{\aghilas}[1]{{\color{lessdarkgreen}\textbf{[ Aghilas: } #1\textbf{]}}}
+	\newcommand{\antonin}[1]{{\color{darkblue}\textbf{[ Antonin: } #1\textbf{]}}}
+
 
 \NewDocumentCommand{\Moddecl}{O{\overline D} O{\BX} O{\tx} O{t} }{
    \{ #1 \}_{\overline{#2 [\overline{#3 = #4}]}}
@@ -40,7 +52,7 @@ We define non-empty paths, possibly empty paths, module names and declaration na
 We redefine type environments:
 $$\Gamma ::= \overline{D}; \overline{D}$$
 
-The environment contains a module environment followed by local declarations (both can be empty).
+The environment contains a global environment (in practice, it essentially contains module type declarations) followed by local declarations (both can be empty).
 We will denote: $\Gamma = \Gammatop; \Gammabot$ when we need to distinguish both parts.
 
 We may also denote the empty environment $\epsilon$ instead of $\epsilon; \epsilon$. \\
@@ -68,9 +80,10 @@ $$
 and
 
 $$\Gamma(X.P) = \Gamma(X)(P)$$
+\beppe{Compléter la définition de $\Gamma(X.P)$ }
 
 \section{Behavior environments}
-
+\beppe{Définir la forme des jugements pour les environnements de comportements.}
 \[
     \begin{prooftree}
         \infer0{ \vdash \epsilon }
@@ -92,10 +105,10 @@ We define two notations: $\Gamma[P \leftarrow T]$ and $\Gamma[\pi \texttt{+=} D]
 
 \begin{figure}[h]
     \[
-        \begin{array}{ll}
+        \begin{array}{lll}
             \Gamma[X \leftarrow T]                                               & = \Gamma, X : T                              \\
             \left(\Gamma, X : T' \right)[X.P \leftarrow T]                       & = \Gamma, X : \{ T'[P \leftarrow \{ T \}] \} \\
-            \left(\Gamma, D\right)[X.P \leftarrow T] \text{ if } X \neq \name(D) & = \Gamma[X.P \leftarrow T], D                \\
+            \left(\Gamma, D\right)[X.P \leftarrow T]  & = \Gamma[X.P \leftarrow T], D        &\text{ if } X \neq \name(D)        \\
         \end{array}
     \]
     \caption{Notation $\Gamma[P \leftarrow T]$}
@@ -112,11 +125,13 @@ By abuse of notation the above definition has used:
 
 \begin{figure}[h]
     \[
-        \begin{array}{ll}
+        \begin{array}{lll}
             \Gamma[\epsilon \texttt{+=} \{ X : T \}]                                & = \Gamma[X \leftarrow T]                                          \\
             \left(\Gamma, X : \{ \overline{D'} \}\right)[X \texttt{+=} D]           & = \Gamma, X : \{ \overline{D'}, D \}                              \\
             \left(\Gamma, X : \{ \overline{D'} \}\right)[X.P \texttt{+=} D]         & = (\Gamma, X : \{ \left(\overline{D'}\right)[P \texttt{+=} D] \}) \\
-            \left(\Gamma, D'\right)[X.P \texttt{+=} D] \text{ if } X \neq \name(D') & = (\Gamma[X.P \texttt{+=} D], D')
+            \left(\Gamma, D'\right)[X.P \texttt{+=} D]  & = (\Gamma[X.P \texttt{+=} D], D') &\text{ if } X \neq \name(D')\\
+            \left(\Gamma, D'\right)[X \texttt{+=} D]  & = (\Gamma[X\texttt{+=} D], D') &\text{ if } X \neq \name(D')
+        
         \end{array}
     \]
     \caption{Notation $\Gamma[\epsilon \texttt{+=} D]$}

@@ -41,6 +41,9 @@ defmodule Animals do
         def bird_bark do
           "Tweet!"
         end
+        def animal_sound do
+          "This is a songbird, not a canine, but it says: " <> bird_bark()
+        end
       end
       def sing do
         "Chirp chirp!"

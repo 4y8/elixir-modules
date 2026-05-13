@@ -469,7 +469,7 @@ $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivia
     \begin{prooftree}
         \hypo { \forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T[\overline{N/N'}]}^{0..i} \vdash \overline{N : T[\overline{N/N'}]}^{i} }
         \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash E : (\overline{N' : T}) \rightarrow T'}
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T' }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T'[\overline{N/N'}] }
     \end{prooftree}
 \] \\
 

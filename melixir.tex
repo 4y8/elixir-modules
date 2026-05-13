@@ -464,9 +464,10 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  
     & | & $\tx : [=t]$                                  &\color{Gray} exports a transparent type $x = t$  \\[3mm]
-    $\Gamma$ & ::= & $\overline{D}$ &\color{Gray} type environment\\
+       $\Gl$ & ::= & $\overline{X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}$ &\color{Gray} global type environment\\
+ $\Gamma$ & ::= & $\overline{D}$ &\color{Gray} local type environment\\
     $\Sigma$ & ::= & $\overline{\mathcal B}$ &\color{Gray} behaviour environment\\[4mm]
-  \end{tabular}
+ \end{tabular}
 
  where $\BX$ ranges over behaviour names, $X$ over module names, $x$ over variable names, $\tx$ over type names, and $k$ over atoms. 
   \caption{Module language syntax}\label{fig:modulelangsyntax}

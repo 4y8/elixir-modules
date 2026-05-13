@@ -327,6 +327,15 @@ where $X$ is the last component of $P'$.
     \end{prooftree}
 \]
 
+\antonin{Note: because we use uppercase $X$, this should be equivalent to
+
+    $$\begin{prooftree}
+            \hypo {\Gammabot(X) = X : t }
+            \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \mod }
+            \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X \rangle }
+        \end{prooftree}$$
+}
+
 \[
     \begin{prooftree}
         \hypo { \Gammabot(X) = X : \langle M \rangle }
@@ -338,15 +347,17 @@ where $X$ is the last component of $P'$.
 \antonin{Do we want to allow subtyping here?
     eg. $\Gammabot(X) = X : t$ and $t \preceq \langle M \rangle$
 
-    This may lead to ambiguity if $t$ is subtype of multiple modules
-    and each of them has a submodule $Y$.
+    Is $\langle M \rangle$ strict structural equality, or structural subtyping?
+    Does the type "like($M$) $\wedge$  like($M'$)" make sense?
+
+    This may lead to ambiguity if both $M$ and $M'$ have a submodule $Y$ and I write $X.Y$.
 }
 
 \antonin{If we don't allow subtyping, this rule won't be enough if the return type of functions
 $(\overline{N : T}) \rightarrow T$ can be $\{\overline{D}\}_{\overline{\BX[\overline{\tx = t}]}}$
 
-This is probably fine, because our definition of $D$ does not allow local environments to contain $X : T$
-declarations, which won't allow local variables to have module type  $\{\overline{D}\}_{\overline{\BX[\overline{\tx = t}]}}$
+It probably can't, because our definition of $D$ does not allow local environments to contain $X : T$
+declarations, which in turn won't allow local variables to have module type  $\{\overline{D}\}_{\overline{\BX[\overline{\tx = t}]}}$
 anyway.
 } \\
 
@@ -385,7 +396,10 @@ where, by abuse of notation, $M.P[\overline{\tx = t}]$ is defined by dropping in
 In the rule above, $P; \Sigma; \Gammatop; \Gammabot \vdash \overline{N : T}$ refers to
 the wellformedness of $\overline{N : T}$ as a declaration list.
 
-\antonin{This may be too restrictive, because this prevents $N$ to shadow local declarations in $\Gammabot$}
+\antonin{This may be too restrictive, because this prevents $N$ to shadow local declarations in $\Gammabot$
+
+But $\forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T}^{0..i} \vdash \overline{N : T}^{i}$ 
+may be a bit hard to read }
 
 \[
     \begin{prooftree}

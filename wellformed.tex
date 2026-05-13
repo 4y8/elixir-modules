@@ -2,6 +2,7 @@
 \usepackage[a4paper, total={6.5in, 9in}]{geometry}
 \usepackage{ebproof}
 \usepackage{mathtools}
+\usepackage{float}
 \usepackage{amssymb}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[T1]{fontenc}
@@ -87,15 +88,15 @@ We extend the notation to paths:
 \begin{center}
     \begin{tabular}{rll}
         $(\overline{D})(X.P)$ & $=$ & $(\overline{D})(X)(P)$ \\
-        $(X : \Moddecl)(P)$   & $=$ & $(\overline{D})(P)$
+        $\left(X : \Moddecl\right)(P)$   & $=$ & $(\overline{D})(P)$
     \end{tabular}
 \end{center}
-
+\break
 \section{Wellformedness}
 
 We introduce wellformedness judgements:
 
-\begin{figure}[h]
+\begin{figure}[H]
     \begin{center}
         \begin{tabular}{lrll}
             Behavior environments: &                                     & $\vdash \Sigma$                                                                                  \\[2mm]
@@ -236,6 +237,7 @@ where $D \# \overline{D'}$ means that $\forall i.\; \name(D) \neq \name(\overlin
     \end{prooftree}
 \]
 
+\antonin{We may need to change that, because we don't want to add function arguments to the global environment.}
 
 \subsection{Pretypes}
 

@@ -15,8 +15,8 @@
 \newcommand{\Next}{\ensuremath{\mathcal{N}}}
 \newcommand{\emptyenv}{\varnothing}
 
-\newcommand{\Gammatop}{\ensuremath{\Gamma_\top}}
-\newcommand{\Gammabot}{\ensuremath{\Gamma_\bot}}
+\newcommand{\Gammatop}{\ensuremath{\Xi}}
+\newcommand{\Gammabot}{\ensuremath{\Gamma}}
 
 \newcommand{\dom}{\texttt{dom}}
 \newcommand{\name}{\texttt{name}}
@@ -139,7 +139,7 @@ We also define the notation $\left(\overline{D}\right)[\pi \texttt{+=} D']$ as:
     \begin{tabular}{lll}
         $\left(\overline{D}\right)[\epsilon \texttt{+=} D']$                            & = $\overline{D}, D$                                                                            \\[3mm]
         $\left(\overline{D}, X : \Moddecl[\overline{D'}]\right)[X.\pi \texttt{+=} D'']$ & = $\overline{D}, X : \Moddecl[\left(\overline{D'}\right)[\pi \texttt{+=} D'']]$                \\[3mm]
-        $\left(\overline{D}, D'\right)[X.\pi \texttt{+=} D'']$                          & $= \left(\overline{D}\right)[X.\pi \texttt{+=} D''], D'$ \color{Gray} where $\name(D') \neq X$ \\[3mm]
+        $\left(\overline{D}, D'\right)[X.\pi \texttt{+=} D'']$                          & $= \left(\overline{D}\right)[X.\pi \texttt{+=} D''], D'$ \hspace*{15mm}if $\name(D') \neq X$ \\[3mm]
         undefined otherwise
     \end{tabular}
     \caption{Notation $\left(\overline{D}\right)[\pi \texttt{+=} D']$}
@@ -184,7 +184,7 @@ Recall the shape of the judgement: $P; \Sigma; \Gammatop \vdash \Gammabot$.
     \end{prooftree}
 \] \\
 
-Note that we have no rule to add $X : \Moddecl$ to $\Gammabot$.
+Note that we have no rule to add $X : \Moddecl$ to $\Gammabot$. Therefore, for what concerns module declarations, a local type environment $\Gammabot$ cannot contain module declaration but only type assumptions for module parameters.
 
 \subsection{Global environments}
 
@@ -222,7 +222,7 @@ the empty declaration list $\emptyset$.
 \[
     \begin{prooftree}
         \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot, D }
-        \hypo{ P; \Sigma; \Gammatop[P \texttt{+=} D]; \Gammabot, D \vdash \overline{D'} }
+        \hypo{ P; \Sigma; \Gammatop[P \texttt{+=} D]; (\Gammabot, D) \vdash \overline{D'} }
         \hypo{ D \# \overline{D'} }
         \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash D, \overline{D'} }
     \end{prooftree}

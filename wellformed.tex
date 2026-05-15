@@ -55,15 +55,15 @@ We propose the following addition to the module language syntax:
 \begin{figure}[h]
     \begin{center}
         \begin{tabular}{r c ll}
-            $P$         & ::= & $X$                                                                                                   \\
-                        & |   & $X.P$                                                                                                 \\[3mm]
-            $\pi$       & ::= & $\epsilon$                                                                                            \\
-                        & |   & $P$                                                                                                   \\[3mm]
-            $M$         & ::= & $\Elixir.P[\overline{\tx = t}]$ & \color{Gray} global module                                          \\
-                        & |   & $X$                             & \color{Gray} local variable with module type (already instantiated) \\[3mm]
-            $\Next$     & ::= & $N$                                                                                                   \\
-                        & |   & $\tx$                                                                                                 \\[3mm]
-            $\Gammatop$ & ::= & $\overline{X : \Moddecl}$       & \color{Gray} global environment                                     \\[3mm]
+            $P$         & ::= & $X$                                                                                                                              \\
+                        & |   & $X.P$                                                                                                                            \\[3mm]
+            $\pi$       & ::= & $\epsilon$                                                                                                                       \\
+                        & |   & $P$                                                                                                                              \\[3mm]
+            $M$         & ::= & $\Elixir.P[\overline{\tx = t}]$ & \color{Gray} global module                                                                     \\
+                        & |   & $P[\overline{\tx = t}]$         & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$) \\[3mm]
+            $\Next$     & ::= & $N$                                                                                                                              \\
+                        & |   & $\tx$                                                                                                                            \\[3mm]
+            $\Gammatop$ & ::= & $\overline{X : \Moddecl}$       & \color{Gray} global environment                                                                \\[3mm]
             $\Gammabot$ & ::= & $\overline{D}$                  & \color{Gray} local environment ($D \neq X : \Moddecl$)
         \end{tabular}
     \end{center}
@@ -234,7 +234,7 @@ the empty declaration list $\emptyset$.
 
 \[
     \begin{prooftree}
-        \hypo{ \pi; \Sigma; \Gammatop[\pi \texttt{+=} X : \Moddecl]; \Gammabot \vdash \overline{D'} }
+        \hypo{ \pi; \Sigma; \Gammatop\left[\pi \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{D'} }
         \hypo{ \pi.X; \Sigma; \Gammatop\left[\pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{ \}\right]; \overline{\tx : \star} \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t}]}}}
         \infer2{ \pi; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Moddecl\right), \overline{D'} }
     \end{prooftree}
@@ -311,7 +311,7 @@ Thanks to subtyping, $\{ \tx : \star \}$ may not be exactly the type associated 
 \[
     \begin{prooftree}
         \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo { \Gammatop(P') = X : \Moddecl }
+        \hypo { \Gammatop(P') = X : \Moddecl[\tx] [\overline{D}][\BX][\tx'][t']}
         \hypo { \overline{P; \Sigma; \Gammatop; \Gammabot \vdash t} }
         \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Elixir.P'[\overline{\tx = t}] \rangle }
     \end{prooftree}
@@ -398,8 +398,8 @@ the wellformedness of $\overline{N : T}$ as a declaration list.
 
 \antonin{This may be too restrictive, because this prevents $N$ to shadow local declarations in $\Gammabot$
 
-But $\forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T}^{0..i} \vdash \overline{N : T}^{i}$ 
-may be a bit hard to read }
+    But $\forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T}^{0..i} \vdash \overline{N : T}^{i}$
+    may be a bit hard to read }
 
 \[
     \begin{prooftree}
@@ -430,7 +430,7 @@ We define the syntactic subtyping judgement: $P; \Sigma; \Gammatop; \Gammabot \v
 
 \antonin{NOTE: This is a non-exhaustive draft.}
 
-\antonin{All the types that appear in this section are assumed
+\antonin{All the types and environments that appear in this section are assumed
     to be well-formed. This will be made explicit when this section is finalized.}
 
 \[
@@ -629,7 +629,7 @@ We define the typing judgement for bindings: $\pi; \Sigma; \Gammatop; \Gammabot 
     \begin{prooftree}
         \hypo{ \mbox {
                 \begin{tabular}{c}
-                    $P; \Sigma; \Gammatop; \Gammabot \vdash \{x : \bigcap \overline{T}, \overline{D} \}$
+                    $P; \Sigma; \Gammatop; \Gammabot \vdash x : \bigcap \overline{T}, \overline{D}$
                     \qquad
                     $P; \Sigma; \Gammatop; \Gammabot \vdash v: \bigcap \overline{T}$
                     \\[1.5mm]
@@ -640,11 +640,9 @@ We define the typing judgement for bindings: $\pi; \Sigma; \Gammatop; \Gammabot 
     \end{prooftree}
 \]
 
-\antonin{TO BE DETERMINED: should we allow to access private/opaque bindings via the absolute path of the module?}
-
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\}}
+        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \overline{D}}
         \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash v: \bigcap \overline{T}}
         \hypo{ P; \Sigma; \Gammatop; \Gammabot, x : \bigcap \overline{T} \vdash \overline{B} : \{\overline{D}\} }
         \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \private x = v, \overline{B} : \{ \overline{D} \} }
@@ -653,7 +651,7 @@ We define the typing judgement for bindings: $\pi; \Sigma; \Gammatop; \Gammabot 
 
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx: [=t], \overline{D} \}}
+        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \tx: [=t], \overline{D} }
         \hypo{ P; \Sigma; \Gammatop[P \texttt{+=} \tx : [= t]]; \Gammabot, \tx : [= t] \vdash \overline{B} : \{\overline{D}\} }
         \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \type \tx = t, \overline{B} : \{ \tx : [= t], \overline{D} \} }
     \end{prooftree}
@@ -662,7 +660,7 @@ We define the typing judgement for bindings: $\pi; \Sigma; \Gammatop; \Gammabot 
 
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \{\tx : \star, \overline{D}\}}
+        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \tx : \star, \overline{D}}
         \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash t}
         \hypo{ P; \Sigma; \Gammatop[P \texttt{+=} \tx : \star]; \Gammabot, \tx : [= t] \vdash \overline{B} : \{\overline{D}\} }
         \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \opaque \tx = t, \overline{B} : \{ \tx : \star, \overline{D} \} }
@@ -674,7 +672,7 @@ We define the typing judgement for bindings: $\pi; \Sigma; \Gammatop; \Gammabot 
     \begin{prooftree}
         \hypo{\mbox{
                 \begin{tabular}{c}
-                    $ \pi; \Sigma; \Gammatop; \Gammabot \vdash \left\{ X : \Moddecl , \overline{D'} \right\} $
+                    $ \pi; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Moddecl\right) , \overline{D'} $
                     \qquad
                     $ \pi; \Sigma; \Gammatop; \Gammabot \vdash \overline{B} : \left\{ \overline{D} \right\} $
                     \\[2mm]

@@ -24,6 +24,7 @@
 \renewcommand{\mod}{\texttt{mod}}
 \newcommand{\fun}{\texttt{fun}}
 \newcommand{\Elixir}{\texttt{Elixir}}
+\newcommand{\Self}{\texttt{Self}}%\_\_MODULE\_\_}}
 \newcommand{\private}{\texttt{private\;}}
 \newcommand{\type}{\texttt{type\;}}
 \newcommand{\opaque}{\texttt{opaque\;}}
@@ -59,8 +60,11 @@ We propose the following addition to the module language syntax:
                         & |   & $X.P$                                                                                                                            \\[3mm]
             $\pi$       & ::= & $\epsilon$                                                                                                                       \\
                         & |   & $P$                                                                                                                              \\[3mm]
-            $M$         & ::= & $\Elixir.P[\overline{\tx = t}]$ & \color{Gray} global module                                                                     \\
-                        & |   & $P[\overline{\tx = t}]$         & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$) \\[3mm]
+            $M$         & ::= &  $P[\overline{\tx = t}]$         & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$)\\
+                        & |   &
+$\Elixir.P[\overline{\tx = t}]$ & \color{Gray} global module                                                                     \\
+                        & |   & $\Self$                          & \color{Gray} self-reference                                                                     \\
+                        & |   & $\Self.P[\overline{\tx = t}]$                          & \color{Gray} inside self-reference                                                                     \\[3mm]
             $\Next$     & ::= & $N$                                                                                                                              \\
                         & |   & $\tx$                                                                                                                            \\[3mm]
             $\Gammatop$ & ::= & $\overline{X : \Moddecl}$       & \color{Gray} global environment                                                                \\[3mm]
@@ -110,6 +114,7 @@ We introduce wellformedness judgements:
 
 \subsection{Behavior environments}
 
+For behaviour environments we extend the syntax of the names so as to include the name \Self{} (corresponding to the \texttt{\_\_MODULE\_\_} variable in Elixir).
 \antonin{FIXME: $\BX$ is not a path technically, but wellformedness of declaration lists is not defined on the empty path.
     We must define exactly what a behavior is allowed to export.}
 
@@ -121,13 +126,12 @@ We introduce wellformedness judgements:
     \begin{prooftree}
         \hypo{ \vdash \Sigma }
         \hypo{ \overline{\tx} \text{ pairwise distinct} }
-        \hypo{ \color{red} \BX \color{black}; \Sigma; \emptyenv; \overline{\tx : \star} \vdash \overline D }
+        \hypo{ \Self\color{black}; \Sigma; (\Self:\Lambda().\{\}); \overline{\tx : \star} \vdash \overline D }
         \infer3{ \vdash \Sigma, \BX : \Lambda (\overline{\tx : \star}).\{\overline{D}\} }
     \end{prooftree}
 \]
 
 \subsection{Global environments}
-
 \[
     \begin{prooftree}
         \hypo { \vdash \Sigma }
@@ -139,7 +143,7 @@ We introduce wellformedness judgements:
     \begin{prooftree}
         \hypo{\Sigma \vdash \Gammatop}
         \hypo{ \epsilon; \Sigma; \Gammatop; \emptyenv \vdash X : \Moddecl }
-        \infer2{ \Gammatop, X : \Moddecl }
+        \infer2{ \Sigma \vdash \Gammatop, X : \Moddecl }
     \end{prooftree}
 \]
 
@@ -183,7 +187,7 @@ Recall the shape of the judgement: $\pi; \Sigma; \Gammatop \vdash \Gammabot$.
 
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ (P; \Sigma; \Gammatop \vdash \Gammabot)? }
         \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash t }
         \infer2{ P; \Sigma; \Gammatop \vdash \Gammabot, X : t }
     \end{prooftree}
@@ -196,7 +200,7 @@ Recall the shape of the judgement: $\pi; \Sigma; \Gammatop \vdash \Gammabot$.
 \]
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ (P; \Sigma; \Gammatop \vdash \Gammabot)? }
         \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash t }
         \infer2{ P; \Sigma; \Gammatop \vdash \Gammabot, \tx : [= t] }
     \end{prooftree}
@@ -327,6 +331,7 @@ where $X$ is the last component of $P'$.
     \end{prooftree}
 \]
 
+Stress that $X$ is not instantiated since it is a function paramater and they cannot be typed by parametric module types.
 \antonin{Note: because we use uppercase $X$, this should be equivalent to
 
     $$\begin{prooftree}

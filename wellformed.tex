@@ -56,20 +56,18 @@ We propose the following addition to the module language syntax:
 \begin{figure}[h]
     \begin{center}
         \begin{tabular}{r c ll}
-            $P$         & ::= & $X$                                                                                                                                      \\
-                        & |   & $X.P$                                                                                                                                    \\[3mm]
-            $\pi$       & ::= & $\epsilon$                                                                                                                               \\
-                        & |   & $P$                                                                                                                                      \\[3mm]
-            $M$         & ::= & $P[\overline{\tx = t}]$                 & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$) \\
-                        & |   & $\Elixir.P[\overline{\tx = t}]$         & \color{Gray} global module                                                                     \\
-                        & |   & $\Self$                                 & \color{Gray} self-reference (syntax $\texttt{\_\_MODULE\_\_}$ in Elixir)                       \\
-                        & |   & $\Self.P[\overline{\tx = t}]$           & \color{Gray} inside self-reference                                                             \\[3mm]
-            $\Next$     & ::= & $N$                                                                                                                                      \\
-                        & |   & $\tx$                                                                                                                                    \\[3mm]
-            $T$         & ::= & ...                                                                                                                                      \\
-                        & | & $\BX_{[\Self = M, \overline{\tx = t}]}$ & \color{Gray} instantiated behavior                                                             \\[3mm]
-            $\Gammatop$ & ::= & $\overline{X : \Moddecl}$               & \color{Gray} global environment                                                                \\[3mm]
-            $\Gammabot$ & ::= & $\overline{D}$                          & \color{Gray} local environment ($D \neq X : \Moddecl$)
+            $P$         & ::= & $X$                                                                                                                              \\
+                        & |   & $X.P$                                                                                                                            \\[3mm]
+            $\pi$       & ::= & $\epsilon$                                                                                                                       \\
+                        & |   & $P$                                                                                                                              \\[3mm]
+            $M$         & ::= & $P[\overline{\tx = t}]$         & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$) \\
+                        & |   & $\Elixir.P[\overline{\tx = t}]$ & \color{Gray} global module                                                                     \\
+                        & |   & $\Self$                         & \color{Gray} self-reference (syntax $\texttt{\_\_MODULE\_\_}$ in Elixir)                       \\
+                        & |   & $\Self.P[\overline{\tx = t}]$   & \color{Gray} inside self-reference                                                             \\[3mm]
+            $\Next$     & ::= & $N$                                                                                                                              \\
+                        & |   & $\tx$                                                                                                                            \\[3mm]
+            $\Gammatop$ & ::= & $\overline{X : \Moddecl}$       & \color{Gray} global environment                                                                \\[3mm]
+            $\Gammabot$ & ::= & $\overline{D}$                  & \color{Gray} local environment ($D \neq X : \Moddecl$)
         \end{tabular}
     \end{center}
     \caption{Some addition to the module language syntax}
@@ -285,10 +283,9 @@ Keys $\overline{k}$ also need to be pairwise distinct. \\
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle M \rangle }
         \hypo { \overline {P; \Sigma; \Gammatop; \Gammabot \vdash t} }
         \hypo { \Sigma(\BX) = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
-        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\Self = M, \tx = t}]  }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\tx = t}]  }
     \end{prooftree}
 \]
 
@@ -316,25 +313,22 @@ Thanks to subtyping, $\{ \tx : \star \}$ may not be exactly the type associated 
 
 where $X$ is the last component of $P'$.
 
-\[
-    \begin{prooftree}
-        \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
-        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Self \rangle }
-    \end{prooftree}
-    \qquad
-    \begin{prooftree}
-        \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo { \Gammatop(P.P') = X : \Moddecl[\tx] [\overline{D}][\BX][\tx'][t']}
-        \hypo { \overline{P; \Sigma; \Gammatop; \Gammabot \vdash t} }
-        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Self.P'[\overline{\tx = t}] \rangle }
-    \end{prooftree}
-\]
-
 \antonin{
-    Instead, should we not assume that $\Self$ is expanded to the current
-    module name before type checking? Just like other aliases?
+    \[
+        \begin{prooftree}
+            \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
+            \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Self \rangle }
+        \end{prooftree}
+        \qquad
+        \begin{prooftree}
+            \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
+            \hypo { \Gammatop(P.P') = X : \Moddecl[\tx] [\overline{D}][\BX][\tx'][t']}
+            \hypo { \overline{P; \Sigma; \Gammatop; \Gammabot \vdash t} }
+            \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Self.P'[\overline{\tx = t}] \rangle }
+        \end{prooftree}
+    \]
 
-    This way, \Self\; can only appear in behaviors, and we don't need the special rules above.
+    If we replace $\Self$ with $P$ (see below) we no longer need those rules
 }
 
 \[
@@ -380,19 +374,22 @@ $ \Gammabot(X) = X : t$ and $ P; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \
                     $\overline{P; \Sigma; \Gammatop; \Gammabot \vdash \BX[\overline{\tx = t}]} \quad
                     P; \Sigma; \Gammatop; \Gammabot \vdash \overline D$ \\[1.5mm]
                     $\forall i \neq j. \; \overline{\BX}^i \# \overline{\BX}^j \quad
-                        \overline{P; \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\} \preceq \Sigma(\BX)[\overline{\tx := t}]}$
+                        \overline{P; \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}[\color{darkblue}\Self := P\color{black}]\} \preceq  \Sigma(\BX)[\color{darkblue}\Self := P, \color{black}\overline{\tx := t}]}$
                 \end{tabular}
             }
         }
-        \infer1{ \pi;\Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}} }
+        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}} }
     \end{prooftree}
 \] \\
+
+\antonin{ if we do this, we lose the ability to make the difference between \texttt{\_\_MODULE\_\_} and absolute path.
+    But if we assume that "hot swapping" must be type-preversing, that's probably fine.}
 
 where, assuming $\Sigma(\BX) = \BX : \Lambda (\overline{\tx : \star}) \{\overline{D}\}$ and
 $\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$:
 \begin{itemize}
     \item $\BX \# \BX'$ if and only if $\BX \neq \BX'$ and $\dom(\overline D) \cap \dom(\overline{D'}) = \emptyset$
-    \item $\Sigma(\BX)[\overline{\tx := t}] = \{ \overline{D[\overline{t / \tx}]} \}$
+    \item $\Sigma(\BX)[\overline{\tx := t}] = \{ \overline{D[\overline{\tx := t}]} \}$
 \end{itemize}
 
 \section{Subtyping}
@@ -468,14 +465,14 @@ We define the syntactic subtyping judgement: $P; \Sigma; \Gammatop; \Gammabot \v
 \[
     \begin{prooftree}
         \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Elixir.P'[\overline{\tx = t}] \rangle }
-        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Elixir.P'[\overline{\tx = t}] \rangle \preceq \Gammatop(P')[\overline{x := t}] }
+        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Elixir.P'[\overline{\tx = t}] \rangle \preceq \Gammatop(P')[\color{darkblue}\Self := P', \color{black}\overline{\tx := t}] }
     \end{prooftree}
 \] \\
 
 where, assuming $\Gammatop(P) = X : \Moddecl$,
 
-$$\Gammatop(P)[\overline{x := t}]
-    = \left(\{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t'}]}}\right)[\overline{t/x}]$$
+$$\Gammatop(P)[\overline{\tx := t}]
+    = \left(\{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t'}]}}\right)[\overline{\tx := t}]$$
 
 \section{Expressions}
 
@@ -587,9 +584,15 @@ $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivia
     \begin{prooftree}
         \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
         \hypo{ \Gammabot(X) = X : t }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash X : t }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash X : t\color{darkblue}[\Self := X] }
     \end{prooftree}
 \]
+
+\antonin{
+    How should we define $t[\Self := X]$? If $t$ is $\BX[\overline{\tx = t}]$, then should it be
+    $\Sigma(\BX)[\Self := X, \overline{\tx := t}] = \{\overline{D[\Self := X, \overline{\tx := t}]}\}$? But this type is a list of declarations,
+    and we lose the fact that $X$ implements the behavior...
+}
 
 \section{Bindings}
 

@@ -56,19 +56,20 @@ We propose the following addition to the module language syntax:
 \begin{figure}[h]
     \begin{center}
         \begin{tabular}{r c ll}
-            $P$         & ::= & $X$                                                                                                                              \\
-                        & |   & $X.P$                                                                                                                            \\[3mm]
-            $\pi$       & ::= & $\epsilon$                                                                                                                       \\
-                        & |   & $P$                                                                                                                              \\[3mm]
-            $M$         & ::= &  $P[\overline{\tx = t}]$         & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$)\\
-                        & |   &
-$\Elixir.P[\overline{\tx = t}]$ & \color{Gray} global module                                                                     \\
-                        & |   & $\Self$                          & \color{Gray} self-reference                                                                     \\
-                        & |   & $\Self.P[\overline{\tx = t}]$                          & \color{Gray} inside self-reference                                                                     \\[3mm]
-            $\Next$     & ::= & $N$                                                                                                                              \\
-                        & |   & $\tx$                                                                                                                            \\[3mm]
-            $\Gammatop$ & ::= & $\overline{X : \Moddecl}$       & \color{Gray} global environment                                                                \\[3mm]
-            $\Gammabot$ & ::= & $\overline{D}$                  & \color{Gray} local environment ($D \neq X : \Moddecl$)
+            $P$         & ::= & $X$                                                                                                                                      \\
+                        & |   & $X.P$                                                                                                                                    \\[3mm]
+            $\pi$       & ::= & $\epsilon$                                                                                                                               \\
+                        & |   & $P$                                                                                                                                      \\[3mm]
+            $M$         & ::= & $P[\overline{\tx = t}]$                 & \color{Gray} local variable with module type  (in practice: $X\; |\; X.P[\overline{\tx = t}]$) \\
+                        & |   & $\Elixir.P[\overline{\tx = t}]$         & \color{Gray} global module                                                                     \\
+                        & |   & $\Self$                                 & \color{Gray} self-reference (syntax $\texttt{\_\_MODULE\_\_}$ in Elixir)                       \\
+                        & |   & $\Self.P[\overline{\tx = t}]$           & \color{Gray} inside self-reference                                                             \\[3mm]
+            $\Next$     & ::= & $N$                                                                                                                                      \\
+                        & |   & $\tx$                                                                                                                                    \\[3mm]
+            $T$         & ::= & ...                                                                                                                                      \\
+                        & | & $\BX_{[\Self = M, \overline{\tx = t}]}$ & \color{Gray} instantiated behavior                                                             \\[3mm]
+            $\Gammatop$ & ::= & $\overline{X : \Moddecl}$               & \color{Gray} global environment                                                                \\[3mm]
+            $\Gammabot$ & ::= & $\overline{D}$                          & \color{Gray} local environment ($D \neq X : \Moddecl$)
         \end{tabular}
     \end{center}
     \caption{Some addition to the module language syntax}
@@ -115,8 +116,6 @@ We introduce wellformedness judgements:
 \subsection{Behavior environments}
 
 For behaviour environments we extend the syntax of the names so as to include the name \Self{} (corresponding to the \texttt{\_\_MODULE\_\_} variable in Elixir).
-\antonin{FIXME: $\BX$ is not a path technically, but wellformedness of declaration lists is not defined on the empty path.
-    We must define exactly what a behavior is allowed to export.}
 
 \[
     \begin{prooftree}
@@ -218,13 +217,10 @@ Also, as stated above, note that all the rules requires a non-empty path $P$ exc
 
 \subsection{Declaration list}
 
-To avoid ambiguity with the empty path $\epsilon$ and the empty environment $\emptyenv$, we will denote
-the empty declaration list $\emptyset$.
-
 \[
     \begin{prooftree}
         \hypo{ \pi; \Sigma; \Gammatop \vdash \Gammabot }
-        \infer1{ \pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyset }
+        \infer1{ \pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyenv }
     \end{prooftree}
 \]
 
@@ -244,9 +240,6 @@ the empty declaration list $\emptyset$.
     \end{prooftree}
 \]
 The above rule also requires the $\overline{\tx} \text{ are pairwise distinct} $.
-
-\antonin{I must check if wellformedness of $\Gammatop\left[\pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{ \}\right]$ can actually be proven, or if
-    the rules are cyclic.}
 
 \subsection{Pretypes}
 
@@ -292,10 +285,10 @@ Keys $\overline{k}$ also need to be pairwise distinct. \\
     \end{prooftree}
     \qquad
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle M \rangle }
         \hypo { \overline {P; \Sigma; \Gammatop; \Gammabot \vdash t} }
         \hypo { \Sigma(\BX) = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
-        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\tx = t}]  }
+        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\Self = M, \tx = t}]  }
     \end{prooftree}
 \]
 
@@ -326,92 +319,66 @@ where $X$ is the last component of $P'$.
 \[
     \begin{prooftree}
         \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo { X \in \dom(\Gammabot) }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X \rangle }
+        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Self \rangle }
+    \end{prooftree}
+    \qquad
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo { \Gammatop(P.P') = X : \Moddecl[\tx] [\overline{D}][\BX][\tx'][t']}
+        \hypo { \overline{P; \Sigma; \Gammatop; \Gammabot \vdash t} }
+        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle \Self.P'[\overline{\tx = t}] \rangle }
     \end{prooftree}
 \]
 
-Stress that $X$ is not instantiated since it is a function paramater and they cannot be typed by parametric module types.
-\antonin{Note: because we use uppercase $X$, this should be equivalent to
+\antonin{
+    Instead, should we not assume that $\Self$ is expanded to the current
+    module name before type checking? Just like other aliases?
 
-    $$\begin{prooftree}
-            \hypo {\Gammabot(X) = X : t }
-            \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \mod }
-            \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X \rangle }
-        \end{prooftree}$$
+    This way, \Self\; can only appear in behaviors, and we don't need the special rules above.
 }
 
 \[
     \begin{prooftree}
-        \hypo { \Gammabot(X) = X : \langle M \rangle }
-        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash \langle M.P'[\overline{\tx = t}] \rangle }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X.P'[\overline{\tx = t}] \rangle }
+        \hypo {\Gammabot(X) = X : t }
+        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \mod }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X \rangle }
     \end{prooftree}
 \]
 
-\antonin{Do we want to allow subtyping here?
-    eg. $\Gammabot(X) = X : t$ and $t \preceq \langle M \rangle$
+In the rule above, $X$ is a local variable (in practice, a function parameter).
+As a result, it must have an already instantiated type (parametric modules are not types).
+That's why we don't allow instantiating $X$ again.
 
-    Is $\langle M \rangle$ strict structural equality, or structural subtyping?
-    Does the type "like($M$) $\wedge$  like($M'$)" make sense?
+\[
+    \begin{prooftree}
+        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} }
+        \hypo { (\overline{D})(P') = \Moddecl[\tx][\overline{D'}] }
+        \hypo { \overline{P; \Sigma; \Gammatop; \Gammabot \vdash t} }
+        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X.P'[\overline{\tx = t}] \rangle }
+    \end{prooftree}
+\]
 
-    This may lead to ambiguity if both $M$ and $M'$ have a submodule $Y$ and I write $X.Y$.
-}
-
-\antonin{If we don't allow subtyping, this rule won't be enough if the return type of functions
-$(\overline{N : T}) \rightarrow T$ can be $\{\overline{D}\}_{\overline{\BX[\overline{\tx = t}]}}$
-
-It probably can't, because our definition of $D$ does not allow local environments to contain $X : T$
-declarations, which in turn won't allow local variables to have module type  $\{\overline{D}\}_{\overline{\BX[\overline{\tx = t}]}}$
-anyway.
-} \\
-
-where, by abuse of notation, $M.P[\overline{\tx = t}]$ is defined by dropping intermediate instantiations:
-\begin{itemize}
-    \item $P[\overline{\tx = t}].P'[\overline{\tx' = t'}] = P.P'[\overline{\tx' = t'}]$
-    \item $\Elixir.P[\overline{\tx = t}].P'[\overline{\tx' = t'}] = \Elixir.P.P'[\overline{\tx' = t'}]$
-\end{itemize}
-
-\antonin{
-
-    Do we actually want to allow it?
-
-    \[
-        \begin{prooftree}
-            \hypo { \Gammabot(X) = X : \BX[\overline{\tx = t}] }
-            \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash \langle \BX.P'[\overline{\tx = t'}] \rangle }
-            \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \langle X.P'[\overline{\tx = t'}] \rangle }
-        \end{prooftree}
-    \]
-
-    $\BX$ is not a valid path technically.
-    Or do we consider that submodule $\BX.Y$ is referenced by $X.Y$ instead, where $X$
-    is the name of $\BX$ when seen as a module?}
+Note that $X$ is a variable name, so it must be looked up in the local environment.
+The hypothesis $ P; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} $ is equivalent to
+$ \Gammabot(X) = X : t$ and $ P; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \{\overline{D}\}$.
 
 \subsection{Types}
 
 \[
     \begin{prooftree}
-        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash \overline{N : T} }
+        \hypo { \forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T}^{0..i} \vdash \overline{T}^{i} }
+        \hypo { \overline{N} \text{ pairwise distinct} }
         \hypo { P; \Sigma; \Gammatop; \Gammabot, \overline{N : T} \vdash  T' }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot  \vdash (\overline{N : T}) \rightarrow T' }
+        \infer3{ P; \Sigma; \Gammatop; \Gammabot  \vdash (\overline{N : T}) \rightarrow T' }
     \end{prooftree}
-\]
-
-In the rule above, $P; \Sigma; \Gammatop; \Gammabot \vdash \overline{N : T}$ refers to
-the wellformedness of $\overline{N : T}$ as a declaration list.
-
-\antonin{This may be too restrictive, because this prevents $N$ to shadow local declarations in $\Gammabot$
-
-    But $\forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T}^{0..i} \vdash \overline{N : T}^{i}$
-    may be a bit hard to read }
+\] \\
 
 \[
     \begin{prooftree}
         \hypo{\mbox{
                 \begin{tabular}{c}
-                    $P; \Sigma; \Gammatop; \Gammabot \vdash \overline D \quad
-                    \overline{P; \Sigma; \Gammatop; \Gammabot \vdash \BX[\overline{\tx = t}]}$ \\[1.5mm]
+                    $\overline{P; \Sigma; \Gammatop; \Gammabot \vdash \BX[\overline{\tx = t}]} \quad
+                    P; \Sigma; \Gammatop; \Gammabot \vdash \overline D$ \\[1.5mm]
                     $\forall i \neq j. \; \overline{\BX}^i \# \overline{\BX}^j \quad
                         \overline{P; \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\} \preceq \Sigma(\BX)[\overline{\tx := t}]}$
                 \end{tabular}

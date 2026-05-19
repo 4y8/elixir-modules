@@ -589,9 +589,13 @@ $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivia
 \]
 
 \antonin{
-    How should we define $t[\Self := X]$? If $t$ is $\BX[\overline{\tx = t}]$, then should it be
-    $\Sigma(\BX)[\Self := X, \overline{\tx := t}] = \{\overline{D[\Self := X, \overline{\tx := t}]}\}$? But this type is a list of declarations,
-    and we lose the fact that $X$ implements the behavior...
+How should we define $t[\Self := X]$? If $t$ is $\BX[\overline{\tx = t}]$, then should it be
+$\Sigma(\BX)[\Self := X, \overline{\tx := t}] = \{\overline{D[\Self := X, \overline{\tx := t}]}\}$? But this type is a list of declarations,
+and we lose the fact that $X$ implements the behavior...
+
+Or $\{\overline{D[\Self := X, \overline{\tx := t}]}\}_{\BX[\overline{\tx = t}]}$ But then
+the substitution $\Self := X$ is lost in subtyping: 
+$\{\overline{D[\Self := X, \overline{\tx := t}]}\}_{\BX[\overline{\tx = t}]} \preceq \BX[\overline{\tx = t}] \preceq \{ \overline{D[\overline{\tx := t}]} \}$
 }
 
 \section{Bindings}

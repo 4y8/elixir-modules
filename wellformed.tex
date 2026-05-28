@@ -250,8 +250,8 @@ The following rule is only used inside behaviors:
 
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{D'}}
         \hypo{ P.X; \Sigma; \Gammatop\left[P \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{ \}\right]; \overline{\tx : \star} \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t}]}}}
+        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{D'}}
         \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Moddecl\right), \overline{D'} }
     \end{prooftree}
 \]
@@ -302,8 +302,8 @@ Keys $\overline{k}$ also need to be pairwise distinct. \\
     \qquad
     \begin{prooftree}
         \hypo { \Pi; \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo { \overline {\Pi; \Sigma; \Gammatop; \Gammabot \vdash t} }
         \hypo { \Sigma(\BX) = \BX : \Lambda \left( \overline{\tx : \star} \right) \{\overline D \}}
+        \hypo { \overline {\Pi; \Sigma; \Gammatop; \Gammabot \vdash t} }
         \infer3{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \BX [\overline{\tx = t}]  }
     \end{prooftree}
 \]
@@ -393,37 +393,103 @@ $\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$:
 
 \section{Subtyping}
 
-We will denote Elixir's core subtyping: $\vdash_\Elixir t \preceq t'$.
-We define the syntactic subtyping judgement: $\Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq t'$.
+Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
 
-\antonin{NOTE: This is a non-exhaustive draft.}
+We denote $\Omega$ the type of a declaration (i.e. that part on the right of the semicolon).
+All declarations can be written as $D = N : \Omega$ (but not all $N : \Omega$ are valid declarations).
 
-\antonin{All the types and environments that appear in this section are assumed
-    to be well-formed. This will be made explicit when this section is finalized.}
+
+We define the syntactic subtyping judgement: $\Pi; \Sigma; \Gammatop; \Gammabot \vdash \Omega \preceq \Omega'$.
+We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\Omega' \preceq \Omega$ hold.
+
 
 \[
     \begin{prooftree}
-        \hypo{ \vdash_\Elixir t \preceq t' }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq t' }
+        \hypo{  \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Omega }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Omega \simeq \Omega }
+    \end{prooftree}
+\]
+
+\antonin{Todo: define wellformedness of $\Omega$} \\
+
+\[
+    \begin{prooftree}
+        \hypo{  \Pi; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{  t \vartriangleleft t' }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq t' }
     \end{prooftree}
 \] \\
 
 \[
     \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t] \} \preceq \{ \tx : \star \} }
+        \hypo{  \Pi; \Sigma; \Gammatop; \Gammabot \vdash t }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash [= t] \preceq \star }
+    \end{prooftree}
+\] \\
+
+
+\[
+    \begin{prooftree}
+        \hypo{  \Pi; \Sigma; \Gammatop; \Gammabot \vdash t  \preceq t'}
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash [= t] \preceq [= t'] }
     \end{prooftree}
 \] \\
 
 \[
     \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq t' }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t] \} \preceq \{ \tx : [= t'] \} }
+        \hypo{ \Pi; \Sigma; \Gammatop \vdash \Gammabot}
+        \hypo{ \Gammabot(\tx) = \tx : [= t] }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \tx \simeq t }
     \end{prooftree}
 \] \\
 
 \[
     \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' \preceq (\overline{N : t }) \rightarrow t' }
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \bigcap \overline{T} }
+        \hypo{ T' \in \overline{T} }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} }
+            \simeq \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]}  }
+    \end{prooftree}
+\] \\
+
+
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \bigcap \overline{T} }
+        \hypo{ T' \in \overline{T} }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \bigcap \overline{T} \preceq T'}
+    \end{prooftree}
+\] \\
+
+
+\antonin{
+    
+We may think of \[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \bigcap \overline{T} }
+        \hypo{ \forall N \in \dom (\overline{D'}),\; P; \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\}.N \preceq \{\overline{D'}\}.N }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ \overline{D'} \} }
+    \end{prooftree}
+\] 
+
+but this does not work.
+
+    Example: we want $X : \{ \tx: \star, \tx': \star, f: (x:\tx) \rightarrow \tx' \} \preceq X' : \{ \tx : \star, f: (x:\tx) \rightarrow \lnot \mathbb{O} \}$
+but $X.f$ and $X'.f$ are not wellformed in $\Gammabot$ (which does not contain $\tx$), and are incomparable because $\tx$ is opaque.
+ 
+
+Maybe something like: $$\Pi; \Sigma; \Gammatop; \Gammabot \vdash ((\tx : \star, \tx' : \star);  f: (x:\tx) \rightarrow \tx') \preceq (\tx : \star;  f: (x:\tx) \rightarrow \lnot \mathbb{O})$$
+or $$\Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star, \tx' : \star \vdash f: (x:\tx) \rightarrow \tx' \preceq f: (x:\tx) \rightarrow \lnot \mathbb{O}$$ but the latter
+puts $\tx'$ in the environment even for $X'.f$ (is it a problem?) and the former is ugly
+
+
+Also we may need to update $\Gammatop$ as well if $f$ contains fully-qualified types...
+}
+
+\[
+    \begin{prooftree}
+        \hypo{  \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' \preceq (\overline{N : t }) \rightarrow t' }
     \end{prooftree}
 \] \\
 
@@ -432,27 +498,6 @@ We define the syntactic subtyping judgement: $\Pi; \Sigma; \Gammatop; \Gammabot 
         \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \BX[\overline{\tx = t}] \preceq \Sigma(\BX)[\overline{\tx := t}]}
     \end{prooftree}
 \] \\
-
-\[
-    \begin{prooftree}
-        \infer0{ \overline{\Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}} \preceq \BX[\overline{\tx = t}]} }
-    \end{prooftree}
-\] \\
-
-\[
-    \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}} \preceq  \{ \overline{D} \}}
-    \end{prooftree}
-\] \\
-
-
-\[
-    \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}, \overline{\BX'[\overline{\tx' = t'}]}} \preceq  \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]}}}
-    \end{prooftree}
-\] \\
-
-\antonin{works for any permutation and partitioning of the behavior list }
 
 
 \[
@@ -576,7 +621,7 @@ $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivia
 
 \antonin{TODO: resolve types in $M.x$}
 
-\[
+\[<
     \begin{prooftree}
         \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash \langle M \rangle }
         \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash M : \langle M \rangle }

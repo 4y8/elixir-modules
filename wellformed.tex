@@ -445,9 +445,8 @@ We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\
 
 \[
     \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \bigcap \overline{T} }
-        \hypo{ T' \in \overline{T} }
-        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} }
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash   \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} } }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} }
             \simeq \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]}  }
     \end{prooftree}
 \] \\

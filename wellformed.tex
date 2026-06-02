@@ -637,9 +637,11 @@ we would get stuck later.
 
 \[
     \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N' : T[\overline{N'/N}]}) \rightarrow T_r'[\overline{N'/N}] }
+        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N' : T'}) \rightarrow T_r[\overline{N'/N}] }
     \end{prooftree}
-\] \\
+\] 
+
+where $\forall i, \; \overline{T'}^i = \overline{T}^i \left[\overline{N'/N}^{0..i}\right]$. \\
 
 \antonin{I separated subtyping and renaming for legibility but we could merge them into a single rule}
 

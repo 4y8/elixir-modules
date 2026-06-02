@@ -42,10 +42,12 @@
 \definecolor{lessdarkgreen}{rgb}{0, 0.3, 0.13}
 \definecolor{bordeaux}{rgb}{0.5, 0, 0.13}
 \definecolor{darkblue}{RGB}{51, 102, 255}
+\definecolor{darkgray}{RGB}{99,102,106}
 
 \newcommand{\beppe}[1]{{\color{bordeaux}\textbf{[ Beppe: } #1\textbf{]}}}
 \newcommand{\aghilas}[1]{{\color{lessdarkgreen}\textbf{[ Aghilas: } #1\textbf{]}}}
 \newcommand{\antonin}[1]{{\color{darkblue}\textbf{[ Antonin: } #1\textbf{]}}}
+\newcommand{\deprecated}[1]{{\color{darkgray}\textbf{[ Deprecated: } #1\textbf{]}}}
 
 \begin{document}
 
@@ -129,8 +131,10 @@ $\Pi$ will be $\epsilon$ when type-checking behaviors; it will be $\Elixir$ when
     \end{prooftree}
 \]
 
-\antonin{
-    We must also enforce that the $\overline{\tx}$ are pairwise distinct}
+This rule also requires the $\overline{\tx}$ are pairwise distinct.
+
+Because we use $\epsilon$ as the path in the rule above, the behavior will not be
+able to declare submodules (see the section about wellformedness of declaration lists). This is intended.
 
 \subsection{Global environments}
 \[
@@ -257,6 +261,13 @@ The following rule is only used inside behaviors:
 \]
 The above rule also requires the $\overline{\tx} \text{ are pairwise distinct}$
 
+Note that we only add $\Lambda (\overline{\tx : \star}). \{ \}$ to the global environment
+when we check the submodule. As a result, a declaration in the submodule cannot
+refer to later declarations, even when using the absolute qualified path.
+
+This is a limitation of the current approach: we cannot add $\overline{D}$ to the global environment
+before we check that $\overline{D}$ is wellformed.
+
 \subsection{Pretypes}
 
 \[
@@ -345,9 +356,14 @@ In the rule above, $X$ is a local variable (in practice, a function parameter).
 As a result, it must have an already instantiated type (parametric modules are not types).
 That's why we don't allow instantiating $X$ again.
 
-\antonin{
+\deprecated{
 
     Modules are not actually nested in Elixir, so this probaly does not make sense.
+    Anyway, $X.Y$ (where $X$ is a function parameter with module type)
+    is currently not accepted in Elixir! So accepting the rule below would probably require
+    changing how modules are resolved... It seems that modules can only be accessed via their
+    absolute and static (known at compile time) path.
+
 
     \[
         \begin{prooftree}
@@ -401,24 +417,19 @@ $\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$:
 
 Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
 
-We denote $\Omega$ the type of a declaration (i.e. that part on the right of the semicolon).
+We denote $\Omega$ the type of a declaration (i.e. the part on the right of the semicolon).
 All declarations can be written as $D = N : \Omega$ (but not all $N : \Omega$ are valid declarations).
 
 
 We define the syntactic subtyping judgement: $\Sigma; \Gammatop; \Gammabot \vdash \Omega \preceq \Omega'$.
 We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\Omega' \preceq \Omega$ hold.
 
-Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is fully populated here.
+\antonin{
+    We currenly assume hat $\Gammatop$ is fully populated and all
+    the types are verified to be wellformed when subtyping happens.
 
-\[
-    \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Omega }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Omega \simeq \Omega }
-    \end{prooftree}
-\]
-
-\antonin{Todo: define wellformedness of $\Omega$} \\
-
+    We will refine this assumption later.
+}
 \[
     \begin{prooftree}
         \hypo{ \Pi; \Sigma; \Gammatop \vdash \Gammabot }
@@ -427,7 +438,10 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
     \end{prooftree}
 \] \\
 
-\antonin{
+\deprecated{
+
+    Those rules seems to be unneeded:
+
     \[
         \begin{prooftree}
             \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t }
@@ -453,7 +467,15 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
 
 }
 
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]} \preceq \{ \overline{D'} \} \cap \bigcap \overline{\BX'[\overline{\tx' = t'}]}}
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} } \preceq \{ \overline{D'} \}_{\overline{\BX'[\overline{\tx' = t'}]} } }
+    \end{prooftree}
+\] \\
+
 \antonin{
+    The rule above replaces:
     \[
         \begin{prooftree}
             \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash   \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} } }
@@ -461,16 +483,6 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
                 \simeq \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]}  }
         \end{prooftree}
     \] \\
-
-    OR
-
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]} \preceq \{ \overline{D'} \} \cap \bigcap \overline{\BX'[\overline{\tx' = t'}]}}
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} } \preceq \{ \overline{D'} \}_{\overline{\BX'[\overline{\tx' = t'}]} } }
-        \end{prooftree}
-    \] \\
-
 }
 
 \[
@@ -492,52 +504,60 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
 
 }
 
+\paragraph{Base case}
+
 \[
     \begin{prooftree}
         \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ \} }
     \end{prooftree}
-\] \\
+\]
 
-\antonin{
-    Don't think the rule above is enough.
+\paragraph{Skip left declarations}
 
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star  \vdash \{ \overline{D} \} \preceq \{\overline{D'[\tx'/\tx]}\} }
-            \hypo{ \tx' \text{ fresh } }
-            \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \overline{D'} \} }
-        \end{prooftree}
-    \]
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star  \vdash \{ \overline{D} \} \preceq \{\overline{D'[\tx'/\tx]}\} }
+        \hypo{ \tx' \text{ fresh } }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \overline{D'} \} }
+    \end{prooftree}
+\]
 
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D}[t/\tx] \} \preceq \{\overline{D'}\} }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t], \overline{D} \} \preceq \{ \overline{D'} \} }
-        \end{prooftree}
-    \]
+\antonin{Or $\tx \# \overline{D'}$ which means "$\tx$ does not appear in $\overline{D'}$"
+    Or maybe just $\overline{D'}$ is enough}
 
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ x : \bigcap \overline{T}, \overline{D} \} \preceq \{ \overline{D'} \} }
-        \end{prooftree}
-    \] \\
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D}[t/\tx] \} \preceq \{\overline{D'}\} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t], \overline{D} \} \preceq \{ \overline{D'} \} }
+    \end{prooftree}
+\]
 
-    Subtyping ignores submodules because they are not actually "sub" modules:
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ x : \bigcap \overline{T}, \overline{D} \} \preceq \{ \overline{D'} \} }
+    \end{prooftree}
+\]
 
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \Omega, \overline{D} \} \preceq \{ \overline{D'} \} }
-        \end{prooftree}
-    \]
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ X : \Omega, \overline{D'} \} }
-        \end{prooftree}
-    \]
-}
+In practice we will only use "skip" if the declaration does not appear in $\dom(\overline{D'})$, otherwise
+we would get stuck later.
+
+\paragraph{Ignore submodules}
+
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \Omega, \overline{D} \} \preceq \{ \overline{D'} \} }
+    \end{prooftree}
+\]
+\[
+    \begin{prooftree}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ X : \Omega, \overline{D'} \} }
+    \end{prooftree}
+\]
+
+\paragraph{Induction}
 
 \[
     \begin{prooftree}
@@ -560,6 +580,9 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
     \end{prooftree}
 \] \\
 
+\antonin{We don't enforce $t \preceq t'$ because $\tx$ could be used
+    in a contravariant way}
+
 \[
     \begin{prooftree}
         \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \bigcap \overline{T} \preceq \bigcap \overline{T'} }
@@ -568,7 +591,7 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
     \end{prooftree}
 \] \\
 
-\antonin{
+\deprecated{
 
     Not useful because we ignore submodules, and module used as parameters are always instantiated.
 
@@ -579,17 +602,17 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
         \end{prooftree}
     \] \\
 
-}
+    \antonin{If we don't allow $M.\tx$ where $\tx$ is a type parameter we can consider renaming:
+        \[
+            \begin{prooftree}
+                \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx''][\overline{D[\overline{\tx''/\tx}]}][\BX][\tx'][t[\overline{\tx''/\tx}]] }
+            \end{prooftree}
+        \]
+        where $\overline{\tx}$ and $\overline{\tx''}$ have the same length.
+    }
 
-\antonin{If we don't allow $M.\tx$ where $\tx$ is a type parameter we can consider renaming:
-    \[
-        \begin{prooftree}
-            \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx''][\overline{D[\overline{\tx''/\tx}]}][\BX][\tx'][t[\overline{\tx''/\tx}]] }
-        \end{prooftree}
-    \]
-    where $\overline{\tx}$ and $\overline{\tx''}$ have the same length.
-}
 
+}
 
 \[
     \begin{prooftree}
@@ -648,14 +671,14 @@ $$\Gammatop(\rho)[\overline{\tx := t}]
     \end{prooftree}
 \] \\
 
-\antonin{
+\deprecated{
 
-\[
-    \begin{prooftree}
-        \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \langle X \rangle \preceq \{ \overline{D} \}}
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle \preceq (\overline{D})(\rho)[\overline{\tx := t}]}
-    \end{prooftree}
-\]
+    \[
+        \begin{prooftree}
+            \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \langle X \rangle \preceq \{ \overline{D} \}}
+            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle \preceq (\overline{D})(\rho)[\overline{\tx := t}]}
+        \end{prooftree}
+    \]
 }
 
 \section{Expressions}

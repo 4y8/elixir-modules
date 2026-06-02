@@ -417,7 +417,7 @@ $\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$:
 
 Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
 
-We denote $\Omega$ the type of a declaration (i.e. the part on the right of the semicolon).
+We denote $\Omega$ the type of a declaration (i.e, the part on the right of the semicolon).
 All declarations can be written as $D = N : \Omega$ (but not all $N : \Omega$ are valid declarations).
 
 
@@ -621,6 +621,11 @@ we would get stuck later.
         \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' \preceq (\overline{N : t }) \rightarrow t' }
     \end{prooftree}
 \] \\
+
+\antonin{
+    e.g, $ (\BX, int) \rightarrow bool \preceq (N1: \BX, N2: int) \rightarrow bool \preceq (N1 : \BX, N2 : N1.\tx) \rightarrow N1.\tx'$
+     where $N1.\tx : [= int], N2.\tx' : [= bool]$
+}
 
 \[
     \begin{prooftree}

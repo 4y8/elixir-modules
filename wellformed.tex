@@ -64,7 +64,7 @@ We propose the following addition to the module language syntax:
                         & |   & $P$                                                                                         \\[3mm]
             $\pi$       & ::= & $\epsilon$                                                                                  \\
                         & |   & $\rho$                                                                                      \\[3mm]
-            $M$         & ::= & $\rho[\overline{\tx = t}]$                                                                  \\
+            $M$         & ::= & $X$                                                                                         \\
                         & ::= & $\Elixir.\rho[\overline{\tx = t}]$                                                          \\[3mm]
             $\Next$     & ::= & $N$                                                                                         \\
                         & |   & $\tx$                                                                                       \\[3mm]
@@ -345,18 +345,24 @@ In the rule above, $X$ is a local variable (in practice, a function parameter).
 As a result, it must have an already instantiated type (parametric modules are not types).
 That's why we don't allow instantiating $X$ again.
 
-\[
-    \begin{prooftree}
-        \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} }
-        \hypo { (\overline{D})(\rho) = \Moddecl[\tx][\overline{D'}] }
-        \hypo { \overline{\Pi; \Sigma; \Gammatop; \Gammabot \vdash t} }
-        \infer3{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle }
-    \end{prooftree}
-\]
+\antonin{
 
-Note that $X$ is a variable name, so it must be looked up in the local environment.
-The hypothesis $ \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} $ is equivalent to
-$ \Gammabot(X) = X : t$ and $ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \{\overline{D}\}$.
+    Modules are not actually nested in Elixir, so this probaly does not make sense.
+
+    \[
+        \begin{prooftree}
+            \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} }
+            \hypo { (\overline{D})(\rho) = \Moddecl[\tx][\overline{D'}] }
+            \hypo { \overline{\Pi; \Sigma; \Gammatop; \Gammabot \vdash t} }
+            \infer3{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle }
+        \end{prooftree}
+    \]
+
+    Note that $X$ is a variable name, so it must be looked up in the local environment.
+    The hypothesis $ \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} $ is equivalent to
+    $ \Gammabot(X) = X : t$ and $ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \{\overline{D}\}$.
+}
+
 
 \subsection{Types}
 
@@ -515,12 +521,20 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
             \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
             \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ x : \bigcap \overline{T}, \overline{D} \} \preceq \{ \overline{D'} \} }
         \end{prooftree}
-    \]
+    \] \\
+
+    Subtyping ignores submodules because they are not actually "sub" modules:
 
     \[
         \begin{prooftree}
             \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
             \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \Omega, \overline{D} \} \preceq \{ \overline{D'} \} }
+        \end{prooftree}
+    \]
+    \[
+        \begin{prooftree}
+            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ X : \Omega, \overline{D'} \} }
         \end{prooftree}
     \]
 }
@@ -554,20 +568,18 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
     \end{prooftree}
 \] \\
 
-\[
-    \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Omega \preceq \Omega' }
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\} \preceq \{\overline{D'}\} }
-        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \Omega, \overline{D} \} \preceq \{  X : \Omega', \overline{D'} \} }
-    \end{prooftree}
-\] \\
+\antonin{
 
-\[
-    \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \overline{\tx : \star} \vdash \{\overline{D}\}_{\overline{\BX[\overline{\tx'=t}]}} \preceq \{\overline{D'}\}_{\overline{\BX'[\overline{\tx''=t'}]}} }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx][\overline{D'}][\BX'][\tx''][t'] }
-    \end{prooftree}
-\] \\
+    Not useful because we ignore submodules, and module used as parameters are always instantiated.
+
+    \[
+        \begin{prooftree}
+            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \overline{\tx : \star} \vdash \{\overline{D}\}_{\overline{\BX[\overline{\tx'=t}]}} \preceq \{\overline{D'}\}_{\overline{\BX'[\overline{\tx''=t'}]}} }
+            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx][\overline{D'}][\BX'][\tx''][t'] }
+        \end{prooftree}
+    \] \\
+
+}
 
 \antonin{If we don't allow $M.\tx$ where $\tx$ is a type parameter we can consider renaming:
     \[
@@ -581,8 +593,8 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
 
 \[
     \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' }
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' }
+        \hypo{( \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' }
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' )}
         \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' \preceq (\overline{N : t }) \rightarrow t' }
     \end{prooftree}
 \] \\
@@ -636,12 +648,15 @@ $$\Gammatop(\rho)[\overline{\tx := t}]
     \end{prooftree}
 \] \\
 
+\antonin{
+
 \[
     \begin{prooftree}
         \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \langle X \rangle \preceq \{ \overline{D} \}}
         \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle \preceq (\overline{D})(\rho)[\overline{\tx := t}]}
     \end{prooftree}
 \]
+}
 
 \section{Expressions}
 

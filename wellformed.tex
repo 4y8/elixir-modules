@@ -488,6 +488,45 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
 
 \[
     \begin{prooftree}
+        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ \} }
+    \end{prooftree}
+\] \\
+
+\antonin{
+    Don't think the rule above is enough.
+
+    \[
+        \begin{prooftree}
+            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star  \vdash \{ \overline{D} \} \preceq \{\overline{D'[\tx'/\tx]}\} }
+            \hypo{ \tx' \text{ fresh } }
+            \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \overline{D'} \} }
+        \end{prooftree}
+    \]
+
+    \[
+        \begin{prooftree}
+            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D}[t/\tx] \} \preceq \{\overline{D'}\} }
+            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t], \overline{D} \} \preceq \{ \overline{D'} \} }
+        \end{prooftree}
+    \]
+
+    \[
+        \begin{prooftree}
+            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ x : \bigcap \overline{T}, \overline{D} \} \preceq \{ \overline{D'} \} }
+        \end{prooftree}
+    \]
+
+    \[
+        \begin{prooftree}
+            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \Omega, \overline{D} \} \preceq \{ \overline{D'} \} }
+        \end{prooftree}
+    \]
+}
+
+\[
+    \begin{prooftree}
         \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star \vdash \{\overline{D}\} \preceq \{\overline{D'}\} }
         \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \tx : \star, \overline{D'} \} }
     \end{prooftree}
@@ -531,12 +570,12 @@ Important : we assume subtyping happens after wellformedness, so $\Gammatop$ is 
 \] \\
 
 \antonin{If we don't allow $M.\tx$ where $\tx$ is a type parameter we can consider renaming:
-\[
-    \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx''][\overline{D[\overline{\tx''/\tx}]}][\BX][\tx'][t[\overline{\tx''/\tx}]] }
-    \end{prooftree}
-\] 
-where $\overline{\tx}$ and $\overline{\tx''}$ have the same length.
+    \[
+        \begin{prooftree}
+            \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx''][\overline{D[\overline{\tx''/\tx}]}][\BX][\tx'][t[\overline{\tx''/\tx}]] }
+        \end{prooftree}
+    \]
+    where $\overline{\tx}$ and $\overline{\tx''}$ have the same length.
 }
 
 
@@ -557,7 +596,7 @@ where $\overline{\tx}$ and $\overline{\tx''}$ have the same length.
 \] \\
 
 \[
-    \begin{prooftree}       
+    \begin{prooftree}
         \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N' : T[\overline{N'/N}]}) \rightarrow T_r'[\overline{N'/N}] }
     \end{prooftree}
 \] \\

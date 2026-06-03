@@ -28,6 +28,7 @@
 \newcommand{\private}{\texttt{private\;}}
 \newcommand{\type}{\texttt{type\;}}
 \newcommand{\opaque}{\texttt{opaque\;}}
+\newcommand{\pack}{\texttt{pack}}
 
 \NewDocumentCommand{\Moddecl}{O{\tx} O{\overline D} O{\BX} O{\tx'} O{t} }{
    \Lambda (\overline{#1 : \star}) . \left\{ #2 \right\}_{\overline{#3 [\overline{#4 = #5}]}}
@@ -356,30 +357,6 @@ In the rule above, $X$ is a local variable (in practice, a function parameter).
 As a result, it must have an already instantiated type (parametric modules are not types).
 That's why we don't allow instantiating $X$ again.
 
-\deprecated{
-
-    Modules are not actually nested in Elixir, so this probaly does not make sense.
-    Anyway, $X.Y$ (where $X$ is a function parameter with module type)
-    is currently not accepted in Elixir! So accepting the rule below would probably require
-    changing how modules are resolved... It seems that modules can only be accessed via their
-    absolute and static (known at compile time) path.
-
-
-    \[
-        \begin{prooftree}
-            \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} }
-            \hypo { (\overline{D})(\rho) = \Moddecl[\tx][\overline{D'}] }
-            \hypo { \overline{\Pi; \Sigma; \Gammatop; \Gammabot \vdash t} }
-            \infer3{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle }
-        \end{prooftree}
-    \]
-
-    Note that $X$ is a variable name, so it must be looked up in the local environment.
-    The hypothesis $ \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \{ \overline{D} \} $ is equivalent to
-    $ \Gammabot(X) = X : t$ and $ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \preceq \{\overline{D}\}$.
-}
-
-
 \subsection{Types}
 
 \[
@@ -413,6 +390,13 @@ $\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$:
     \item $\Sigma(\BX)[\overline{\tx := t}] = \{ \overline{D[\overline{\tx := t}]} \}$
 \end{itemize}
 
+$$ D[\overline{\tx := t}] = \left\{\begin{array}{ll}
+        \tx' : [= t'[\overline{t/\tx}]]            & \text{if } D = \tx' : [= t']            \\
+        x : \bigcap \overline{T[\overline{t/\tx}]} & \text{if } D = x : \bigcap \overline{T} \\
+        D                                          & \text{otherwise}
+    \end{array}\right.
+$$
+
 \section{Subtyping}
 
 Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
@@ -438,35 +422,6 @@ We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\
     \end{prooftree}
 \] \\
 
-\deprecated{
-
-    Those rules seems to be unneeded:
-
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash [= t] \preceq \star }
-        \end{prooftree}
-    \] \\
-
-
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t  \preceq t'}
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash [= t] \preceq [= t'] }
-        \end{prooftree}
-    \] \\
-
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop \vdash \Gammabot}
-            \hypo{ \Gammabot(\tx) = \tx : [= t] }
-            \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \tx \simeq t }
-        \end{prooftree}
-    \] \\
-
-}
-
 \[
     \begin{prooftree}
         \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]} \preceq \{ \overline{D'} \} \cap \bigcap \overline{\BX'[\overline{\tx' = t'}]}}
@@ -474,16 +429,11 @@ We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\
     \end{prooftree}
 \] \\
 
-\antonin{
-    The rule above replaces:
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash   \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} } }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} }
-                \simeq \{ \overline{D} \} \cap \bigcap \overline{\BX[\overline{\tx = t}]}  }
-        \end{prooftree}
-    \] \\
-}
+\[
+    \begin{prooftree}
+        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx = t}]} } \preceq \bigcap \overline{\BX[\overline{\tx = t}]} }
+    \end{prooftree}
+\] \\
 
 \[
     \begin{prooftree}
@@ -492,17 +442,13 @@ We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\
     \end{prooftree}
 \] \\
 
-\antonin{
-    How to connect with $t \wedge t'$?
+The other direction might (or might not) be useful later:
 
-
-    \[
-        \begin{prooftree}
-            \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \cap t' \preceq t \wedge t' }
-        \end{prooftree}
-    \] \\
-
-}
+\[
+    \begin{prooftree}
+        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash t \cap t' \preceq t \wedge t' }
+    \end{prooftree}
+\] \\
 
 \paragraph{Base case}
 
@@ -516,14 +462,11 @@ We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\
 
 \[
     \begin{prooftree}
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star  \vdash \{ \overline{D} \} \preceq \{\overline{D'[\tx'/\tx]}\} }
-        \hypo{ \tx' \text{ fresh } }
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \tx : \star  \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
+        \hypo{ \tx \notin \Gammabot \cup  \dom(\overline{D'}) }
         \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \overline{D'} \} }
     \end{prooftree}
 \]
-
-\antonin{Or $\tx \# \overline{D'}$ which means "$\tx$ does not appear in $\overline{D'}$"
-    Or maybe just $\overline{D'}$ is enough}
 
 \[
     \begin{prooftree}
@@ -591,40 +534,17 @@ we would get stuck later.
     \end{prooftree}
 \] \\
 
-\deprecated{
-
-    Not useful because we ignore submodules, and module used as parameters are always instantiated.
-
-    \[
-        \begin{prooftree}
-            \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot, \overline{\tx : \star} \vdash \{\overline{D}\}_{\overline{\BX[\overline{\tx'=t}]}} \preceq \{\overline{D'}\}_{\overline{\BX'[\overline{\tx''=t'}]}} }
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx][\overline{D'}][\BX'][\tx''][t'] }
-        \end{prooftree}
-    \] \\
-
-    \antonin{If we don't allow $M.\tx$ where $\tx$ is a type parameter we can consider renaming:
-        \[
-            \begin{prooftree}
-                \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \Moddecl \preceq \Moddecl[\tx''][\overline{D[\overline{\tx''/\tx}]}][\BX][\tx'][t[\overline{\tx''/\tx}]] }
-            \end{prooftree}
-        \]
-        where $\overline{\tx}$ and $\overline{\tx''}$ have the same length.
-    }
-
-
-}
-
 \[
     \begin{prooftree}
-        \hypo{( \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' }
-        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' )}
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' }
+        \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t'}
         \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t' \preceq (\overline{N : t }) \rightarrow t' }
     \end{prooftree}
 \] \\
 
 \antonin{
-    e.g, $ (\BX, int) \rightarrow bool \preceq (N1: \BX, N2: int) \rightarrow bool \preceq (N1 : \BX, N2 : N1.\tx) \rightarrow N1.\tx'$
-     where $N1.\tx : [= int], N2.\tx' : [= bool]$
+e.g, $ (\BX, int) \rightarrow bool \preceq (N1: \BX, N2: int) \rightarrow bool \preceq (N1 : \BX, N2 : N1.\tx) \rightarrow N1.\tx'$
+where $N1.\tx : [= int], N2.\tx' : [= bool]$
 }
 
 \[
@@ -634,16 +554,6 @@ we would get stuck later.
         \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N : T'}) \rightarrow T_r' }
     \end{prooftree}
 \] \\
-
-\[
-    \begin{prooftree}
-        \infer0{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N' : T'}) \rightarrow T_r[\overline{N'/N}] }
-    \end{prooftree}
-\] 
-
-where $\forall i, \; \overline{T'}^i = \overline{T}^i \left[\overline{N'/N}^{0..i}\right]$. \\
-
-\antonin{I separated subtyping and renaming for legibility but we could merge them into a single rule}
 
 \[
     \begin{prooftree}
@@ -668,7 +578,9 @@ where $\forall i, \; \overline{T'}^i = \overline{T}^i \left[\overline{N'/N}^{0..
 where, assuming $\Gammatop(\rho) = X : \Moddecl$,
 
 $$\Gammatop(\rho)[\overline{\tx := t}]
-    = \left(\{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t'}]}}\right)[\overline{\tx := t}]$$
+    = \left(\{ \overline{D[\overline{\tx := t}]} \}_{\overline{\BX[\overline{\tx' = t'[\overline{t/\tx}]}]}}\right)$$
+
+
 
 \[
     \begin{prooftree}
@@ -678,37 +590,23 @@ $$\Gammatop(\rho)[\overline{\tx := t}]
     \end{prooftree}
 \] \\
 
-\deprecated{
-
-    \[
-        \begin{prooftree}
-            \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash  \langle X \rangle \preceq \{ \overline{D} \}}
-            \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \langle X.\rho[\overline{\tx = t}] \rangle \preceq (\overline{D})(\rho)[\overline{\tx := t}]}
-        \end{prooftree}
-    \]
-}
-
 \section{Expressions}
 
-We define the expression typing judgement: $P; \Sigma; \Gammatop; \Gammabot \vdash E : T$.
-
-Because the syntactic intersection is not considered as a type, we also introduce the pseudo-judgement:
-$P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivial pseudo-subtyping rule:
+We define the expression typing judgement: $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$.
 
 \[
     \begin{prooftree}
         \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T} }
-        \hypo{ T' \in \overline{T} }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E: T'}
+        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash \bigcap \overline{T}\preceq \bigcap \overline{T'} }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E: \bigcap \overline{T'}}
     \end{prooftree}
 \] \\
 
-
 \[
     \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash E : T }
-        \hypo{ P; \Sigma; \Gammatop; \Gammabot \vdash T \preceq T' }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E: T' }
+        \hypo{ P; \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo{ \Gammabot(x) = x : \bigcap \overline{T} }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash  x : \bigcap \overline{T} }
     \end{prooftree}
 \] \\
 
@@ -746,19 +644,20 @@ $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivia
     \end{prooftree}
 \] \\
 
-\antonin{The rule below needs revising}
 \[
     \begin{prooftree}
-        \hypo { \forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T[\overline{N/N'}]}^{0..i} \vdash \overline{N : T[\overline{N/N'}]}^{i} }
+        \hypo { \forall i. \; P; \Sigma; \Gammatop; \Gammabot, \overline{N : T_\downarrow}^{0..i} \vdash \overline{N : T_\downarrow }^{i} }
         \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash E : (\overline{N' : T}) \rightarrow T'}
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T'[\overline{N/N'}] }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T'[\overline{N'/N}] }
     \end{prooftree}
 \] \\
 
+where $\overline{T_\downarrow}^i = \overline{T}^i[\overline{N'/N}^{0..i}]$ and the slicing operator
+$0..i$ takes elements up to index $i$ (excluded).
 
 \[
     \begin{prooftree}
-        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash E : \%\{ k : t \}  }
+        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash E : \%\{ k : t, .. \}  }
         \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash E.k : t }
     \end{prooftree}
 \] \\
@@ -771,27 +670,37 @@ $P; \Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$ and the trivia
     \end{prooftree}
 \]
 
-\antonin{if $E'$ and $E''$ want to use the type of $E$ we can consider eg:
+\antonin{Better version:
 
     \[
         \begin{prooftree}
-            \hypo { \Gammabot(N) = N : T' }
-            \hypo { P; \Sigma; \Gammatop; \Gammabot, N : T' \wedge t \vdash E : T }
-            \hypo { P; \Sigma; \Gammatop; \Gammabot, N : T' \wedge \lnot t \vdash E' : T  }
-            \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \left((N \in t) ? E : E'\right) : T }
+            \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash E_1 : T}
+            \hypo { P; \Sigma; \Gammatop; \Gammabot, N : T \wedge t \vdash E_2 : T' }
+            \hypo { P; \Sigma; \Gammatop; \Gammabot, N : T \wedge \lnot t \vdash E_3 : T'  }
+            \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \left((N = E_1 \in t) ? E_2 : E_3\right) : T' }
         \end{prooftree}
     \]}
 
 \[
     \begin{prooftree}
-        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash M : \left\{ x : \bigcap \overline{T} \right\} }
-        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash M.x : \bigcap \overline{T} }
+        \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash M : \left\{ \overline{D}, x : \bigcap \overline{T} \right\} }
+        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash M.x : \bigcap \overline{\pack_{M; \overline{D}}(T)} }
     \end{prooftree}
 \] \\
 
-\antonin{TODO: resolve types in $M.x$}
+where:
 
-\[<
+$\pack_{M; \emptyset}(T) = T$
+
+$\pack_{M; \left(\tx : \star, \overline{D}\right)}(T) = \pack_{M; \overline{D}}(T[M.\tx/\tx])$
+
+$\pack_{M; \left(\tx : [= t], \overline{D}\right)}(T) = \pack_{M; \overline{D}}(T[t/\tx])$
+
+$\pack_{M; \left(x : \bigcap \overline{T'}, \overline{D}\right)}(T) = \pack_{M; \overline{D}}(T)$
+
+$\pack_{M; \left(X : \Omega, \overline{D'}\right)}(T) = \pack_{M; \overline{D'}}(T)$
+
+\[
     \begin{prooftree}
         \hypo { P; \Sigma; \Gammatop; \Gammabot \vdash \langle M \rangle }
         \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash M : \langle M \rangle }

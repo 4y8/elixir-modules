@@ -401,12 +401,12 @@ $$
 
 Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
 
-We denote $\Omega$ the type of a declaration (i.e, the part on the right of the semicolon).
-All declarations can be written as $D = N : \Omega$ (but not all $N : \Omega$ are valid declarations).
+We denote $\mathbb{T}$ the type of a declaration (i.e, the part on the right of the semicolon).
+All declarations can be written as $D = N : \mathbb{T}$ (but not all $N : \mathbb{T}$ are valid declarations).
 
 
-We define the syntactic subtyping judgement: $\Sigma; \Gammatop; \Gammabot \vdash \Omega \preceq \Omega'$.
-We will denote $\Omega \simeq \Omega'$ when both $\Omega \preceq \Omega'$ and $\Omega' \preceq \Omega$ hold.
+We define the syntactic subtyping judgement: $\Sigma; \Gammatop; \Gammabot \vdash \mathbb{T} \preceq \mathbb{T}'$.
+We will denote $\mathbb{T} \simeq \mathbb{T}'$ when both $\mathbb{T} \preceq \mathbb{T}'$ and $\mathbb{T}' \preceq \mathbb{T}$ hold.
 
 \antonin{
     We currenly assume hat $\Gammatop$ is fully populated and all
@@ -490,13 +490,13 @@ we would get stuck later.
 \[
     \begin{prooftree}
         \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \Omega, \overline{D} \} \preceq \{ \overline{D'} \} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ X : \mathbb{T}, \overline{D} \} \preceq \{ \overline{D'} \} }
     \end{prooftree}
 \]
 \[
     \begin{prooftree}
         \hypo{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ X : \Omega, \overline{D'} \} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D} \} \preceq \{ X : \mathbb{T}, \overline{D'} \} }
     \end{prooftree}
 \]
 
@@ -698,7 +698,7 @@ $\pack_{M; \left(\tx : [= t], \overline{D}\right)}(T) = \pack_{M; \overline{D}}(
 
 $\pack_{M; \left(x : \bigcap \overline{T'}, \overline{D}\right)}(T) = \pack_{M; \overline{D}}(T)$
 
-$\pack_{M; \left(X : \Omega, \overline{D'}\right)}(T) = \pack_{M; \overline{D'}}(T)$
+$\pack_{M; \left(X : \mathbb{T}, \overline{D'}\right)}(T) = \pack_{M; \overline{D'}}(T)$
 
 \[
     \begin{prooftree}

@@ -18,6 +18,7 @@
 \usepackage{calc}
 
 
+\newcommand{\Elixir}{\texttt{Elixir}}
 
 \author{Aghilas Y. Boussaa and Giuseppe Castagna}
 \sloppy
@@ -420,9 +421,10 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $x = \textsf{private }v$                  &\color{Gray} private definition\\
     & | & $\tx = \textsf{type }t$                     &\color{Gray} transparent type or behaviour argument\\
     & | & $\tx = \textsf{opaque }t$                   &\color{Gray} opaque type\\[3mm]
-    $M$ & ::= & $X\textcolor{Cerulean}{[\,\overline{\tx=t}\,]}$                 &\color{Gray} local module\\
- %   & | & $M.M$                                     &\color{Gray} imported module\\
-    & | & $X.M$                                     &\color{Gray} imported module (flat hierarchy): later we can study $M::=M.M$\\[3mm]
+       $P$         & ::= & $X$                                                               \\
+                        & |   & $P.X$                                                             \\[3mm]
+$M$         & ::= & $X$                                                               \\
+                        & ::= & $\Elixir.P[\overline{\tx = t}]$                                   \\[3mm]
    $N$ & ::= & $x$ \\
     & | & $X$ \\[3mm]
    $E$ &::= & $v$ \\
@@ -459,12 +461,11 @@ For our formalization we will use a slightly different syntax, which is more con
    & | & \textcolor{OrangeRed}{\text{$\mathcal{X}[\overline{\tx=t}]$}}  &\color{Gray} a behaviour (essentially a new constant of the basic type module())\\
   %  &&&\color{bordeaux} Important: this allows maps and tuples to contain modules!\\
     & | & \textcolor{OrangeRed}{\text{$\BH M$}} &\color{Gray} the singleton type of $M$ (modulo path equivalence)\\[3mm]
-    $D$ & ::= & $X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$                               &\color{Gray} exports a (possibly parametric) module $X$\\
-    & | & $ X : t$    &\color{Gray} exports a module$X$ whose type is either a singleton or a behaviour or \texttt{mod}\\
+    $D$ & ::= & $ X : t$    &\color{Gray} exports a module$X$ whose type is either a singleton or a behaviour or \texttt{mod}\\
     & | & $x : \bigcap \overline{T}$                  &\color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
     & | & $\tx : \star$                                 &\color{Gray} exports an opaque type $x$\\  
     & | & $\tx : [=t]$                                  &\color{Gray} exports a transparent type $x = t$  \\[3mm]
-       $\Gl$ & ::= & $\overline{X : \Lambda(\overline{\tx:\star}).\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}$ &\color{Gray} global type environment\\
+       $\Gl$ & ::= & $\overline{P : \Lambda(\overline{\tx:\star}).\{\overline{D}\}_{\overline{\BX[\,\overline{\tx=t}\,]}}}$ &\color{Gray} global type environment\\
  $\Gamma$ & ::= & $\overline{D}$ &\color{Gray} local type environment\\
     $\Sigma$ & ::= & $\overline{\mathcal B}$ &\color{Gray} behaviour environment\\[4mm]
  \end{tabular}

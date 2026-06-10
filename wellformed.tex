@@ -10,6 +10,7 @@
 
 
 \newcommand{\tx}{\text{\rm x}}
+\newcommand{\ty}{\text{\rm y}}
 \newcommand{\Beh}{\ensuremath{\mathcal{B}}}
 \newcommand{\BX}{\ensuremath{\mathcal{X}}}
 \newcommand{\Next}{\ensuremath{\mathcal{N}}}
@@ -30,7 +31,7 @@
 \newcommand{\opaque}{\texttt{opaque\;}}
 \newcommand{\wrap}{\texttt{wrap}}
 
-\NewDocumentCommand{\Moddecl}{O{\tx} O{\overline D} O{\BX} O{\tx'} O{t} }{
+\NewDocumentCommand{\Moddecl}{O{\tx} O{\overline {\mathcal{D}}} O{\BX} O{\tx'} O{t} }{
    \Lambda (\overline{#1 : \star}) . \left\{ #2 \right\}_{\overline{#3 [\overline{#4 = #5}]}}
 }
 
@@ -99,26 +100,40 @@ Recall the definition of behavior, module and local environments:
 \begin{center}
     \begin{tabular}{rl}
         $\Sigma ::=$    & $\overline{\mathcal B}$   \\[3mm]
-        $\Gammatop ::=$ & $\overline{P : \Moddecl}$ \\[3mm]
+        $\Gammatop ::=$ & $\overline{X : \Moddecl}$ \\[3mm]
         $\Gammabot ::=$ & $\overline{D}$
     \end{tabular}
 \end{center}
 
-where $D$ is a declaration:
+where $D$ is a local declaration:
 
 \begin{center}
     \begin{tabular}{rcll}
         $D$ & ::= & $ X : t$                   & \color{Gray} function parameter with module or behavior type  \\
             & |   & $x : \bigcap \overline{T}$ & \color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
             & |   & $\tx : \star$              & \color{Gray} exports an opaque type $x$                       \\
-            & |   & $\tx : [=t]$               & \color{Gray} exports a transparent type $x = t$               \\[3mm]
+            & |   & $\tx : [=t]$               & \color{Gray} exports a transparent type $x = t$               \\
+    \end{tabular}
+\end{center}
+
+and $\mathcal{D}$ is either a local declaration or a submodule declaration:
+
+\begin{center}
+    \begin{tabular}{rcl}
+        $\mathcal{D}$ & ::= & $D$            \\
+                      & |   & $X : \Moddecl$
     \end{tabular}
 \end{center}
 
 Empty lists and environments are denoted $\emptyenv$. We consider behavior, module and local
-environments as partial functions over $\BX$, $P$ and $\Next$ respectively,
+environments as partial functions over $\BX$, $\Next$ and $\Next$ respectively,
 where $\Next ::= N$ | $\tx$ ranges over declaration names.
-If the environments contain multiple elements with the same name, the right-most element is returned.
+
+We also consider global environments as partial functions over $P$ via the extended definition:
+
+$$
+    (\overline{\mathcal{D}})(X.P) = (\overline{\mathcal{D}})(X)(P)
+$$
 
 \paragraph{Judgments}
 
@@ -133,18 +148,22 @@ We define the following judgements:
             Wellformedness of types:                 & $\Sigma; \Gammatop; \Gammabot$      & $\vdash T$                                                  \\[2mm]
             Subtyping:                               & $\Sigma; \Gammatop; \Gammabot$      & $\vdash \bigcap \overline{T} \preceq \bigcap \overline{T'}$ \\[2mm]
             Expression typing:                       & $\Sigma; \Gammatop; \Gammabot$      & $\vdash E : \bigcap \overline{T} $                          \\[2mm]
-            Binding typing:                          & $\Pi; \Sigma; \Gammatop; \Gammabot$ & $\vdash \overline{B} : \{ \overline{D} \} $                 \\[2mm]
+            Binding typing:                          & $\Pi; \Sigma; \Gammatop; \Gammabot$ & $\vdash \overline{B} : \overline{\mathcal{D}} $             \\[2mm]
         \end{tabular}
     \end{center}
 \end{figure}
-
 where $\Pi$ is a possibly empty path:  $\Pi$ ::= $\epsilon$ | $P$.
 
-Let $\overline{\mathcal B}, \overline{B}$ be a program. The program passes type-checking if both
-$$\vdash \overline{\mathcal B} \quad \text{ and } \quad \epsilon; \overline{\mathcal{B}}; \emptyenv; \emptyenv \vdash \overline{B} : \{\}$$ hold.
+Let $\overline{\mathcal B}, \overline{B}$ be a program. The program passes type-checking if there exists a wellformed module environment $\Gammatop$ such that both
+$$\vdash \overline{\mathcal B} \quad \text{ and } \quad \epsilon; \overline{\mathcal{B}}; \emptyenv; \emptyenv \vdash \overline{B} : \Gammatop$$ hold.
 
-Note that we need $\overline{B} : \{\}$ because top-level bindings can only be module declarations and, as we mentioned above,
-modules do not paricipate in the type signature.
+Note that we write $\overline{B} : \Gammatop$ because top-level bindings can only be module declarations.
+More details about why we need to return it in the judgment are available in the section about Bindings.
+
+\paragraph{Alpha-renaming and capture-avoiding substitution}
+
+For now we assume names do not repeat. Alpha-renaming and capture-avoiding substitution
+will be defined formally later.
 
 \section{Wellformedness}
 
@@ -159,34 +178,24 @@ In this section we give inference rules for the wellformedness judgements.
     \qquad
     \begin{prooftree}
         \hypo{ \vdash \Sigma }
-        \hypo{ \BX \notin \dom(\Sigma) \quad \overline{\tx} }
+        \hypo{ \BX \notin \dom(\Sigma) }
         \hypo{ \Sigma; \emptyenv; \overline{\tx : \star} \vdash \{ \overline{D} \}}
         \infer3{ \vdash \Sigma, \BX : \Lambda (\overline{\tx : \star}).\{\overline{D}\} }
     \end{prooftree}
 \]
 
 $ \Sigma; \emptyenv; \overline{\tx : \star} \vdash \{ \overline{D} \}$ refers to the wellformedness of types.
-Additionally, the $\overline{\tx}$ must be pairwise distinct.
 
-\subsection{Global environments}
+\subsection{Module environments}
+
+\antonin{TODO}
+
 \[
     \begin{prooftree}
         \hypo { \vdash \Sigma }
         \infer1 { \Sigma \vdash \emptyenv }
     \end{prooftree}
 \]
-
-\[
-    \begin{prooftree}
-        \hypo{\Sigma \vdash \Gammatop}
-        \hypo{ \Sigma; \Gammatop; \overline{\tx : \star} \vdash \{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t}]}}}
-        \infer2{ \Sigma \vdash \Gammatop, P : \Moddecl }
-    \end{prooftree}
-\]
-
-Additionally, the $\overline{\tx}$ must be pairwise distinct.
-
-Note that we currently choose to allow module shadowing, but this could change in the future.
 
 \subsection{Local type environments}
 
@@ -200,25 +209,28 @@ Note that we currently choose to allow module shadowing, but this could change i
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot \vdash t \preceq \mod }
-        \infer1{ \Sigma; \Gammatop \vdash \Gammabot, X : t }
+        \hypo{ X \notin \dom(\Gammabot) }
+        \infer2{ \Sigma; \Gammatop \vdash \Gammabot, X : t }
     \end{prooftree}
 \]
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop \vdash \Gammabot }
-        \infer1{ \Sigma; \Gammatop \vdash \Gammabot, \tx : \star }
+        \hypo{ \tx \notin \dom(\Gammabot) }
+        \infer2{ \Sigma; \Gammatop \vdash \Gammabot, \tx : \star }
     \end{prooftree}
 \]
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot \vdash t \preceq \lnot \mod }
-        \infer1{ \Sigma; \Gammatop \vdash \Gammabot, \tx : [= t] }
+        \hypo{ \tx \notin \dom(\Gammabot) }
+        \infer2{ \Sigma; \Gammatop \vdash \Gammabot, \tx : [= t] }
     \end{prooftree}
 \]
 \[
     \begin{prooftree}
-        \hypo{ \overline{T} \neq \emptyset }
         \hypo{ \overline{\Pi; \Sigma; \Gammatop; \Gammabot \vdash T} }
+        \hypo{ x \notin \dom(\Gammabot)\quad \overline{T} \neq \emptyset }
         \infer2{ \Pi; \Sigma; \Gammatop \vdash \Gammabot, x : \bigcap \overline{T} }
     \end{prooftree}
 \] \\
@@ -234,7 +246,7 @@ that is why we did not mention this as an explicit condition in the rules above.
 Recall instantiated module paths: $M ::= X$ | $\Elixir.P[\overline{\tx = t}]$.
 This may come as a surprise because we mentioned in the beginning of the document
 that modules can only be accessed using their absolute path.
-However, here, $X$ is not a relative path to a module; this is the name of a function parameter.
+However, here, $X$ is not a relative path to a submodule; this is the name of a function parameter.
 As such, it cannot be instantiated again because parameters must already have a concrete, fully
 instantiated type (parametric types are not first-class).
 Likewise, submodules are not included in the parent module's signature, so $X.P$ (where $X$ is a
@@ -308,7 +320,7 @@ Thanks to subtyping, $\{ \tx : \star \}$ may not be exactly the type associated 
 \[
     \begin{prooftree}
         \hypo { \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo { \Gammatop(P) = X : \Moddecl[\tx] [\overline{D}][\BX][\tx'][t']}
+        \hypo { \Gammatop(P) = X : \Moddecl[\tx] [\overline{\mathcal{D}}][\BX][\tx'][t']}
         \hypo { \overline{\Sigma; \Gammatop; \Gammabot \vdash t} }
         \infer3{ \Sigma; \Gammatop; \Gammabot \vdash \langle \Elixir.P[\overline{\tx = t}] \rangle }
     \end{prooftree}
@@ -330,10 +342,10 @@ Thanks to subtyping, $\{ \tx : \star \}$ may not be exactly the type associated 
         \infer1{ \Sigma; \Gammatop; \Gammabot  \vdash (\overline{N : T}) \rightarrow T' }
     \end{prooftree}
 \]
-We also require that $\overline{N}$ are pairwise distinct.
+
 Note that $\Sigma; \Gammatop; \Gammabot, \overline{N : T} \vdash  T'$
 implies that $\Gammabot, \overline{N : T}$ is wellformed, which in turn implies
-that parameters $\overline{N : T}$ are wellformed.
+that parameters $\overline{N : T}$ are wellformed and the $\overline{N}$ are pairwise distinct.
 
 \subsection{List of declarations}
 
@@ -353,9 +365,8 @@ We define the function $\name(D)$ as $\name: \left\{\begin{array}{ll}
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot, D \vdash \{ \overline{D'} \} }
-        \hypo{ \name(D) \notin \dom(\Gammabot) }
         \hypo { D \neq X : t  }
-        \infer3{ \Sigma; \Gammatop; \Gammabot \vdash \{ D, \overline{D'} \} }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ D, \overline{D'} \} }
     \end{prooftree}
 \] \\
 
@@ -374,10 +385,13 @@ where, if we denote $\Sigma(\BX) = \BX : \Lambda (\overline{\tx : \star}) \{\ove
 $\Sigma(\BX') = \BX' : \Lambda (\overline{\tx' : \star}) \{\overline{D'}\}$:
 \begin{itemize}
     \item $\BX \# \BX'$ if and only if $\BX \neq \BX'$ and $\dom(\overline D) \cap \dom(\overline{D'}) = \emptyset$
-    \item $\Sigma(\BX)[\overline{\tx := t}] = \{ \overline{D[\overline{t/\tx}]} \}$ is capture-avoiding substitution up to alpha-renaming.
+    \item $\Sigma(\BX)[\overline{\tx := t}]$ is capture-avoiding substitution
 \end{itemize}
 
-The substitution is to be defined more formally. For now, we assume names never collide.
+The substitution is to be defined more formally. In particular, it will not be defined
+if one of the $t$ contains a type name that is also in $\dom(\overline{D})$.
+
+For now, we assume names never collide.
 Also, note that the substitution does not traverse the dot operator (that is, $M.\tx[t/\tx]$ is still $M.\tx$).
 
 \section{Subtyping}
@@ -448,18 +462,21 @@ The other direction might (or might not) be useful later:
 This rule is necessary to prove for instance:
 \begin{align*}
     (\BX, \texttt{integer()}) \rightarrow \texttt{boolean()} & \preceq (N1: \BX, N2: \texttt{integer()}) \rightarrow \texttt{boolean()} \\
-                                                             & \preceq (N1 : \BX, N2 : N1.\tx) \rightarrow N1.\tx'
+                                                             & \preceq (N1 : \BX, N2 : N1.\tx) \rightarrow N2.\tx'
 \end{align*}
 
 where $N1.\tx : [= \texttt{integer()}], N2.\tx' : [= \texttt{boolean()}]$ \\
 
 \[
     \begin{prooftree}
-        \hypo { \forall i. \; \Pi; \Sigma; \Gammatop; \Gammabot, \overline{N : T'}^{0..i} \vdash \overline{T'}^{i} \preceq  \overline{T}^{i} }
-        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash T_r \preceq T_r' }
+        \hypo { \forall i. \; \Sigma; \Gammatop; \Gammabot, \overline{N : T'}^{0..i} \vdash \overline{T'}^{i} \preceq  \overline{T}^{i} }
+        \hypo{ \Sigma; \Gammatop; \Gammabot, \overline{N : T'} \vdash T_r \preceq T_r' }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N : T'}) \rightarrow T_r' }
     \end{prooftree}
 \] \\
+
+\antonin{We will probably need a rule to rename parameter names here, because it's
+    not as trivial as it seems because of the risk of capture...}
 
 \[
     \begin{prooftree}
@@ -483,7 +500,8 @@ where $N1.\tx : [= \texttt{integer()}], N2.\tx' : [= \texttt{boolean()}]$ \\
     \end{prooftree}
 \] \\
 
-where $\Gammatop(P)[\overline{\tx := t}]$ is again capture-avoiding substitution (to be defined).
+where $\Gammatop(P)[\overline{\tx := t}]$ only keeps local declarations and filters out submodule
+declarations, then runs capture-avoiding substitution (to be defined).
 \[
     \begin{prooftree}
         \hypo { \Sigma; \Gammatop \vdash \Gammabot }
@@ -493,10 +511,6 @@ where $\Gammatop(P)[\overline{\tx := t}]$ is again capture-avoiding substitution
 \] \\
 
 \subsection{Subsumption}
-
-In the rules below, the conditions $\tx \notin \dom(\Gammabot)$ are there
-to avoid name collisions. When a local type does collide with a declaration exported by the types on either side of $\preceq$,
-we must use alpha-renaming (to be defined formally) before we can apply the rules.
 
 The conditions $\tx \notin \dom(\overline{D})$ and $x \notin \dom(\overline{D})$ are there to ensure that the
 enriched type $\{ \tx : ..., \overline{D} \}$ or $\{ x : ..., \overline{D} \}$ in the conclusion of the rule is still wellformed.
@@ -516,14 +530,14 @@ enriched type $\{ \tx : ..., \overline{D} \}$ or $\{ x : ..., \overline{D} \}$ i
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot, \tx : \star  \vdash \{ \overline{D} \} \preceq \{\overline{D'}\} }
-        \hypo{ \tx \notin \dom(\Gammabot) \cup \dom(\overline{D'}) }
+        \hypo{ \tx \notin \dom(\overline{D'}) }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \overline{D'} \} }
     \end{prooftree}
 \]
 
 \[
     \begin{prooftree}
-        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D}[t/\tx] \} \preceq \{\overline{D'}\} }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{ \overline{D}\}[\tx := t] \preceq \{\overline{D'}\} }
         \hypo{ \tx \notin \dom(\Gammabot) \cup \dom(\overline{D}) \cup \dom(\overline{D'}) }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t], \overline{D} \} \preceq \{ \overline{D'} \} }
     \end{prooftree}
@@ -542,14 +556,13 @@ enriched type $\{ \tx : ..., \overline{D} \}$ or $\{ x : ..., \overline{D} \}$ i
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot, \tx : \star \vdash \{\overline{D}\} \preceq \{\overline{D'}\} }
-        \hypo{ \tx \notin \dom(\Gammabot) \cup \dom(\overline{D}) \cup \dom(\overline{D'})}
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \tx : \star, \overline{D'} \} }
+        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : \star, \overline{D} \} \preceq \{ \tx : \star, \overline{D'} \} }
     \end{prooftree}
 \] \\
 
 \[
     \begin{prooftree}
-        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D[t/\tx]}\} \preceq \{\overline{D'[t/\tx]}\} }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\}[\tx := t] \preceq \{\overline{D'} \}[\tx := t] }
         \hypo{ \tx \notin \dom(\Gammabot) }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t], \overline{D} \} \preceq \{ \tx : \star, \overline{D'} \} }
     \end{prooftree}
@@ -557,7 +570,7 @@ enriched type $\{ \tx : ..., \overline{D} \}$ or $\{ x : ..., \overline{D} \}$ i
 
 \[
     \begin{prooftree}
-        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D[t/\tx]}\} \preceq \{\overline{D'[t'/\tx]}\} }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{\overline{D}\}[\tx := t] \preceq \{\overline{D'}\}[\tx := t] }
         \hypo{ \tx \notin \dom(\Gammabot) }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ \tx : [= t], \overline{D} \} \preceq \{ \tx : [= t'], \overline{D'} \} }
     \end{prooftree}
@@ -570,8 +583,7 @@ in a contravariant way.
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \bigcap \overline{T} \preceq \bigcap \overline{T'} }
         \hypo{ \Sigma; \Gammatop; \Gammabot, x : \bigcap \overline{T} \vdash \{\overline{D}\} \preceq \{\overline{D'}\} }
-        \hypo{ \tx \notin \dom(\overline{D}) \cup \dom(\overline{D'})}
-        \infer3{ \Sigma; \Gammatop; \Gammabot \vdash \{ x: \bigcap \overline{T}, \overline{D} \} \preceq \{ x: \bigcap \overline{T'}, \overline{D'} \} }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ x: \bigcap \overline{T}, \overline{D} \} \preceq \{ x: \bigcap \overline{T'}, \overline{D'} \} }
     \end{prooftree}
 \] \\
 
@@ -617,9 +629,7 @@ Recall the expression typing judgement: $\Sigma; \Gammatop; \Gammabot \vdash E :
         \hypo { \overline{ \Sigma; \Gamma, \overline{N : T} \vdash E: T'} }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E : \bigcap \overline{(\overline{N : T }) \rightarrow T'} }
     \end{prooftree}
-\]
-
-In the rule above we also require that the $\overline{N}$ are pairwise distinct. \\
+\] \\
 
 \[
     \begin{prooftree}
@@ -633,12 +643,14 @@ In the rule above we also require that the $\overline{N}$ are pairwise distinct.
     \begin{prooftree}
         \hypo { \Sigma; \Gammatop \vdash \Gammabot, \overline{N : T_\downarrow} }
         \hypo { \Sigma; \Gammatop; \Gammabot \vdash E : (\overline{N' : T}) \rightarrow T'}
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T'[\overline{N'/N}] }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T'[\overline{N/N'}] }
     \end{prooftree}
 \] \\
 
-where $\overline{T_\downarrow}^i = \overline{T}^i[\overline{N'/N}^{0..i}]$ and the slicing operator
+where $\overline{T_\downarrow}^i = \overline{T}^i[\overline{N/N'}^{0..i}]$ and the slicing operator
 $0..i$ takes elements up to index $i$ (excluded).
+
+\antonin{To be confirmed: do we need capture-avoiding substitution here? }
 
 \[
     \begin{prooftree}
@@ -675,7 +687,7 @@ where $\wrap$ qualifies with `$M.$` all the types declared in $\overline{D}$:
 \begin{align*}
     \wrap_{M; \emptyenv}(T)                                                   & = T                                     \\
     \wrap_{M; \left(\tx \;:\; \star,\; \overline{D}\right)}(T)                & = \wrap_{M; \overline{D}}(T[M.\tx/\tx]) \\
-    \wrap_{M; \left(\tx \;:\; [= t],\;  \overline{D}\right)}(T)               & = \wrap_{M; \overline{D}}(T[t/\tx])     \\
+    \wrap_{M; \left(\tx \;:\; [= t],\;  \overline{D}\right)}(T)               & = \wrap_{M; \overline{D}}(T[M.\tx/\tx]) \\
     \wrap_{M; \left(x \;:\; \bigcap \overline{T'},\;  \overline{D}\right)}(T) & = \wrap_{M; \overline{D}}(T)            \\
 \end{align*}
 
@@ -701,73 +713,123 @@ As a result, it cannot contain $X : t$; that is why we did not define $\wrap$ on
 \section{Bindings}
 
 
-We define the notation $\Gammatop[P \texttt{+=} D]$ as:
+We define the notation $(\overline{\mathcal{D}})[P \texttt{+=} \mathcal{D}']$ as:
 
 \begin{figure}[H]
     \begin{tabular}{lll}
-        $\left(\Gammatop, P : \Moddecl\right)[P \texttt{+=} D']$  & = $\Gammatop, P : \Moddecl[\tx][\overline{D}, D']$                   \\[3mm]
-        $\left(\Gammatop, P' : \Moddecl\right)[P \texttt{+=} D']$ & $= \Gammatop[P \texttt{+=} D'], P' : \Moddecl$  \quad if $P \neq P'$ \\[3mm]
+        $\left(\overline{\mathcal{D}}, X : \Moddecl\right)[X \texttt{+=} \mathcal{D}']$   & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][\overline{\mathcal{D}}, \mathcal{D}']$                      \\
+        $\left(\overline{\mathcal{D}}, X : \Moddecl\right)[X.P \texttt{+=} \mathcal{D}']$ & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][(\overline{\mathcal{D}})[P \texttt{+=} \mathcal{D}']]$      \\
+        $\left(\overline{\mathcal{D}}, X' : \Moddecl\right)[X \texttt{+=} \mathcal{D}']$               & $= (\overline{\mathcal{D}})[X \texttt{+=} \mathcal{D}'], X' : \Moddecl$ & if $X \neq X'$ \\
+        $\left(\overline{\mathcal{D}}, X' : \Moddecl\right)[X.P \texttt{+=} \mathcal{D}']$               & $= (\overline{\mathcal{D}})[X.P \texttt{+=} \mathcal{D}'], X' : \Moddecl$  & if $X \neq X'$ \\[3mm]
         undefined otherwise
     \end{tabular}
-    \caption{Notation $\Gammatop[P \texttt{+=} D']$}
+    \caption{Notation $(\overline{\mathcal{D}})[P \texttt{+=} \mathcal{D}']$}
 \end{figure}
 
 Note that we can only add a declaration to a module that is already in the module environment.
 
-Recall the typing judgement for bindings: $\Pi; \Sigma; \Gammatop; \Gammabot \vdash \overline{B} : \{ \overline{D} \}$.
+Recall the shape of the typing judgement for bindings: $\Pi; \Sigma; \Gammatop; \Gammabot \vdash \overline{B} : \overline{\mathcal{D}}$.
 
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop \vdash \Gammabot }
-        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyenv : \{  \} }
+        \infer1{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyenv : \emptyenv}
     \end{prooftree}
 \] \\
 
 \[
     \begin{prooftree}
-        \hypo{ x \notin \dom(\Gammabot) }
         \hypo{ \Sigma; \Gammatop; \Gammabot \vdash v: \bigcap \overline{T} }
-        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} x : \bigcap \overline{T}\right]; \left(\Gammabot, x : \bigcap \overline{T}\right) \vdash \overline{B} : \{\overline{D}\} }
-        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash x = v, \overline{B} : \{ x : \bigcap \overline{T}, \overline{D} \} }
+        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} x : \bigcap \overline{T}\right]; \left(\Gammabot, x : \bigcap \overline{T}\right) \vdash \overline{B} : \overline{\mathcal{D}} }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(x = v, \overline{B}\right) : \left(x : \bigcap \overline{T}, \overline{\mathcal{D}}\right) }
     \end{prooftree}
-\] \\
-
+\]  \\
 \[
     \begin{prooftree}
-        \hypo{ x \notin \dom(\Gammabot) }
-        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash v: \bigcap \overline{T} }
-        \hypo{ P; \Sigma; \Gammatop; \left(\Gammabot, x : \bigcap \overline{T}\right) \vdash \overline{B} : \{\overline{D}\} }
-        \infer3{ P; \Sigma; \Gammatop; \Gammabot \vdash \private x = v, \overline{B} : \{ \overline{D} \} }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash v : \bigcap \overline{T}}
+        \hypo{ P; \Sigma; \Gammatop; \left(\Gammabot, x : \bigcap \overline{T}\right) \vdash \overline{B} : \overline{\mathcal{D}}}
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(\private x = v, \overline{B}\right): \overline{\mathcal{D}} }
     \end{prooftree}
 \] \\
-
 \[
     \begin{prooftree}
-        \hypo{ \tx \notin \dom(\Gammabot) }
-        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} \tx : [= t]\right]; \left(\Gammabot, \tx : [= t]\right) \vdash \overline{B} : \{\overline{D}\} }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \type \tx = t, \overline{B} : \{ \tx : [= t], \overline{D} \} }
+        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} \tx : [= t]\right]; \left(\Gammabot, \tx : [= t]\right) \vdash \overline{B} : \overline{\mathcal{D}}}
+        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(\type \tx = t, \overline{B}\right) : \left(\tx : [= t], \overline{\mathcal{D}}\right) }
     \end{prooftree}
 \] \\
-
 \[
     \begin{prooftree}
-        \hypo{ \tx \notin \dom(\Gammabot) }
-        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} \tx : \star\right]; \left(\Gammabot, \tx : [= t]\right) \vdash \overline{B} : \{\overline{D}\} }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \opaque \tx = t, \overline{B} : \{ \tx : \star, \overline{D} \} }
+        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} \tx : \star\right]; \left(\Gammabot, \tx : [= t]\right) \vdash \overline{B} : \overline{\mathcal{D}} }
+        \infer1{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(\opaque \tx = t, \overline{B}\right) : \left(\tx : \star, \overline{\mathcal{D}}\right) }
     \end{prooftree}
 \] \\
 
 
 \[
     \begin{prooftree}
-        \hypo{ \Pi.X; \Sigma; \left(\Gammatop, \Pi.X : \Lambda (\overline{\tx : \star}). \{\}\right); \overline{\tx : \star} \vdash \overline{B} : \{\overline{D}\} }
-        \hypo{ \Pi; \Sigma; \left(\Gammatop, \Pi.X :\Moddecl\right); \Gammabot \vdash \overline{B'} : \{\overline{D'}\} }
-        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'} : \{ \overline{D'} \} }
+        \hypo{ \epsilon; \Sigma; \left(\Gammatop, X : \Lambda (\overline{\tx : \star}). \{\}\right); \overline{\tx : \star} \vdash \overline{B} : \overline{\mathcal{D}} }
+        \hypo{ \epsilon; \Sigma; \left(\Gammatop, X : \Moddecl\right); \Gammabot \vdash \overline{B} : \overline{\mathcal{D}} }
+        \infer2{ \epsilon; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'}\right) : \left(X : \Moddecl, \overline{\mathcal{D}'}\right) }
     \end{prooftree}
 \] \\
 
-By abuse of notation, we write $\Pi.X$ and, when $\Pi$ is the empty path, we consider
-that $\epsilon.X$ just denotes $X$. This way, we don't have to duplicate the rule above.
+\[
+    \begin{prooftree}
+        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{\}\right]; \overline{\tx : \star} \vdash \overline{B} : \overline{\mathcal{D}} }
+        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{B} : \overline{\mathcal{D}} }
+        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'}\right) : \left(X : \Moddecl, \overline{\mathcal{D}'}\right) }
+    \end{prooftree}
+\] \\
+
+\iffalse
+\section{Draft: capture-avoiding substitution}
+
+The substitution does not handle alpha-renaming itself.
+It assumes renaming is taken care of upstream.
+
+\begin{align*}
+    \emptyenv[\tx := t]                  & = \emptyenv                                      & \\
+    (\Gammabot, D)[\tx := t]             & = \Gammabot[\tx := t], D[\tx := t]               & \\
+    (v : \bigcap \overline{T})[\tx := t] & = v[\tx := t] : (\bigcap \overline{T})[\tx := t] & \\
+\end{align*}
+
+\begin{align*}
+    (\BX : \Lambda (\overline{\tx : \star}) \{\overline{D}\})[\tx'' := t] & = \{\overline{D}[\tx'' := t] \}                                                    & \\
+    (X : \Moddecl)[\tx'' := t']                                           & = \{\overline{D}[\tx'' := t']\}_{\overline{\BX[\overline{\tx' = t[\tx'' := t']}]}} & \\
+\end{align*}
+
+\begin{align*}
+    (X : t)[\tx := t']                    & = X : t[\tx := t']                    &                           \\
+    (x : \bigcap \overline{T})[\tx := t'] & = x : \bigcap \overline{T[\tx := t']} &                           \\
+    (\tx' : \star)[\tx := t']             & = \tx' : \star                        & \text{ if } \tx' \neq \tx \\
+    (\tx' : [= t])[\tx := t']             & = \tx' : [= t[\tx := t']]             & \text{ if } \tx' \neq \tx \\
+\end{align*}
 
 
+\begin{align*}
+    (\bigcap \overline{T})[\tx := t']                                     & =\bigcap \overline{T[\tx := t']}                                      &                                   \\
+    ((\overline{N : T}) \rightarrow T')[\tx := t']                        & = ((\overline{N : T})[\tx := t']) \rightarrow T'[\tx := t']           &                                   \\
+    (\{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t}]}})[\tx := t'] & = \{ \overline{D} \}_{\overline{\BX[\overline{\tx' = t[\tx := t']}]}} &                                   \\
+    \atom[\tx := t']                                                      & = \atom                                                               &                                   \\
+    \mod[\tx := t']                                                       & = \mod                                                                &                                   \\
+    \fun[\tx := t']                                                       & =\fun                                                                 &                                   \\
+    ((\overline{t}) \rightarrow t_r)[\tx := t']                           & = (\overline{t[\tx := t']}) \rightarrow t_r[\tx := t']                &                                   \\
+    \%\{\overline{k : t}\}[\tx := t']                                     & = \%\{\overline{k : t[\tx := t']}  \}                                 &                                   \\
+    (t_1 \vee t_2)[\tx := t']                                             & = t_1[\tx := t'] \vee t_2[\tx := t']                                  &                                   \\
+    (\lnot t)[\tx := t']                                                  & = \lnot (t[\tx := t'])                                                &                                   \\
+    \alpha[\tx := t']                                                     & = \alpha                                                              &                                   \\
+    \mathbb{O}[\tx := t']                                                 & = \mathbb{O}                                                          &                                   \\
+    \tx[\tx := t']                                                        & = t'                                                                  &                                   \\
+    \tx'[\tx := t']                                                       & = \tx'                                                                & \text{ if } \tx' \neq \tx         \\
+    (M.\tx')[\tx := t']                                                   & = M.\tx'                                                              & \text { no matter if } \tx' = \tx \\
+    (\BX[\overline{\tx' = t}])[\tx := t']                                 & = \BX[\overline{\tx' = t[\tx := t']}]                                 &                                   \\
+    \langle M \rangle [\tx := t']                                         & = \langle M[\tx := t'] \rangle                                        &
+\end{align*}
+
+
+\begin{align*}
+    X[\tx' := t']                               & = X                                         & \\
+    (\Elixir.P[\overline{\tx = t}])[\tx' := t'] & = \Elixir.P[\overline{\tx = t[\tx' := t']}] & \\
+\end{align*}
+\fi
 \end{document}

@@ -82,16 +82,6 @@ in two lists and we process behaviours first, behaviours cannot refer to modules
 Supporting mutually recursive modules would add significant complexity and is kept as
 a work for later.
 
-\paragraph{Submodules}
-Module paths are flat. Even if, syntactically, a submodule is defined inside another
-module, it is not actually considered as a submodule as far as the type system is concerned.
-Neither does it participe in the parent module's type signature.
-Instead, the submodule is considered as a top-level module with a multi-component path.
-
-All modules, including submodules, can only be refered to using their absolute path.
-Recall module paths: $P ::= X$ | $P.X$. We stress again on the fact that module $P.X$ is
-not a submodule of $P$.
-
 \paragraph{Environments}
 
 We now define the type system formally below.
@@ -110,7 +100,7 @@ where $D$ is a local declaration:
 
 \begin{center}
     \begin{tabular}{rcll}
-        $D$ & ::= & $ X : t$                   & \color{Gray} function parameter with module or behaviour type  \\
+        $D$ & ::= & $ X : t$                   & \color{Gray} function parameter with module or behaviour type \\
             & |   & $x : \bigcap \overline{T}$ & \color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
             & |   & $\tx : \star$              & \color{Gray} exports an opaque type $x$                       \\
             & |   & $\tx : [=t]$               & \color{Gray} exports a transparent type $x = t$               \\
@@ -126,18 +116,41 @@ and $\mathcal{D}$ is either a local declaration or a submodule declaration:
     \end{tabular}
 \end{center}
 
-Although the letters $D$ and $\mathcal{D}$ look similar, there should not be confusion below.
-When $D$ appears in a local environment or in a type, it is always a local declaration.
-
 Empty lists and environments are denoted $\emptyenv$. We consider behaviour, module and local
 environments as partial functions over $\BX$, $\Next$ and $\Next$ respectively,
 where $\Next ::= N$ | $\tx$ ranges over declaration names.
 
-We also consider global environments as partial functions over $P$ via the extended definition:
+By extension, we consider global environments as partial functions over $P$:
 
 $$
     (\overline{\mathcal{D}})(X.P) = (\overline{\mathcal{D}})(X)(P)
 $$
+
+
+\paragraph{Submodules}
+
+Recall module paths: $P ::= X$ | $P.X$. 
+
+A module can be defined inside another module.
+The absolute path of the inner module is obtained by prefixing
+its name with the absolute path of the enclosing module.
+
+To respect the scoping rules described above, the module environment must
+reproduce this hierarchy and put inner module declarations inside the enclosing
+module.
+While necessary, this representation is unfortunate because it
+may suggest that inner modules are members of their enclosing module.
+This is not the case: the hierarchy is purely lexical.
+
+Submodules do not inherit the local environment of their enclosing module.
+Submodules declarations can never happen in types $\{\overline{D}\}$.
+Similarly, $X : t$ can only be a function parameter; it is not a declaration that can be
+exported. As a result, neither can it appear in types $\{\overline{D}\}$.
+
+Admittedly, Elixir does allow references to a submodule from within its enclosing
+module using relative paths.
+However, this is only syntactic sugar. Relative paths are expanded to
+their corresponding absolute path before they reach the type system.
 
 \paragraph{Judgments}
 
@@ -147,20 +160,18 @@ We define the following judgements:
     \begin{center}
         \begin{tabular}{lrl}
             Wellformedness of behaviour environments: &                                     & $\vdash \Sigma$                                             \\[2mm]
-            Wellformedness of module environments:   & $\Sigma$                            & $\vdash \Gammatop$                                          \\[2mm]
-            Wellformedness of local environments:    & $\Sigma; \Gammatop$                 & $\vdash \Gammabot$                                          \\[2mm]
-            Wellformedness of types:                 & $\Sigma; \Gammatop; \Gammabot$      & $\vdash T$                                                  \\[2mm]
-            Subtyping:                               & $\Sigma; \Gammatop; \Gammabot$      & $\vdash \bigcap \overline{T} \preceq \bigcap \overline{T'}$ \\[2mm]
-            Expression typing:                       & $\Sigma; \Gammatop; \Gammabot$      & $\vdash E : \bigcap \overline{T} $                          \\[2mm]
-            Wellformedness of declaration lists:     & $\Pi; \Sigma; \Gammatop; \Gammabot$ & $\vdash \overline{\mathcal{D}}$                             \\[2mm]
-            Binding typing:                          & $\Pi; \Sigma; \Gammatop; \Gammabot$ & $\vdash \overline{B} : \overline{\mathcal{D}} $             \\[2mm]
+            Wellformedness of module environments:    & $\Sigma$                            & $\vdash \Gammatop$                                          \\[2mm]
+            Wellformedness of local environments:     & $\Sigma; \Gammatop$                 & $\vdash \Gammabot$                                          \\[2mm]
+            Wellformedness of types:                  & $\Sigma; \Gammatop; \Gammabot$      & $\vdash T$                                                  \\[2mm]
+            Subtyping:                                & $\Sigma; \Gammatop; \Gammabot$      & $\vdash \bigcap \overline{T} \preceq \bigcap \overline{T'}$ \\[2mm]
+            Expression typing:                        & $\Sigma; \Gammatop; \Gammabot$      & $\vdash E : \bigcap \overline{T} $                          \\[2mm]
+            Binding typing:                           & $\Pi; \Sigma; \Gammatop; \Gammabot$ & $\vdash \overline{B} : \overline{\mathcal{D}} $             \\[2mm]
         \end{tabular}
     \end{center}
 \end{figure}
 where $\Pi$ is a possibly empty path:  $\Pi$ ::= $\epsilon$ | $P$.
 
-The wellformedness of declaration lists is an auxiliary judgement which is only used to define the
-wellformedness of module environments.
+The wellformedness of module environments will also need two auxiliary judgements, which will be defined in the corresponding section.
 
 Let $\overline{\mathcal B}, \overline{B}$ be a program. The program passes type-checking if there exists a wellformed module environment $\Gammatop$ such that both
 $$\vdash \overline{\mathcal B} \quad \text{ and } \quad \epsilon; \overline{\mathcal{B}}; \emptyenv; \emptyenv \vdash \overline{B} : \Gammatop$$ hold.
@@ -168,10 +179,24 @@ $$\vdash \overline{\mathcal B} \quad \text{ and } \quad \epsilon; \overline{\mat
 Note that we write $\overline{B} : \Gammatop$ because top-level bindings can only be module declarations.
 More details about why we need to return it in the judgment are available in the section about Bindings.
 
-\paragraph{Alpha-renaming and capture-avoiding substitution}
+\paragraph{Shadowing and alpha-renaming}
 
-For now we assume names do not repeat. Alpha-renaming and capture-avoiding substitution
-will be defined formally later.
+The type system strictly prohibits name shadowing.
+
+This restriction is a direct consequence of representing
+environments as partial functions that resolve to the right-most binding. Allowing shadowing would implicitly alter the meaning of any prior declarations that refer to the shadowed name.
+
+While this correctly rejects modules that export the same name twice
+and functions with duplicate parameter names, 
+it can also be overly restrictive. It prevents function parameters
+from shadowing local module declarations.
+More critically, it makes it difficult to reference an external module
+that shares declaration names with the current referencing module.
+
+For now, we consider it is the responsibility of the programmer to
+ensure names do not repeat. Later, we will formally define where and how
+alpha-renaming can be applied to lift these unintended restrictions.
+
 
 \section{Wellformedness}
 
@@ -204,8 +229,7 @@ $ \Sigma; \emptyenv; \overline{\tx : \star} \vdash \{ \overline{D} \}$ refers to
 
 The hypothesis refers to the wellformedness of declaration lists, which is defined below. \\
 
-
-We introduce two new notations:
+Before we can define wellformedness of declaration lists, we need to introduce two new notations:
 $\locals$ takes the list of declarations of a module and filters out submodule
 declarations, so as to keep only local declarations. $(\overline{\mathcal{D}})[\Pi \texttt{+=} \mathcal{D}']$ adds a declaration
 to a module in the module environment. The notations are formally defined below.
@@ -223,58 +247,170 @@ to a module in the module environment. The notations are formally defined below.
 
 \begin{figure}[H]
     \begin{center}
-        \begin{tabular}{lll}$
-            \left(\overline{\mathcal{D}}\right)\left[\epsilon \texttt{+=} X : \Moddecl[\tx][\overline{\mathcal{D}'}]\right]$    & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][\overline{\mathcal{D}'}]$                                  \\
-            $\left(\overline{\mathcal{D}}, X : \Moddecl\right)[X \texttt{+=} \mathcal{D}']$    & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][\overline{\mathcal{D}}, \mathcal{D}']$                                  \\
-            $\left(\overline{\mathcal{D}}, X : \Moddecl\right)[X.P \texttt{+=} \mathcal{D}']$  & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][(\overline{\mathcal{D}})[P \texttt{+=} \mathcal{D}']]$                  \\
-            $\left(\overline{\mathcal{D}}, X' : \Moddecl\right)[X \texttt{+=} \mathcal{D}']$   & $= (\overline{\mathcal{D}})[X \texttt{+=} \mathcal{D}'], X' : \Moddecl$                             & if $X \neq X'$ \\
-            $\left(\overline{\mathcal{D}}, X' : \Moddecl\right)[X.P \texttt{+=} \mathcal{D}']$ & $= (\overline{\mathcal{D}})[X.P \texttt{+=} \mathcal{D}'], X' : \Moddecl$                           & if $X \neq X'$ \\[3mm]
+        \begin{tabular}{ll}$
+            \left(\overline{\mathcal{D}}\right)\left[\epsilon \texttt{+=} X : \Moddecl[\tx][\overline{\mathcal{D}'}]\right]$ & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][\overline{\mathcal{D}'}]$                              \\
+            $\left(\overline{\mathcal{D}}, X : \Moddecl[\tx][\overline{\mathcal{D}'}]\right)[X \texttt{+=} \mathcal{D}'']$   & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][\overline{\mathcal{D}'}, \mathcal{D}'']$               \\
+            $\left(\overline{\mathcal{D}}, X : \Moddecl\right)[X.P \texttt{+=} \mathcal{D}']$                                & = $\overline{\mathcal{D}}, X : \Moddecl[\tx][(\overline{\mathcal{D}})[P \texttt{+=} \mathcal{D}']]$ \\
             undefined otherwise
         \end{tabular}
     \end{center}
     \caption{Notation $(\overline{\mathcal{D}})[\Pi \texttt{+=} \mathcal{D}']$}
 \end{figure}
 
-Note that we can only add a declaration to a module that is already in the module environment.
+Note that we can only add a declaration to the last module in the list.
 
-We can now give inference rules for the wellformedness of declaration lists.
+\subsection{Auxiliary judgements}
+
+We define two new wellformedness judgements:
+\begin{figure}[H]
+    \begin{center}
+        \begin{tabular}{lrl}
+            Wellformedness of declaration lists    & $\Pi; \Sigma; \Gammatop; \Gammabot$ & $\vdash \overline{\mathcal{D}}$ \\[2mm]
+            Wellformedness of module declarations: & $\Pi; \Sigma; \Gammatop$            & $\vdash X : \Moddecl$           \\
+        \end{tabular}
+    \end{center}
+\end{figure}
+
+The first judgement is not to be confused with the wellformedness of the type $\{\overline{D}\}$, which can only contain local declarations.
+
+Note that there is no ambiguity between the wellformedness of a declaration list
+that consists of a single module declaration $\left(\Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Moddecl\right)$
+and the wellformedness of the module itself $\left(\Pi; \Sigma; \Gammatop \vdash X : \Moddecl\right)$
+because the latter does not use the local environment $\Gammabot$.
+
+
+\paragraph{Empty list}
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop \vdash \Gammabot }
+        \infer1 { \Pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyenv }
+    \end{prooftree}
+\]
+
+\paragraph{Local declarations}
+
+Intuitively, a local declaration is wellformed if we can add it to the
+local environment built so far.
 
 \[
     \begin{prooftree}
-        \hypo { \Pi; \Sigma; \Gammatop \vdash \Gammabot }
-        \infer1 { \Pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyenv }
+        \hypo { \Sigma; \Gammatop \vdash \Gammabot, D }
+        \infer1 { P; \Sigma; \Gammatop; \Gammabot \vdash D }
     \end{prooftree}
 \]
 
 \[
     \begin{prooftree}
         \hypo { P; \Sigma; \Gammatop[P \texttt{+=} D]; \Gammabot, D \vdash \overline{\mathcal{D}'} }
-        \infer1 { P; \Sigma; \Gammatop; \Gammabot \vdash D, \overline{\mathcal{D}'} }
+        \infer1[$\overline{\mathcal{D}} \neq \emptyenv$] { P; \Sigma; \Gammatop; \Gammabot \vdash D, \overline{\mathcal{D}'} }
     \end{prooftree}
 \]
 
-Note that in the rule above, $P$ cannot be the empty path, because local declarations
-can only appear inside a module.
+Note that in the rules above, $P$ cannot be the empty path, because local declarations
+can only appear inside a module. The special rule when there is a single local declaration is necessary to break
+cycles in the definition.
+Indeed, checking the wellformedness of the local environment will in turn
+require checking the wellformedness of the module environment built so far.
+We need this environment to be stricly smaller than the initial environment, otherwise we would get stuck.
+
+\paragraph{Module declarations}
 
 \[
     \begin{prooftree}
-        \hypo { \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Moddecl }
+        \hypo { \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo { \Pi; \Sigma; \Gammatop \vdash X : \Moddecl }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Moddecl }
+    \end{prooftree}
+\]
+\[
+    \begin{prooftree}
+        \hypo { \Pi; \Sigma; \Gammatop \vdash X : \Moddecl }
         \hypo { \Pi; \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{\mathcal{D}'} }
-        \infer2 { \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Moddecl, \overline{\mathcal{D}'} }
+        \infer2 [$\overline{\mathcal{D}'} \neq \emptyenv$]{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Moddecl, \overline{\mathcal{D}'} }
     \end{prooftree}
 \]
 
-We give the wellformedness of $X : \Moddecl$ in a separate rule below only for legibility reasons.
-By abuse of notation, we consider that $\epsilon.X$ denotes $X$. This avoids duplicating the rule.
+By abuse of notation, we consider that $\epsilon.X$ denotes $X$. This avoids duplicating the rules.
+
 \[
     \begin{prooftree}
-        \hypo { \Pi.X; \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{\}\right]; \overline{\tx : \star} \vdash \overline{\mathcal{D}} }
-        \hypo { \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \left\{ \overline{\mathcal{D}}\right\}\right]; \overline{\tx : \star} \vdash \{ \locals( \overline{\mathcal{D}})\}_{\overline{\BX[\overline{\tx' = t}]}} }
-        \infer2 { \Pi; \Sigma; \Gammatop; \Gammabot \vdash X : \Moddecl }
+        \hypo {  \Sigma; \Gammatop \vdash \overline{\tx : \star} }
+        \hypo { \Pi.X \notin \dom(\Gammatop) }
+        \infer2 { \Pi; \Sigma; \Gammatop \vdash X : \Lambda (\overline{\tx : \star}) . \{\} }
     \end{prooftree}
 \]
 
-\antonin{To check: is it a cyclic definition?}
+\[
+    \begin{prooftree}
+        \hypo { \Pi.X; \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{\}\right]; \overline{\tx : \star} \vdash \overline{\mathcal{D} } }
+        \hypo { \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \left\{ \overline{\mathcal{D}}\right\}\right]; \overline{\tx : \star} \vdash \{ \locals( \overline{\mathcal{D}})\}_{\overline{\BX[\overline{\tx' = t}]}} }
+        \infer2 { \Pi; \Sigma; \Gammatop \vdash X : \Moddecl }
+    \end{prooftree}
+\]
+
+\antonin{
+
+    Example of derivation:
+    \[
+        \begin{prooftree}
+            \infer0{ \vdash \emptyenv }
+            \infer1{ \emptyenv \vdash \emptyenv }
+            \infer1[$A \notin \dom(\emptyenv)$]{ \epsilon; \emptyenv; \emptyenv \vdash A : \{ \} }
+            \infer1[$\emptyenv; \emptyenv \vdash \emptyenv$]{  \epsilon; \emptyenv; \emptyenv; \emptyenv \vdash A : \{\} }
+            \infer1{  \emptyenv \vdash A : \{\} }
+            \infer1[$\tx \notin \dom(\emptyenv)$]{ \emptyenv; A : \{\} \vdash \tx : \star }
+            \infer1{ A; \emptyenv; A : \{\}; \emptyenv \vdash \tx : \star }
+            \infer1{ \epsilon; \emptyenv; \emptyenv; \emptyenv \vdash A : \{ \tx : \star \} }
+            \infer1{ \emptyenv \vdash A : \{ \tx : \star \} }
+            \infer1{ A; \emptyenv; A : \{ \tx : \star \} \vdash B : \{\} }
+            \infer1{ A; \emptyenv; A : \{ \tx : \star \}; \tx : \star \vdash B : \{\} }
+            \infer1{ A; \emptyenv; A : \{ \}; \emptyenv \vdash \tx : \star, B : \{\} }
+            \infer1{ \epsilon; \emptyenv; \emptyenv \vdash A : \{ \tx : \star, B : \{\} \} }
+            \infer1[$\emptyenv; \emptyenv \vdash \emptyenv$]{ \epsilon; \emptyenv; \emptyenv; \emptyenv \vdash A : \{ \tx : \star, B : \{\} \} }
+            \infer1{ \emptyenv \vdash A : \{ \tx : \star, B : \{\} \} }
+            \infer1{ \emptyenv; A : \{ \tx : \star, B : \{\}\} \vdash \emptyenv  }
+            \infer1{ \emptyenv; A : \{ \tx : \star, B : \{\}\}; \emptyenv \vdash \langle A \rangle }
+            \infer1{ \emptyenv; A : \{ \tx : \star, B : \{\}\}; \emptyenv \vdash A : \langle A \rangle }
+
+            \infer0{ \emptyenv; A : \{ \tx : \star, B : \{\} \}; \emptyenv \vdash \langle A \rangle }
+            \infer1{ \emptyenv; A : \{ \tx : \star, B : \{\} \}; \emptyenv \vdash \langle A \rangle \preceq \{ \tx : \star \} }
+            \infer2{ \emptyenv; A : \{ \tx : \star, B : \{\} \}; \emptyenv \vdash A : \{ \tx : \star \} }
+            \infer1 { A.B; \emptyenv; A : \{ \tx : \star, B : \{\} \}; \emptyenv \vdash  A.\tx }
+            \infer1[$\tx \notin \dom(\emptyenv)$] { A.B; \emptyenv; A : \{ \tx : \star, B : \{\} \} \vdash  \ty : [= A.\tx] }
+            \infer1[$\emptyenv; \emptyenv \vdash \emptyenv$]{ A.B; \emptyenv; A : \{ \tx : \star, B : \{\} \}; \emptyenv \vdash  \ty : [= A.\tx] }
+            \infer1 { A; \emptyenv; A : \{ \tx : \star \} \vdash   B : \{ \ty : [= A.\tx] \}}
+
+            \infer0 { (*) }
+
+            \infer2 { A; \emptyenv; A : \{ \tx : \star \}; \tx : \star  \vdash   B : \{ \ty : [= A.\tx] \}, \tx' : [= \tx] }
+            \infer1 { A; \emptyenv; A : \{\}; \emptyenv  \vdash  \tx : \star, B : \{ \ty : [= A.\tx] \}, \tx' : [= \tx] }            \infer1 { \epsilon; \emptyenv; \emptyenv \vdash A : \{ \tx : \star, B : \{ \ty : [= A.\tx] \}, \tx' : [= \tx] \} }
+
+            \infer1[$\emptyenv; \emptyenv \vdash \emptyenv$] { \epsilon; \emptyenv; \emptyenv; \emptyenv \vdash A : \{ \tx : \star, B : \{ \ty : [= A.\tx] \}, \tx' : [= \tx] \} }
+            \infer1 { \emptyenv \vdash A : \{ \tx : \star, B : \{ \ty : [= A.\tx] \}, \tx' : [= \tx] \} }
+        \end{prooftree}
+    \] \\
+
+    \[
+        \begin{prooftree}
+            \infer0{ A; \emptyenv; A: \{ \tx : \star\} \vdash  B : \{ \ty : [= A.x] \} }
+
+            \infer0{ \emptyenv \vdash A : \{ \tx : \star \} }
+            \infer1{ \emptyenv; A : \{ \tx : \star \} \vdash \emptyenv }
+            \infer1[$\tx \notin \dom(\emptyenv)$]{ \emptyenv; A: \{ \tx : \star\} \vdash  \tx : \star }
+
+            \infer2{ A; \emptyenv; A: \{ \tx : \star\}; \tx : \star \vdash  B : \{ \ty : [= A.x] \} }
+            \infer1{ A; \emptyenv; A: \{\}; \emptyenv \vdash \tx : \star, B : \{ \ty : [= A.x] \} }
+            \infer1{ \epsilon; \emptyenv; \emptyenv; \emptyenv \vdash A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\} }
+            \infer1{ \emptyenv \vdash A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\} }
+            \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\} \vdash \emptyenv }
+            \infer1[$\tx \notin \dom(\emptyenv)$]{  \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\} \vdash \tx : \star }
+            \infer1[$\tx \in \dom(\tx : \star)$]{  \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\}; \tx : \star \vdash \tx }
+            \infer1[$\tx' \notin \dom(\tx : \star)$]{  \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\} \vdash \tx : \star, \tx' : [= \tx] }
+            \infer1{ (*) = A; \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= A.x] \}\}; \tx : \star  \vdash  \tx' : [= \tx]}
+        \end{prooftree}
+    \]
+
+}
 
 \subsection{Local type environments}
 
@@ -428,6 +564,10 @@ that parameters $\overline{N : T}$ are wellformed and the $\overline{N}$ are pai
 
 \subsection{List of declarations}
 
+The name "declaration list" that refers to the type
+$\{ \overline{D} \}$ is not to be confused with the declaration list
+$\overline{\mathcal{D}}$ which appears in the module environment.
+
 We define the function $\name(D)$ as $\name: \left\{\begin{array}{ll}
         X : t                    & \mapsto X   \\
         x : \bigcap \overline{T} & \mapsto x   \\
@@ -444,8 +584,7 @@ We define the function $\name(D)$ as $\name: \left\{\begin{array}{ll}
 \[
     \begin{prooftree}
         \hypo{ \Sigma; \Gammatop; \Gammabot, D \vdash \{ \overline{D'} \} }
-        \hypo { D \neq X : t  }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ D, \overline{D'} \} }
+        \infer1[\;($ D \neq X : t$)]{ \Sigma; \Gammatop; \Gammabot \vdash \{ D, \overline{D'} \} }
     \end{prooftree}
 \] \\
 
@@ -550,6 +689,18 @@ This rule is necessary to prove for instance:
 
 where $N1.\tx : [= \texttt{integer()}], N2.\tx' : [= \texttt{boolean()}]$ \\
 
+\antonin{Do we need the other direction?
+
+\[
+    \begin{prooftree}
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash (\overline{t}) \rightarrow t'}
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : t }) \rightarrow t' \preceq (\overline{t}) \rightarrow t'  }
+    \end{prooftree}
+\] \\
+
+}
+
 \[
     \begin{prooftree}
         \hypo { \forall i. \; \Sigma; \Gammatop; \Gammabot, \overline{N : T'}^{0..i} \vdash \overline{T'}^{i} \preceq  \overline{T}^{i} }
@@ -557,8 +708,6 @@ where $N1.\tx : [= \texttt{integer()}], N2.\tx' : [= \texttt{boolean()}]$ \\
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash (\overline{N : T}) \rightarrow T_r \preceq (\overline{N : T'}) \rightarrow T_r' }
     \end{prooftree}
 \] \\
-
-\antonin{Do we need the other direction?}
 
 \antonin{We will probably need a rule to rename parameter names here, because it's
     not as trivial as it seems because of the risk of capture...}
@@ -596,10 +745,6 @@ where $\left(X : \Moddecl[\tx][\overline{\mathcal{D}}][\BX][\tx'][t']\right)[\ov
 \] \\
 
 \subsection{Declaration lists}
-
-The name "declaration list" that refers to the type
-$\{ \overline{D} \}$ is not to be confused with the declaration list
-$\overline{\mathcal{D}}$ which appears in the module environment.
 
 The conditions $\tx \notin \dom(\overline{D})$ and $x \notin \dom(\overline{D})$ are there to ensure that the
 enriched type $\{ \tx : ..., \overline{D} \}$ or $\{ x : ..., \overline{D} \}$ in the conclusion of the rule is still wellformed.
@@ -674,6 +819,16 @@ in a contravariant way.
     \end{prooftree}
 \] \\
 
+\paragraph{Reordering}
+
+\[
+    \begin{prooftree}
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash \{ D_1, D_2, \overline{D} \} \preceq \{ \overline{D'} \} }
+        \hypo{ \Sigma; \Gammatop \vdash \Gammabot, D_2, D_1 }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \{ D_2, D_1, \overline{D} \} \preceq \{ \overline{D'} \} }
+    \end{prooftree}
+\] \\
+
 \section{Expressions}
 
 Recall the expression typing judgement: $\Sigma; \Gammatop; \Gammabot \vdash E : \bigcap \overline{T}$.
@@ -726,24 +881,24 @@ Recall the expression typing judgement: $\Sigma; \Gammatop; \Gammabot \vdash E :
 
 \[
     \begin{prooftree}
-        \hypo { \overline{\Sigma; \Gammatop; \Gammabot \vdash N : T_\downarrow} }
+        \hypo { \overline{\Sigma; \Gammatop; \Gammabot \vdash N : T[\overline{N/N'}]} }
         \hypo { \Sigma; \Gammatop; \Gammabot \vdash E : (\overline{N' : T}) \rightarrow T'}
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash E(\overline{N}) : T'[\overline{N/N'}] }
     \end{prooftree}
 \] \\
 
-where $\overline{T_\downarrow}^i = \overline{T}^i[\overline{N/N'}^{0..i}]$ and the slicing operator
-$0..i$ takes elements up to index $i$ (excluded).
+Since neither forward references nor variable shadowing is allowed, $\overline{N'}^i$
+cannot appear in $\overline{T}^j$ for $j < i$. As a result, $\overline{T[\overline{N/N'}]}^i$
+is safe and equivalent to  $\overline{T[\overline{N/N'}^{0..i}]}^i$, which we think is less legible.
 
-The hypothesis $\overline{\Sigma; \Gammatop; \Gammabot \vdash N : T_\downarrow}$ means that
-$\Sigma; \Gammatop; \Gammabot \vdash \overline{N}^i : \overline{T_\downarrow}^i$ must hold for all $i$
-without changing $\Gammabot$. It is not to be confused with the wellformedness judgement 
-$\Sigma; \Gammatop \vdash \Gammabot, \overline{N : T_\downarrow}$.
+
+The hypothesis $\overline{\Sigma; \Gammatop; \Gammabot \vdash N : T[\overline{N/N'}]}$ means that
+$\Sigma; \Gammatop; \Gammabot \vdash \overline{N}^i : \overline{T[\overline{N/N'}]}^i$ must hold for all $i$
+without changing $\Gammabot$. It is not to be confused with the wellformedness judgement
+$\Sigma; \Gammatop \vdash \Gammabot, \overline{N : T[\overline{N/N'}]}$.
 
 We do not give a typing judgement for the application where the function has type $(\overline{t}) \rightarrow t'$
 because it is a subtype of $(\overline{N : t}) \rightarrow t'$, as defined above.
-
-\antonin{To be confirmed: do we need capture-avoiding substitution here? }
 
 \[
     \begin{prooftree}
@@ -841,20 +996,11 @@ Recall the shape of the typing judgement for bindings: $\Pi; \Sigma; \Gammatop; 
     \end{prooftree}
 \] \\
 
-
 \[
     \begin{prooftree}
-        \hypo{ \epsilon; \Sigma; \left(\Gammatop, X : \Lambda (\overline{\tx : \star}). \{\}\right); \overline{\tx : \star} \vdash \overline{B} : \overline{\mathcal{D}} }
-        \hypo{ \epsilon; \Sigma; \left(\Gammatop, X : \Moddecl\right); \Gammabot \vdash \overline{B'} : \overline{\mathcal{D}'} }
-        \infer2{ \epsilon; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'}\right) : \left(X : \Moddecl, \overline{\mathcal{D}'}\right) }
-    \end{prooftree}
-\] \\
-
-\[
-    \begin{prooftree}
-        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{\}\right]; \overline{\tx : \star} \vdash \overline{B} : \overline{\mathcal{D}} }
-        \hypo{ P; \Sigma; \Gammatop\left[P \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{B'} : \overline{\mathcal{D}'} }
-        \infer2{ P; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'}\right) : \left(X : \Moddecl, \overline{\mathcal{D}'}\right) }
+        \hypo{ \Pi; \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Lambda (\overline{\tx : \star}). \{\}\right]; \overline{\tx : \star} \vdash \overline{B} : \overline{\mathcal{D}} }
+        \hypo{ \Pi; \Sigma; \Gammatop\left[\Pi \texttt{+=} X : \Moddecl\right]; \Gammabot \vdash \overline{B'} : \overline{\mathcal{D}'} }
+        \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'}\right) : \left(X : \Moddecl, \overline{\mathcal{D}'}\right) }
     \end{prooftree}
 \] \\
 

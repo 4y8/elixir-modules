@@ -973,9 +973,10 @@ because it is a subtype of $(\overline{N : t}) \rightarrow t'$, as defined above
 
 \[
     \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E : \lnot \mathbb{O} }
         \hypo { \Sigma; \Gammatop; \Gammabot \vdash E' : \mathbb{T} }
         \hypo { \Sigma; \Gammatop; \Gammabot \vdash E'' : \mathbb{T} }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \left((E \in t) ? E' : E''\right) : \mathbb{T} }
+        \infer3{ \Sigma; \Gammatop; \Gammabot \vdash \left((E \in t) ? E' : E''\right) : \mathbb{T} }
     \end{prooftree}
 \] \\
 

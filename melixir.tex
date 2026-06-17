@@ -421,12 +421,9 @@ For our formalization we will use a slightly different syntax, which is more con
     & | & $x = \textsf{private }v$                  &\color{Gray} private definition\\
     & | & $\tx = \textsf{type }t$                     &\color{Gray} transparent type or behaviour argument\\
     & | & $\tx = \textsf{opaque }t$                   &\color{Gray} opaque type\\[3mm]
-       $P$         & ::= & $X$                                                               \\
-                        & |   & $P.X$                                                             \\[3mm]
-$M$         & ::= & $X$                                                               \\
-                        & ::= & $\Elixir.P[\overline{\tx = t}]$                                   \\[3mm]
-   $N$ & ::= & $x$ \\
-    & | & $X$ \\[3mm]
+       $P$         & ::= & $X$ | $P.X$                                                             \\[1.5mm]
+$M$         & ::= & $X$ | $\Elixir.P[\overline{\tx = t}]$                                   \\[1.5mm]
+   $N$ & ::= & $x$ | $X$ \\[1.5mm]
    $E$ &::= & $v$ \\
     & | & $x$ \\
     & | & $\kwlet N = E\kwin E$ \\

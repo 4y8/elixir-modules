@@ -65,10 +65,15 @@ We propose a new type system for Elixir's modules.
 The syntax language is available in file \texttt{melixir.pdf} on page 10.
 We recall most of it in this document.
 
+We will rewrite it cleanly in this document later.
+
 \paragraph{Elixir program}
 
 We represent an Elixir program as a list of behaviours $\overline{\mathcal{B}}$ followed by a
 list of bindings $\overline{B}$.
+
+Behaviours are the Elixir equivalent of interfaces or traits in other languages.
+Bindings are type, function or submodule definitions.
 
 Checking a program involves checking that all behaviours and bindings are well-formed.
 Informally, a behaviour is well-formed if all type and behaviour names are \textit{bound},
@@ -86,25 +91,29 @@ in two lists and we process behaviours first, behaviours cannot refer to modules
 Supporting mutually recursive modules would add significant complexity and is kept as
 a work for later.
 
-\paragraph{Submodules}
+\paragraph{Modules and submodules}
 
-Recall module paths: $P ::= X$ | $P.X$.
+Recall module paths:
 
-A module can be defined inside another module.
-The absolute path of the inner module is obtained by prefixing
-its name with the absolute path of the enclosing module.
+\begin{center}
+    \begin{tabular}{rcll}
+        $P$ & ::= & $X$ | $P.X$                           \\
+        $M$ & ::= & $X$ | $\Elixir.P[\overline{\tx = t}]$
+    \end{tabular}
+\end{center}
 
-To respect the scoping rules described above, the module environment must
-reproduce this hierarchy and put inner module declarations inside the enclosing
-module.
-While necessary, this representation is unfortunate because it
-may suggest that inner modules are members of their enclosing module.
-This is not the case: the hierarchy is purely lexical.
+$P$ is the absolute path of the module. $X$ ranges over module names.
 
-Submodules do not inherit the local environment of their enclosing module.
-Submodules declarations can never happen in types $\{\overline{D}\}$.
-Similarly, $X : t$ can only be a function parameter; it is not a declaration that can be
-exported. As a result, neither can it appear in types $\{\overline{D}\}$.
+$M$ is a module expression. It can either instantiate a module
+from its absolute path, or refer to an already instantiated module stored
+in local variable $X$ (typically, a function parameter).
+
+Absolute paths are qualified with the $\Elixir$ prefix to remove ambiguity
+between the local variable $X$ and the top-level module with name $X$.
+
+Note that submodules are not member of their enclosing module.
+It is not possible to access submodules of the module stored in
+local variable $X$.
 
 Admittedly, Elixir does allow references to a submodule from within its enclosing
 module using relative paths.
@@ -113,19 +122,8 @@ their corresponding absolute path before they reach the type system.
 
 \paragraph{Types}
 
-Recall instantiated module paths: $M ::= X$ | $\Elixir.P[\overline{\tx = t}]$.
-This may come as a surprise because we mentioned above
-that modules can only be accessed using their absolute path.
-However, here, $X$ is not a relative path to a submodule; this is the name of a function parameter.
-As such, it cannot be instantiated again because parameters must already have a concrete, fully
-instantiated type (parametric types are not first-class).
-Likewise, submodules are not included in the parent module's signature, so $X.P$ (where $X$ is a
-function parameter) would not make sense.
-
-Absolute paths are qualified with the $\Elixir$ prefix to remove ambiguity between the function parameter $X$
-and the top-level module with name $X$.
-
-Recall the syntax of types:
+For conciseness, we restrict Elixir's types to a small subset, to which
+we add some types specific to the module system.
 
 \begin{center}
     \begin{tabular}{rcll}
@@ -142,6 +140,9 @@ Recall the syntax of types:
     \end{tabular}
 \end{center}
 
+Types $t$ are semantic types.
+Types $T$ are types we do not know how to encode semantically. They are only manipulated syntactically.
+
 The separation between $T$ and $\mathbb{T}$ does not appear in \texttt{melixir.pdf}, but it
 just means that module signatures $\{ \overline{D} \}$ cannot appear in source programs.
 Expanded module signatures only show up in derivation trees when we check wellformedness of $M.\tx$ and $M.x$,
@@ -150,8 +151,6 @@ but they never end up in environments.
 This will save us from a lot of edge cases in capture-avoiding substitutions later.
 
 \paragraph{Environments}
-
-We define the type system formally below.
 
 Recall the definition of behaviour, module and local environments:
 
@@ -168,10 +167,10 @@ is a behaviour declaration, $D$ is a local declaration:
 
 \begin{center}
     \begin{tabular}{rcll}
-        $D$ & ::= & $ X : t$                   & \color{Gray} function parameter with module or behaviour type \\
+        $D$ & ::= & $ X : t$                   & \color{Gray} local variable with module or behaviour type     \\
             & |   & $x : \bigcap \overline{T}$ & \color{Gray} exports a value $x$ of type $\bigcap\overline T$ \\
-            & |   & $\tx : \star$              & \color{Gray} exports an opaque type $x$                       \\
-            & |   & $\tx : [=t]$               & \color{Gray} exports a transparent type $x = t$               \\
+            & |   & $\tx : \star$              & \color{Gray} exports an opaque type $\tx$                     \\
+            & |   & $\tx : [=t]$               & \color{Gray} exports a transparent type alias $\tx = t$
     \end{tabular}
 \end{center}
 
@@ -183,6 +182,15 @@ and $\mathcal{D}$ is either a local declaration or a submodule declaration:
                       & |   & $X : \Moddecl$
     \end{tabular}
 \end{center}
+
+Modules contain their submodules in the module environment $\Gammatop$
+because the scoping rules described above require preserving the order
+of the declarations. This does not invalidate the previous claim that
+submodules are not exported by their enclosing module (hence the normal $D$
+in module signatures $\{ \overline{D} \}$).
+Similarly, declarations $X : t$ are reserved to local variables and, as such,
+cannot appear in module signatures $\{ \overline{D} \}$ either.
+In particular, they cannot be used to export a submodule. \\
 
 Empty lists and environments are denoted $\emptyenv$. We consider behaviour, module and local
 environments as partial functions over $\BX$, $\Next$ and $\Next$ respectively,
@@ -267,8 +275,14 @@ $ \Sigma; \emptyenv; \overline{\tx : \star} \vdash \{ \overline{D} \}$ refers to
 
 \[
     \begin{prooftree}
+        \hypo { \vdash \Sigma }
+        \infer1 { \Sigma \vdash \emptyenv }
+    \end{prooftree}
+\] 
+\[
+    \begin{prooftree}
         \hypo { \epsilon; \Sigma; \emptyenv; \emptyenv \vdash \Gammatop }
-        \infer1 { \Sigma \vdash \Gammatop }
+        \infer1[($\Gammatop \neq \emptyenv$)] { \Sigma \vdash \Gammatop }
     \end{prooftree}
 \] \\
 
@@ -306,14 +320,6 @@ to a module in the module environment. The notations are formally defined below.
 
 Note that we can only add a declaration to the last module in the list.
 
-\paragraph{Empty list}
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop \vdash \Gammabot }
-        \infer1 { \Pi; \Sigma; \Gammatop; \Gammabot \vdash \emptyenv }
-    \end{prooftree}
-\]
-
 \paragraph{Local declarations}
 
 Intuitively, a local declaration is wellformed if we can add it to the
@@ -343,6 +349,14 @@ We need this environment to be stricly smaller than the initial environment, oth
 \paragraph{Module declarations}
 
 By abuse of notation, we consider that $\epsilon.X$ denotes $X$. This avoids duplicating the rules.
+
+In order to avoid cyclic rules and to keep the rules legible, we break wellformedness of submodules into three steps:
+\begin{itemize}
+    \item In the first rule, we check that the module does not already exist
+          in the environment and that its parameter names are pairwise distinct.
+    \item In the second rule, we check that the submodule's declaration list is wellformed.
+    \item In the third rule, we check that the submodule effectively implements the behaviours it declares.
+\end{itemize}
 
 \[
     \begin{prooftree}
@@ -507,11 +521,14 @@ Let $\Gammatop(P) = X : \Moddecl[\tx] [\overline{\mathcal{D}}][\BX][\tx'][t']$.
 
 \[
     \begin{prooftree}
-        \hypo {\Gammabot(X) = X : t }
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash t \preceq \mod }
+        \hypo { \Sigma; \Gammatop \vdash \Gammabot }
+        \hypo { X \in \dom(\Gammabot) }
         \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \langle X \rangle }
     \end{prooftree}
 \]
+
+Note that wellformedness of the local environment implies that
+$\Gammabot(X) = X : t$ and $t \preceq \mod$.
 
 \subsection{Function on modules}
 
@@ -531,7 +548,7 @@ that parameters $\overline{N : T}$ are wellformed and the $\overline{N}$ are pai
 By convention, the empty intersection $\bigcap \emptyset$ is equivalent to
 the top type $\lnot \mathbb{O}$, which is wellformed provided the environments are wellformed.
 
-The syntactic intersections is associative and commutative.
+The syntactic intersection is associative and commutative.
 
 \[
     \begin{prooftree}
@@ -626,6 +643,8 @@ which now holds (via $N : \langle \Elixir.X \rangle \preceq \{ \tx : \star,  \te
 \section{Subtyping}
 
 Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
+We will need to define it properly for the new types we added in $t$, but we keep it
+as a work for later.
 
 Recall the syntactic subtyping judgement: $\Sigma; \Gammatop; \Gammabot \vdash \mathbb{T} \preceq \mathbb{T}'$.
 We will denote $\mathbb{T} \simeq \mathbb{T}'$ when both $\mathbb{T} \preceq \mathbb{T}'$ and $\mathbb{T}' \preceq \mathbb{T}$ hold.
@@ -904,14 +923,14 @@ Recall the expression typing judgement: $\Sigma; \Gammatop; \Gammabot \vdash E :
 \[
     \begin{prooftree}
         \hypo { \overline{ \Sigma; \Gammatop; \Gammabot, \overline{x : t} \vdash E: t'} }
-        \infer1[$\overline{t'} \neq \emptyenv$]{ \Sigma; \Gammatop; \Gammabot \vdash \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E : \bigwedge \overline{ (\overline{t}) \rightarrow t'} }
+        \infer1[$\overline{t'} \neq \emptyenv$]{ \Sigma; \Gammatop; \Gammabot \vdash \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E : \bigwedge \overline{ (\overline{t}) \rightarrow t'} }
     \end{prooftree}
 \] \\
 
 \[
     \begin{prooftree}
         \hypo { \overline{ \Sigma; \Gamma, \overline{N : T} \vdash E: T'} }
-        \infer1[$\overline{T'} \neq \emptyenv$]{ \Sigma; \Gammatop; \Gammabot \vdash \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E : \bigcap \overline{(\overline{N : T }) \rightarrow T'} }
+        \infer1[$\overline{T'} \neq \emptyenv$]{ \Sigma; \Gammatop; \Gammabot \vdash \$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E : \bigcap \overline{(\overline{N : T }) \rightarrow T'} }
     \end{prooftree}
 \] \\
 
@@ -1168,23 +1187,36 @@ From now on we omit the $\Elixir.$ prefix for legibility purposes.
 
 \begin{lstlisting}[mathescape=true, basicstyle=\ttfamily]
    defmodule $X$ do
-        @param $\tx$ 
-        @type $\tx$ // opaque type in behaviour
-        @type $\tx$ :: $t$ // in module
-        @opaque $\tx$ :: $t$ // in module
+        @param $\tx$ // in both behaviour and module
+
+        @behaviour $\BX$($\tx$ = $t$, $...$)
+
+        @type $\tx$          // opaque type in behaviour
+        @type $\tx$ :: $t$      // in module
+        @opaque $\tx$ :: $t$    // in module
 
         @callback $x$($x$ :: $T$, $...$) :: $T$
         @callback $x$ :: (($t$, $...$) :: $t$) and $...$
         @callback $x$ :: (($N$ :: $T$, $...$) ::  $T$) and $...$
 
-        def $x$($x$ :: $T$, $...$) :: T do
+        @spec $x$($x$ :: $T$, $...$) :: $T$
+        def $x$($x$, $...$) when $guard$ do
             $...$
         end
 
-        defp $x$($x$ :: $T$, $...$) :: T do
+        defp $x$($x$, $...$) do
             $...$
         end
 
     end
+
+    $X$ :: module()
+    $X$ :: module($X'$)
+    $X$ :: module($\Elixir.P$($\tx$ = $t$, $...$))
+    $X$ :: $\BX$($\tx$ = $t$, $...$)
+    $X$ :: behaviour($\BX$($\tx$ = $t$, $...$))
+    
+
+
 \end{lstlisting}
 \end{document}

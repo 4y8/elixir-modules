@@ -278,18 +278,18 @@ $ \Sigma; \emptyenv; \overline{\tx : \star} \vdash \{ \overline{D} \}$ refers to
         \hypo { \vdash \Sigma }
         \infer1 { \Sigma \vdash \emptyenv }
     \end{prooftree}
-\] 
+\]
 \[
     \begin{prooftree}
-        \hypo { \epsilon; \Sigma; \emptyenv; \emptyenv \vdash \Gammatop }
-        \infer1[($\Gammatop \neq \emptyenv$)] { \Sigma \vdash \Gammatop }
+        \hypo { \epsilon; \Sigma; \Gammatop; \emptyenv \vdash X : \Moddecl }
+        \infer1{ \Sigma \vdash \Gammatop, X : \Moddecl }
     \end{prooftree}
 \] \\
 
 The hypothesis refers to the wellformedness of declaration lists: $$\Pi; \Sigma; \Gammatop; \Gammabot \vdash \overline{\mathcal{D}}$$
 This judgement is not to be confused with the wellformedness of the type $\{\overline{D}\}$, which can only contain local declarations.
 
-We give inference rules for the wellformedness of declaration lists below. 
+We give inference rules for the wellformedness of declaration lists below.
 First, we need to introduce two new notations:
 $\locals$ takes the list of declarations of a module and filters out submodule
 declarations, so as to keep only local declarations. $(\overline{\mathcal{D}})[\Pi \texttt{+=} \mathcal{D}']$ adds a declaration
@@ -1121,8 +1121,8 @@ Moreover, the proof is split in multiple subtrees so that it fits on the page.
         \infer2{ A; \emptyenv; A : \{ \tx : \star \}; \tx : \star \vdash B : \{ \ty : [= \Elixir.A.\tx] \} }
         \infer1{ A; \emptyenv; A : \{ \}; \emptyenv \vdash \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} }
         \infer1{ \emptyenv \vdash A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \} }
-          \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \} \vdash \emptyenv }
-          \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \} \vdash \tx : \star }
+        \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \} \vdash \emptyenv }
+        \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \} \vdash \tx : \star }
         \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \}; \tx : \star \vdash \tx}
         \infer1{ \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \} \vdash \tx : \star, \tx' : [= \tx] }
         \infer1{ A; \emptyenv; A : \{ \tx : \star, B : \{ \ty : [= \Elixir.A.\tx] \} \}; \tx : \star \vdash \tx' : [= \tx] }

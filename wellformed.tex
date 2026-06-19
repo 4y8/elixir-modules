@@ -72,8 +72,8 @@ We will rewrite it cleanly in this document later.
 We represent an Elixir program as a list of behaviours $\overline{\mathcal{B}}$ followed by a
 list of bindings $\overline{B}$.
 
-Behaviours are the Elixir equivalent of interfaces or traits in other languages.
-Bindings are type, function or submodule definitions.
+Behaviours are the Elixir equivalent of interfaces, or traits, or signatures in other languages. In the specific case of Elixir, behaviours are nominal types for modules.
+Bindings are type, function or module definitions. Module definitions are again list of bindings; we suppose that the toplevel list of bindings $\overline{B}$ that forms the program is a list of module definitions.
 
 Checking a program involves checking that all behaviours and bindings are well-formed.
 Informally, a behaviour is well-formed if all type and behaviour names are \textit{bound},
@@ -278,8 +278,7 @@ $ \Sigma; \emptyenv; \overline{\tx : \star} \vdash \{ \overline{D} \}$ refers to
         \hypo { \vdash \Sigma }
         \infer1 { \Sigma \vdash \emptyenv }
     \end{prooftree}
-\]
-\[
+\qquad
     \begin{prooftree}
         \hypo { \epsilon; \Sigma; \Gammatop; \emptyenv \vdash X : \Moddecl }
         \infer1{ \Sigma \vdash \Gammatop, X : \Moddecl }

@@ -45,6 +45,7 @@ defmodule MemoryStore do
 	$param key: atom() | integer() | String.t()
 	$param value
 	$param error
+
 	$behaviour DataStore[key=key, value=value, error=error]
 
 	$opaque state = %{key() => value()}
@@ -82,6 +83,7 @@ defmodule StaticStoreProvider do
 	$param key: atom() | integer() | String.t()
 	$param value
 	$param error
+
 	$behaviour StoreProvider[key=key, value=value, error=error]
 
 	@impl StoreProvider

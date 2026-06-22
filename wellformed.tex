@@ -1105,6 +1105,11 @@ Recall the shape of the typing judgement for bindings: $\Pi; \Sigma; \Gammatop; 
 
 \section{Draft: semantics}
 
+We denote $[\![ t ]\!]$ Elixir's core semantics.
+It is defined for all pretypes except for
+our new types $\tx$, $M.\tx$, $\langle M \rangle$ and
+$\BX[\overline{\tx = t}]$.
+
 We assume the existence of an injective function
 $\texttt{interp}: (M \times \tx) \cup \tx \rightarrow \alpha$.
 We also assume the type variables returned by this function cannot appear

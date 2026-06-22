@@ -1103,6 +1103,33 @@ Recall the shape of the typing judgement for bindings: $\Pi; \Sigma; \Gammatop; 
     \end{prooftree}
 \]
 
+\section{Draft: semantics}
+
+We assume the existence of an injective function
+$\texttt{interp}: (M \times \tx) \cup \tx \rightarrow \alpha$.
+We also assume the type variables returned by this function cannot appear
+in source programs.
+
+
+Let $\Sigma, \Gammatop, \Gammabot$ be wellformed environments.
+
+
+We define the semantics of wellformed pretypes $t$ as:
+
+$[\![ \BX[\overline{\tx = t}] ]\!]_{\Sigma, \Gammatop, \Gammabot} = ...$
+
+$[\![ \langle M\rangle ]\!]_{\Sigma, \Gammatop, \Gammabot} = ...$
+
+$[\![ \tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![ t ]\!]_{\Sigma, \Gammatop, \Gammabot} $ if $\Gammabot(\tx) = \tx : [= t]$
+
+$[\![ \tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![\texttt{interp}(\tx)]\!] $ if $\Gammabot(\tx) = \tx : *$
+
+$[\![ M.\tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![ \wrap_{M; \overline{D}}(t) ]\!]_{\Sigma, \Gammatop, \Gammabot} $ if $\langle M \rangle \preceq \{ \overline{D}, \tx : [= t] \}$
+
+$[\![ M.\tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![\texttt{interp}(M, \tx)]\!] $ if $M.\tx$ is opaque
+
+extended to other pretypes using Elixir's core semantics.
+
 \section{Appendix: example of derivation tree}
 
 Below, we prove that the following module environment is wellformed

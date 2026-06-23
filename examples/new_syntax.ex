@@ -8,7 +8,7 @@ defmodule DataStore do
 
 	$param key: atom() | integer() | String.t()
 	$param value
-	$param error
+	$opaque error
 	$opaque state
 
 	$callback start_link :: keyword() -> {:ok, state} | {:error, error}
@@ -27,15 +27,14 @@ defmodule StoreProvider do
 
 	$param key: atom() | integer() | String.t()
 	$param value
-	$param error
 	# let use a transparent type as an alias
-	$type localDataStore = DataStore[key=key, value=value, error=error]
+	$type localDataStore = DataStore[key=key, value=value]
 
 	$callback default_store :: () -> localDataStore
 	$callback normalize_store :: localDataStore -> localDataStore
 	$callback put_via ::
 		(X : localDataStore, x : X.state, key, value)
-		-> {:ok, X.state} | {:error, error}
+		-> {:ok, X.state} | {:error, X.error}
 end
 
 defmodule MemoryStore do
@@ -44,16 +43,21 @@ defmodule MemoryStore do
 	"""
 	$param key: atom() | integer() | String.t()
 	$param value
-	$param error
+	$type error = :initial_required
 
-	$behaviour DataStore[key=key, value=value, error=error]
+	$behaviour DataStore[key=key, value=value]
 
 	$opaque state = %{key => value}
 
 	@impl DataStore
 	def start_link(opts \\ []) do
-		initial = Keyword.get(opts, :initial, %{})
-		{:ok, initial}
+	  case Keyword.get(opts, :initial) do
+        nil ->
+          {:error, :initial_required}
+
+        initial ->
+          {:ok, initial}
+      end
 	end
 
 	@impl DataStore
@@ -82,14 +86,13 @@ defmodule StaticStoreProvider do
 
 	$param key: atom() | integer() | String.t()
 	$param value
-	$param error
 
-	$behaviour StoreProvider[key=key, value=value, error=error]
+	$behaviour StoreProvider[key=key, value=value]
 
 	@impl StoreProvider
 	def default_store do
 		# note here the new syntax for parameterized modules
-		MemoryStore[key=key, value=value, error=error]
+		MemoryStore[key=key, value=value]
 	end
 
 	@impl StoreProvider
@@ -106,10 +109,7 @@ end
 defmodule Demo do
 	def run do
 		# note here the new syntax for parameterized modules
-		# note also that we instantite error type to none meaning that do not allow
-		# the callbacks to return errors. This is a way to specialize the behaviour
-		# for a specific use case.
-		alias MyStaticStoreProvider = StaticStoreProvider[key=atom(), value=integer(), error=none()]
+		alias MyStaticStoreProvider = StaticStoreProvider[key=atom(), value=integer()]
 		store0 = MyStaticStoreProvider.default_store()
 		store = MyStaticStoreProvider.normalize_store(store0)
 

@@ -11,10 +11,10 @@ defmodule DataStore do
 	$param error
 	$opaque state
 
-	$callback start_link :: keyword() -> {:ok, state} | {:error, error()}
-	$callback put :: (state, key(), value()) -> {:ok, state} | {:error, error()}
+	$callback start_link :: keyword() -> {:ok, state} | {:error, error}
+	$callback put :: (state, key(), value()) -> {:ok, state} | {:error, error}
 	$callback get :: (state, key()) -> {{:ok, value()} | :not_found, state}
-	$callback delete :: (state, key()) -> {:ok, state} | {:error, error()}
+	$callback delete :: (state, key()) -> {:ok, state} | {:error, error}
 end
 
 defmodule StoreProvider do
@@ -35,7 +35,7 @@ defmodule StoreProvider do
 	$callback normalize_store :: localDataStore -> localDataStore
 	$callback put_via ::
 		(X : localDataStore, x : X.state, key, value)
-		-> {:ok, X.state} | {:error, error()}
+		-> {:ok, X.state} | {:error, error}
 end
 
 defmodule MemoryStore do
@@ -106,7 +106,10 @@ end
 defmodule Demo do
 	def run do
 		# note here the new syntax for parameterized modules
-		alias MyStaticStoreProvider = StaticStoreProvider[key=atom(), value=integer(), error=term()]
+		# note also that we instantite error type to none meaning that do not allow
+		# the callbacks to return errors. This is a way to specialize the behaviour
+		# for a specific use case.
+		alias MyStaticStoreProvider = StaticStoreProvider[key=atom(), value=integer(), error=none()]
 		store0 = MyStaticStoreProvider.default_store()
 		store = MyStaticStoreProvider.normalize_store(store0)
 

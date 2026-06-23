@@ -12,9 +12,9 @@ defmodule DataStore do
 	$opaque state
 
 	$callback start_link :: keyword() -> {:ok, state} | {:error, error}
-	$callback put :: (state, key(), value()) -> {:ok, state} | {:error, error}
-	$callback get :: (state, key()) -> {{:ok, value()} | :not_found, state}
-	$callback delete :: (state, key()) -> {:ok, state} | {:error, error}
+	$callback put :: (state, key, value) -> {:ok, state} | {:error, error}
+	$callback get :: (state, key) -> {{:ok, value} | :not_found, state}
+	$callback delete :: (state, key) -> {:ok, state} | {:error, error}
 end
 
 defmodule StoreProvider do
@@ -48,7 +48,7 @@ defmodule MemoryStore do
 
 	$behaviour DataStore[key=key, value=value, error=error]
 
-	$opaque state = %{key() => value()}
+	$opaque state = %{key => value}
 
 	@impl DataStore
 	def start_link(opts \\ []) do

@@ -43,6 +43,9 @@ defmodule MemoryStore do
 	"""
 	$param key: atom() | integer() | String.t()
 	$param value
+	# Note that here we used a transparent type to implement the opaque type
+	# `error` from the `DataStore` behaviour, since we want the specific error
+	#to be visible.
 	$type error = :initial_required
 
 	$behaviour DataStore[key=key, value=value]

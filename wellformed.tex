@@ -72,13 +72,13 @@ We will rewrite it cleanly in this document later.
 We represent an Elixir program as a list of behaviours $\overline{\mathcal{B}}$ followed by a
 list of bindings $\overline{B}$.
 
-Behaviours are the Elixir equivalent of interfaces, or traits, or signatures in other languages. In the specific case of Elixir, behaviours are nominal types for modules.
+Behaviours are the Elixir equivalent of interfaces, traits, or signatures in other languages. In the specific case of Elixir, behaviours are nominal types for modules.
 Bindings are type, function or module definitions. Module definitions are again lists of bindings;
 The toplevel list of bindings $\overline{B}$ that forms the program  must be a list of module definitions.
 This is formalized later in this document, in the inference rules for the wellformedness judgements.
 
 Checking a program involves checking that all behaviours and bindings are well-formed.
-Informally, a behaviour is well-formed if all type and behaviour names are \textit{bound},
+Informally, a behaviour is well-formed if all type and behaviour names in it are \textit{bound},
 that is, they are declared before use. A binding is wellformed if all type, behaviour and module
 names are bound and the values it defines are well typed.
 
@@ -119,11 +119,11 @@ of $\Elixir.P[]$ \\
 
 Note that submodules are not member of their enclosing module.
 It is not possible to access submodules of the module stored in
-local variable $X$.
+local variable $X$. The module must be accessed using its absolute path instead.
 
 Admittedly, Elixir does allow references to a submodule from within its enclosing
 module using relative paths.
-However, this is only syntactic sugar. Relative paths are expanded to
+However, this is only syntactic sugar. Relative paths are expanded by the compiler to
 their corresponding absolute path before they reach the type system.
 
 \paragraph{Types}
@@ -136,7 +136,7 @@ we add some types specific to the module system.
         $t$          & ::= & $ ... $                                                   & \color{Gray}  core types and operators $\vee$, $\lnot$, see \texttt{melixir.pdf} \\
                      & |   & $\tx$                                                     & \color{Gray} local type or type parameter                                        \\
                      & |   & $M.\tx$                                                   & \color{Gray} type imported from module $M$                                       \\
-                     & |   & $\BX[\overline{\tx = t}]$                                 & \color{Gray} type of a module that implements a given behaviour                  \\
+                     & |   & $\BX[\overline{\tx = t}]$                                 & \color{Gray} type of a module that implements the behaviour $\BX$                 \\
                      & |   & $\langle M \rangle$                                       & \color{Gray} singleton type of module $M$                                        \\[3mm]
         $T$          & ::= & $t$                                                                                                                                          \\
                      & |   & $(\overline{N : T}) \rightarrow T$                                                                                                           \\[3mm]
@@ -198,7 +198,7 @@ Similarly, declarations $X : t$ are reserved to local variables and, as such,
 cannot appear in module signatures $\{ \overline{D} \}$ either.
 In particular, they cannot be used to export a submodule. \\
 
-Empty lists and environments are denoted $\emptyenv$. We consider behaviour, module and local
+Empty lists and empty environments are denoted $\emptyenv$. We consider behaviour, module and local
 environments as partial functions over $\BX$, $\Next$ and $\Next$ respectively,
 where $\Next ::= N$ | $\tx$ ranges over declaration names.
 
@@ -230,7 +230,7 @@ We define the following judgements:
 \end{figure}
 where $\Pi := \epsilon$ | $P$ (occurring in the binding typing judgement above) is a possibly empty path.
 
-The wellformedness of module environments will also need one auxiliary judgement, which will be defined in the corresponding section.
+The wellformedness of module environments will also need a further auxiliary judgement, which will be defined in the corresponding section.
 
 Let $\overline{\mathcal B}, \overline{B}$ be a program. The program passes type-checking if there exists a wellformed module environment $\Gammatop$ such that both
 $$\vdash \overline{\mathcal B} \quad \text{ and } \quad \epsilon; \overline{\mathcal{B}}; \emptyenv; \emptyenv \vdash \overline{B} : \Gammatop$$ hold.
@@ -249,7 +249,7 @@ and functions with duplicate parameter names,
 it also brings some limitations that are worth mentioning.
 
 Function parameters cannot shadow local module declarations.
-We consider this limitation is orthogonal to the type system and
+We consider this limitation orthogonal to the type system and
 it is the responsibility of the programmer to rename function parameters.
 
 Another, more critical limitation, regards the wellformedness of
@@ -520,7 +520,8 @@ wellformed if we allow alpha-renaming is given below, after the wellformedness o
 
 
 In the above rule, $\Sigma; \Gammatop; \Gammabot[\overline{\Next'/\Next}] \vdash M[\overline{\Next'/\Next}] : \{ \tx : \star \} $ is a typing judgement.
-Thanks to subtyping, $\{ \tx : \star \}$ may not be exactly the type associated with $M$ in $\Gammatop$ or $\Gammabot$.
+Thanks to the subsumption rule, $\{ \tx : \star \}$ may not be exactly the type associated with $M$ in $\Gammatop$ or $\Gammabot$,
+which will typically contain more declarations.
 
 \subsection{Singleton module type}
 
@@ -688,8 +689,13 @@ all the $\overline{\mathbb{T}'}^j$ are wellformed.
 
 This rule is sound but not complete. In particular, it is much less powerful than
 the semantic intersection $\wedge$ for types $t$.
+In practice, this limitation can become noticeable especially when dealing with syntactic
+intersections of functions with overlapping domains and complex guards.
+
 We may explore how to make the syntactic
-intersection more powerful in a future work, but we accept this limitation for now.
+intersection more powerful in a future work
+but, for now, we assume the practical use cases are
+ rare enough and we accept this limitation.
 
 Note that with this definition, the empty intersection is a supertype of all intersections,
 and therefore is a supertype of all types. This is consistent with the convention that

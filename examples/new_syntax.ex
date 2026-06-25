@@ -6,15 +6,15 @@ defmodule DataStore do
 	The key type is bounded, so that it can be used in a map.
 	"""
 
-	$param key: atom() | integer() | String.t()
+	$param key: atom() or integer() or String.t()
 	$param value
 	$opaque error
 	$opaque state
 
-	$callback start_link :: keyword() -> {:ok, state} | {:error, error}
-	$callback put :: (state, key, value) -> {:ok, state} | {:error, error}
-	$callback get :: (state, key) -> {{:ok, value} | :not_found, state}
-	$callback delete :: (state, key) -> {:ok, state} | {:error, error}
+	$callback start_link(keyword()) = {:ok, state} or {:error, error}
+	$callback put(state, key, value) = {:ok, state} or {:error, error}
+	$callback get(state, key) = {{:ok, value} or :not_found, state}
+	$callback delete(state, key) = {:ok, state} or {:error, error}
 end
 
 defmodule StoreProvider do
@@ -25,30 +25,28 @@ defmodule StoreProvider do
 	depends on the module argument.
 	"""
 
-	$param key: atom() | integer() | String.t()
+	$param key: atom() or integer() or String.t()
 	$param value
 	# let use a transparent type as an alias
-	$type localDataStore = DataStore[key=key, value=value]
+	$type localDataStore = DataStore[key: key, value: value]
 
-	$callback default_store :: () -> localDataStore
-	$callback normalize_store :: localDataStore -> localDataStore
-	$callback put_via ::
-		(X : localDataStore, x : X.state, key, value)
-		-> {:ok, X.state} | {:error, X.error}
+	$callback default_store() = localDataStore
+	$callback normalize_store(localDataStore) = localDataStore
+	$callback put_via(x :: localDataStore, x.state, key, value) = {:ok, x.state} or {:error, x.error}
 end
 
 defmodule MemoryStore do
 	@moduledoc """
 	MODULE: In-memory implementation of `DataStore` using an immutable map state.
 	"""
-	$param key: atom() | integer() | String.t()
+	$param key: atom() or integer() or String.t()
 	$param value
 	# Note that here we used a transparent type to implement the opaque type
 	# `error` from the `DataStore` behaviour, since we want the specific error
 	#to be visible.
 	$type error = :initial_required
 
-	$behaviour DataStore[key=key, value=value]
+	$behaviour DataStore[key: key, value: value]
 
 	$opaque state = %{key => value}
 
@@ -87,15 +85,15 @@ defmodule StaticStoreProvider do
 	MODULE: Simple provider that passes `MemoryStore` around as a first-class module.
 	"""
 
-	$param key: atom() | integer() | String.t()
+	$param key: atom() or integer() or String.t()
 	$param value
 
-	$behaviour StoreProvider[key=key, value=value]
+	$behaviour StoreProvider[key: key, value: value]
 
 	@impl StoreProvider
 	def default_store do
 		# note here the new syntax for parameterized modules
-		MemoryStore[key=key, value=value]
+		MemoryStore[key: key, value: value]
 	end
 
 	@impl StoreProvider
@@ -112,7 +110,7 @@ end
 defmodule Demo do
 	def run do
 		# note here the new syntax for parameterized modules
-		alias MyStaticStoreProvider = StaticStoreProvider[key=atom(), value=integer()]
+		alias MyStaticStoreProvider = StaticStoreProvider[key: atom(), value: integer()]
 		store0 = MyStaticStoreProvider.default_store()
 		store = MyStaticStoreProvider.normalize_store(store0)
 

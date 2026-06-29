@@ -33,6 +33,11 @@
 \newcommand{\opaque}{\texttt{opaque\;}}
 \newcommand{\wrap}{\texttt{wrap}}
 
+\newcommand{\eq}{\texttt{eq}}
+
+\NewDocumentCommand{\interp}{m O{\Sigma, \Gammatop, \Gammabot}}{
+   [\![#1]\!]_{#2}
+}
 \NewDocumentCommand{\Moddecl}{O{\tx} O{\overline {\mathcal{D}}} O{\BX} O{\tx'} O{t} }{
    \Lambda (\overline{#1 : \star}) . \left\{ #2 \right\}_{\overline{#3 [\overline{#4 = #5}]}}
 }
@@ -136,7 +141,7 @@ we add some types specific to the module system.
         $t$          & ::= & $ ... $                                                   & \color{Gray}  core types and operators $\vee$, $\lnot$, see \texttt{melixir.pdf} \\
                      & |   & $\tx$                                                     & \color{Gray} local type or type parameter                                        \\
                      & |   & $M.\tx$                                                   & \color{Gray} type imported from module $M$                                       \\
-                     & |   & $\BX[\overline{\tx = t}]$                                 & \color{Gray} type of a module that implements the behaviour $\BX$                 \\
+                     & |   & $\BX[\overline{\tx = t}]$                                 & \color{Gray} type of a module that implements the behaviour $\BX$                \\
                      & |   & $\langle M \rangle$                                       & \color{Gray} singleton type of module $M$                                        \\[3mm]
         $T$          & ::= & $t$                                                                                                                                          \\
                      & |   & $(\overline{N : T}) \rightarrow T$                                                                                                           \\[3mm]
@@ -653,22 +658,91 @@ $$\emptyenv; X : \{ \tx : \star, \; \texttt{default} : () \rightarrow \tx \}; \l
 
 which now holds (via $N : \langle \Elixir.X \rangle \preceq \{ \tx : \star,  \texttt{default} : () \rightarrow \tx \} \preceq \{ \tx : \star \}$).
 
+\section{Encoding}
+
+In this section, we extend Elixir's core type encoding to all types $t$.
+
+We introduce the following stratification for pretypes $t$:
+
+\begin{center}
+    \begin{tabular}{rl}
+        $\tau$ & ::= $k$ | $\atom$ | $\mod$ | $\fun$ | $(\overline{\tau}) \rightarrow \tau$ | $\%\{ \overline{k : \tau} \}$ | $\tau \vee \tau$ | $\lnot \tau$ | $\mathbb{O}$ | $\alpha$ \\
+        $t$    & ::= $\tau$ | $(\overline{t}) \rightarrow t$ | $\%\{ \overline{k : t} \}$ | $t \vee t$ | $\lnot t$ | $\tx$ | $M.\tx$ | $\BX[\overline{\tx = t}]$ | $\langle M \rangle$
+    \end{tabular}
+\end{center}
+
+Types $\tau$ correspond to core Elixir's types.
+
+We assume the existence of two injective functions with non-overlapping ranges
+which map local type names $\tx$ and imported types $M.\tx$ to distinguished type variables, respectively:
+$\tx \mapsto \alpha_\tx$ and $M.\tx \mapsto \alpha_\tx(M)$.
+We write $\alpha_\tx(M)$ instead of $\alpha_{M.\tx}$ for legibility only.
+
+Let $\mho$ be a distinguished type variable. We define $\text{eq}(\tau) = (\tau \vee \mho) \times (\lnot \tau \vee \mho)$.
+Let $@b$, $@s$ and $@l$ be distinguished atoms.
+
+We assume $\mho$, $@b$, $@s$ and $@l$, the $\alpha_\tx$ and the $\alpha_\tx(M)$ cannot appear in the source program.
+
+Let $\Sigma, \Gammatop, \Gammabot$ be wellformed environments.
+
+We define $\interp{t}$ (where $\Sigma; \Gammatop; \Gammabot \vdash t$) as:
+\begin{center}
+    \begin{tabular}{rcll}
+        $ \interp{\tau} $                          & = & TODO                                                                                    \\[1.5mm]
+        $ \interp{(\overline{t}) \rightarrow t'} $ & = & $\left(\overline{\interp{t}}\right) \rightarrow \interp{t'}$                            \\[1.5mm]
+        $ \interp{t \vee t' } $                    & = & $\interp{t} \vee \interp{t'}$                                                           \\[1.5mm]
+        $\interp{\%\{ \overline{k : t} \}}$        & = & $\% \left\{ \overline{k : \interp{t}}, @b : \perp , @s : \perp , @l : \perp  \right\} $ \\[1.5mm]
+        $ \interp{\lnot t} $                       & = & $\lnot\interp{t}$                                                                       \\[1.5mm]
+    \end{tabular}
+\end{center}
+
+Let $P$ such that $\Gammatop(P) = \_ : \Moddecl[\tx][\overline{D}][\BX][\tx'][t']$.
+\begin{center}
+    \begin{tabular}{rcll}
+        $ \interp{\BX[\overline{\tx = t}]} $                     & = & \multicolumn{2}{l}{$\%\{ @b: \lnot \ulcorner\! \BX \!\urcorner, \overline{\ulcorner\!\BX.\tx\!\urcorner : \eq(\interp{t})}  \}$}                                                                                                                   \\[2mm]
+        $\interp{\langle \Elixir.P[\overline{\tx = t}] \rangle}$ & = &
+        \multicolumn{2}{l}{$\%\{ @s: \ulcorner\! P \!\urcorner, \overline{\ulcorner\!P.\tx\!\urcorner : \eq(\interp{t})}  \} \wedge \bigwedge \overline{\interp{\BX[\overline{\tx' = t'}]}}$}                                                                                                                             \\[2mm]
+        $\interp{\langle X \rangle} $                            & = & $\interp{\langle M \rangle}$                                                                                                     & if $\Gammabot(X) = X : \langle M \rangle$                                                                       \\[1.5mm]
+        $\interp{\langle X \rangle} $                            & = & $\% \{ @l: \lnot \ulcorner\! X \!\urcorner \} \wedge \interp{t}$                                                                 & if $\Gammabot(X) = X : t$, $t \neq \langle M \rangle$                                                           \\[3mm]
+        $ \interp{\tx} $                                         & = & $\interp{t}$                                                                                                                     & if $\Gammabot(\tx) = \tx : [= t]$                                                                               \\
+        $ \interp{M.\tx} $                                       & = & $\interp{\wrap_{M, \overline{D}}(t)}$                                                                                            & if $\exists t.\; \Sigma; \Gammatop; \Gammabot \vdash \langle M \rangle \preceq \{ \overline{D}, \tx : [= t] \}$ \\[2mm]
+        $ \interp{\tx} $                                         & = & $\alpha_\tx$                                                                                                                     & if $\Gammabot(\tx) = \tx : \star$                                                                               \\
+        $ \interp{\Elixir.P[\overline{\tx' = t}].\tx} $          & = & $\alpha_\tx(\Elixir.P[\overline{\tx' = \interp{t}}]) $                                                                           & if $\Elixir.P[\overline{\tx' = t}].\tx$ is opaque                                                               \\
+        $ \interp{X.\tx} $                                       & = & $\interp{M.\tx} $                                                                                                                & if $X.\tx$ is opaque and $\Gammabot(X) = X : \langle M \rangle$                                                 \\
+        $ \interp{X.\tx} $                                       & = & $\alpha_\tx(X)  $                                                                                                                & if $X.\tx$ is opaque and $\Gammabot(X) \neq X : \langle M \rangle$
+    \end{tabular}
+\end{center}
+
+We stress the following observations:
+
+\begin{itemize}
+    \item If $\tx$ is opaque, then the local $\tx$ and the qualified $\Elixir.P[\overline{\tx = \tx}].\tx$
+          (where $P$ is the path of the current module) are unrelated types.
+          This is intended, because hot swapping may cause the opaque type to change definition.
+    \item We should also enforce that a value of type $\Elixir.P[\overline{\tx = \tx}].\tx$
+          can never survive hot swapping. This is a critical soundness issue with the current encoding.
+    \item When $\Gammabot(X) = X : \langle M \rangle$, then $\langle X \rangle \simeq \langle M \rangle$
+          and $X.\tx \simeq M.\tx$. In other words, we treat $X$ just as a transparent alias for $M$.
+          The section about typing of expressions will discuss this point further.
+    \item When $\Gammabot(X) = X : t$ and $t \neq \langle M \rangle$ (for any $M$), then $\langle X \rangle$
+          is a (strict) subtype of $t$. Typically, in this case, $t = \BX[\overline{\tx = t'}]$ for some behaviour $\BX$.
+    \item It is trivial to know whether $\Elixir.P[\overline{\tx = t}].\tx$ is transparent or opaque.
+          However, $X.\tx$ may require slightly more elaborate subtyping (see corresponding section).
+\end{itemize}
 
 \section{Subtyping}
 
-Elixir's semantic subtyping will be denoted $ t \vartriangleleft t'$.
-We will need to define it properly for the new types we added in $t$, but we keep it
-as a work for later.
-
 Recall the syntactic subtyping judgement: $\Sigma; \Gammatop; \Gammabot \vdash \mathbb{T} \preceq \mathbb{T}'$.
 We will denote $\mathbb{T} \simeq \mathbb{T}'$ when both $\mathbb{T} \preceq \mathbb{T}'$ and $\mathbb{T}' \preceq \mathbb{T}$ hold.
+Elixir's semantic subtyping for core types will be denoted $\tau \lhd \tau'$.
 
 We start with the simple case:
 \[
     \begin{prooftree}
-        \hypo{ \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo{ t \vartriangleleft t' }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash t \preceq t' }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash t }
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash t' }
+        \hypo{ [\![t]\!]_{\Sigma, \Gammatop, \Gammabot} \lhd [\![t']\!]_{\Sigma, \Gammatop, \Gammabot} }
+        \infer3{ \Sigma; \Gammatop; \Gammabot \vdash t \preceq t' }
     \end{prooftree}
 \]
 
@@ -695,7 +769,7 @@ intersections of functions with overlapping domains and complex guards.
 We may explore how to make the syntactic
 intersection more powerful in a future work
 but, for now, we assume the practical use cases are
- rare enough and we accept this limitation.
+rare enough and we accept this limitation.
 
 Note that with this definition, the empty intersection is a supertype of all intersections,
 and therefore is a supertype of all types. This is consistent with the convention that
@@ -785,13 +859,26 @@ Let $\Gammatop(P) = X : \Moddecl[\tx] [\overline{\mathcal{D}}][\BX][\tx'][t']$.
     \end{prooftree}
 \] \\
 
+Note that, because of the separation between pretypes $t$ and strucural module signatures $\{ \overline{D} \}$,
+signature expansion cannot traverse negation and union.
+
+As a result, $\BX[\overline{\tx = t}] \vee \BX'[\overline{\tx' = t'}]$ is not of great use unless
+$\BX = \BX'$ and $\overline{t} = \overline{t'}$.
+
+If $X : \BX[\overline{\tx = t}] \vee \BX'[\overline{\tx' = t'}]$, then
+there is no way to prove wellformedness of $X.\tx$, even if both $\BX$ and $\BX'$ declare a type $\tx$.
+
+We accept this limitation, because in practice, the type $t$ of a function parameter $X : t$ is expected to be one of $\mod$, $\langle M \rangle$
+or $\BX[\overline{\tx = t'}]$ instead of a complex combination of types.
+
+If addressing this gap is found to be useful, it would be straightforward to add new rules such as
 \[
     \begin{prooftree}
-        \hypo { \Sigma; \Gammatop \vdash \Gammabot }
-        \hypo { \Gammabot(X) = X : t }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \langle X \rangle \preceq t}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash t \preceq \mathbb{T} }
+        \hypo { \Sigma; \Gammatop; \Gammabot  \vdash t' \preceq \mathbb{T} }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash t \vee t' \preceq \mathbb{T} }
     \end{prooftree}
-\] \\
+\]
 
 \subsection{Module weakening}
 
@@ -992,7 +1079,6 @@ cannot appear in $\overline{T}^j$ for $j < i$.
 This is why we wrote $\overline{T}^i[\overline{N/N'}]$ instead of $\overline{T}^i[\overline{N/N'}^{0..i}]$
 in the rule above.
 
-
 The hypothesis $\overline{\Sigma; \Gammatop; \Gammabot \vdash N : T[\overline{N/N'}]}$ means that
 $\Sigma; \Gammatop; \Gammabot \vdash \overline{N}^i : \overline{T[\overline{N/N'}]}^i$ must hold for all $i$
 without changing $\Gammabot$. It is not to be confused with the wellformedness judgement
@@ -1000,6 +1086,24 @@ $\Sigma; \Gammatop \vdash \Gammabot, \overline{N : T[\overline{N/N'}]}$, which w
 
 We do not give a typing judgement for the application where the function has type $(\overline{t}) \rightarrow t'$
 because it is a subtype of $(\overline{N : t}) \rightarrow t'$, as defined above.
+
+\paragraph{Further discussion about the encoding of $X.\tx$} The astute reader might have noticed a seemingly severe limitation resulting from the two rules above.
+Consider for instance the function: $\texttt{foo}(Y : \BX, x : Y.\tx) \rightarrow Y.\tx$.
+Let us assume we want to call it with module $\Elixir.P$, which implements behaviour $\BX$,
+and a local variable $\texttt{state}$ of type $\Elixir.P.\tx$. In other words, we want to type-check:
+$\texttt{foo}(\Elixir.P, \texttt{state})$.
+
+First, we need to rewrite it in normal form: 
+$\texttt{let } X = \Elixir.P \texttt{ in } \texttt{foo}(X, \texttt{state})$.
+But then, by the rule above, the local variable $\texttt{state}$ must have type $X.\tx$ (as opposed to $\Elixir.P.\tx$),
+and the return type of the application is $(Y.\tx)[X/Y] = X.\tx$, which
+contains $X$ and cannot escape the $\texttt{let}$ construct!
+
+It would be very inconvenient if the caller of function \texttt{foo} was unable
+to use $\texttt{state}$ as the second argument or to expose the result of the application to its own caller.
+The solution comes from the fact that we carefully encoded $\langle X \rangle$ and $X.\tx$
+to be equivalent to $\langle \Elixir.P \rangle$ and $\Elixir.P.\tx$, respectively, which allows the application
+to be well-typed and the result to be upcast to type $\Elixir.P.\tx$ and to escape the $\texttt{let}$ expression.
 
 \[
     \begin{prooftree}
@@ -1108,38 +1212,6 @@ Recall the shape of the typing judgement for bindings: $\Pi; \Sigma; \Gammatop; 
         \infer2{ \Pi; \Sigma; \Gammatop; \Gammabot \vdash \left(X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'}\right) : \left(X : \Moddecl, \overline{\mathcal{D}'}\right) }
     \end{prooftree}
 \]
-
-\section{Draft: semantics}
-
-We denote $[\![ t ]\!]$ Elixir's core semantics.
-It is defined for all pretypes except for
-our new types $\tx$, $M.\tx$, $\langle M \rangle$ and
-$\BX[\overline{\tx = t}]$.
-
-We assume the existence of an injective function
-$\texttt{interp}: (M \times \tx) \cup \tx \rightarrow \alpha$.
-We also assume the type variables returned by this function cannot appear
-in source programs.
-
-
-Let $\Sigma, \Gammatop, \Gammabot$ be wellformed environments.
-
-
-We define the semantics of wellformed pretypes $t$ as:
-
-$[\![ \BX[\overline{\tx = t}] ]\!]_{\Sigma, \Gammatop, \Gammabot} = ...$
-
-$[\![ \langle M\rangle ]\!]_{\Sigma, \Gammatop, \Gammabot} = ...$
-
-$[\![ \tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![ t ]\!]_{\Sigma, \Gammatop, \Gammabot} $ if $\Gammabot(\tx) = \tx : [= t]$
-
-$[\![ \tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![\texttt{interp}(\tx)]\!] $ if $\Gammabot(\tx) = \tx : *$
-
-$[\![ M.\tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![ \wrap_{M; \overline{D}}(t) ]\!]_{\Sigma, \Gammatop, \Gammabot} $ if $\langle M \rangle \preceq \{ \overline{D}, \tx : [= t] \}$
-
-$[\![ M.\tx ]\!]_{\Sigma, \Gammatop, \Gammabot} = [\![\texttt{interp}(M, \tx)]\!] $ if $M.\tx$ is opaque
-
-extended to other pretypes using Elixir's core semantics.
 
 \section{Appendix: example of derivation tree}
 

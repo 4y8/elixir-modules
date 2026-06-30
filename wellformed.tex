@@ -1382,42 +1382,4 @@ From now on we omit the $\Elixir.$ prefix for legibility purposes.
     \end{prooftree}
 \] \\
 
-
-\section{Appendix: surface language (draft proposal)}
-
-
-\begin{lstlisting}[mathescape=true, basicstyle=\ttfamily]
-   defmodule $X$ do
-        @param $\tx$ // in both behaviour and module
-
-        @behaviour $\BX$($\tx$ = $t$, $...$)
-
-        @type $\tx$          // opaque type in behaviour
-        @type $\tx$ :: $t$      // in module
-        @opaque $\tx$ :: $t$    // in module
-
-        @callback $x$($x$ :: $T$, $...$) :: $T$
-        @callback $x$ :: (($t$, $...$) :: $t$) and $...$
-        @callback $x$ :: (($N$ :: $T$, $...$) ::  $T$) and $...$
-
-        @spec $x$($x$ :: $T$, $...$) :: $T$
-        def $x$($x$, $...$) when $guard$ do
-            $...$
-        end
-
-        defp $x$($x$, $...$) do
-            $...$
-        end
-
-    end
-
-    $X$ :: module()
-    $X$ :: module($X'$)
-    $X$ :: module($\Elixir.P$($\tx$ = $t$, $...$))
-    $X$ :: $\BX$($\tx$ = $t$, $...$)
-    $X$ :: behaviour($\BX$($\tx$ = $t$, $...$))
-    
-
-
-\end{lstlisting}
 \end{document}

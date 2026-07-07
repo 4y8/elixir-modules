@@ -708,7 +708,7 @@ Note that, even if they look similar, $t$ and $\tau$ are part of different type 
 Elixir's semantic subtyping will be denoted $\tau \preceq \tau'$.
 We denote $\tau \simeq \tau'$ when both $\tau \preceq \tau'$ and
 $\tau' \preceq \tau$ hold.
- Note that this subtyping relation does not involve the
+Note that this subtyping relation does not involve the
 environments $\Sigma, \Gammatop$ or $\Gammabot$ at all.
 We assume that the semantic subtyping of core types is already implemented and orthogonal to the module type system. \\
 
@@ -729,31 +729,31 @@ Let $\Sigma, \Gammatop, \Gammabot$ be wellformed environments.
 We define the translation between pretypes $t$ and core types $\tau$, denoted $\interp{t}$ (where $\Sigma; \Gammatop; \Gammabot \vdash t$), as:
 \begin{center}
     \begin{tabular}{rcll}
-        $ \interp{k} $                             & = & $k$                                                                                                                                                                                 \\
-        $ \interp{\atom} $                         & = & $\atom$                                                                                                                                                                             \\
-        $ \interp{\fun} $                          & = & $\fun$                                                                                                                                                                              \\
-        $ \interp{\mathbb{O}} $                    & = & $\mathbb{O}$                                                                                                                                                                        \\
-        $ \interp{\alpha} $                        & = & $\alpha$                                                                                                                                                                            \\[1.5mm]
-        $ \interp{\mod} $                          & = & $\% \{ @b: \toptype \}$                                                                                                                                                     \\[1.5mm]
-        $ \interp{(\overline{t}) \rightarrow t'} $ & = & $\left(\overline{\interp{t}}\right) \rightarrow \interp{t'}$                                                                                                                        \\[1.5mm]
-        $ \interp{t \vee t' } $                    & = & $\interp{t} \vee \interp{t'}$                                                                                                                                                       \\[1.5mm]
+        $ \interp{k} $                             & = & $k$                                                                                                                                                         \\
+        $ \interp{\atom} $                         & = & $\atom$                                                                                                                                                     \\
+        $ \interp{\fun} $                          & = & $\fun$                                                                                                                                                      \\
+        $ \interp{\mathbb{O}} $                    & = & $\mathbb{O}$                                                                                                                                                \\
+        $ \interp{\alpha} $                        & = & $\alpha$                                                                                                                                                    \\[1.5mm]
+        $ \interp{\mod} $                          & = & $\% \{ @b: \toptype \}$                                                                                                                                     \\[1.5mm]
+        $ \interp{(\overline{t}) \rightarrow t'} $ & = & $\left(\overline{\interp{t}}\right) \rightarrow \interp{t'}$                                                                                                \\[1.5mm]
+        $ \interp{t \vee t' } $                    & = & $\interp{t} \vee \interp{t'}$                                                                                                                               \\[1.5mm]
         $\interp{\%\{ \overline{k : t} \}}$        & = & $\% \left\{ \overline{k : \interp{t}} \right\} \wedge \lnot \% \{ @b : \toptype \} \wedge \lnot \% \{ @s : \toptype \} \wedge \lnot \% \{ @l : \toptype \}$ \\[1.5mm]
-        $ \interp{\lnot t} $                       & = & $\lnot\interp{t}$                                                                                                                                                                   \\[1.5mm]
+        $ \interp{\lnot t} $                       & = & $\lnot\interp{t}$                                                                                                                                           \\[1.5mm]
     \end{tabular}
 \end{center}
 
 Let $P$ be such that $\Gammatop(P) = \_ : \Moddecl[\tx][\overline{D}][\BX][\tx'][t']$.
 \begin{center}
     \begin{tabular}{rcll}
-        $ \interp{\BX[\overline{\tx = t}]} $                     & = & \multicolumn{2}{l}{$\%\{ @b: \lnot \ulcorner\! \BX \!\urcorner, \overline{\ulcorner\!\BX.\tx\!\urcorner : \eq(\interp{t})}  \}$}                                                                                                                   \\[2mm]
+        $ \interp{\BX[\overline{\tx = t}]} $                     & = & \multicolumn{2}{l}{$\%\{ @b: \lnot \ulcorner\! \BX \!\urcorner, \overline{\ulcorner\!\BX.\tx\!\urcorner : \eq(\interp{t})}  \}$}                                                                      \\[2mm]
         $\interp{\langle \Elixir.P[\overline{\tx = t}] \rangle}$ & = &
-        \multicolumn{2}{l}{$\%\{ @s: \ulcorner\! P \!\urcorner, \overline{\ulcorner\!P.\tx\!\urcorner : \eq(\interp{t})}, @b : \toptype \} \wedge \bigwedge \overline{\interp{\BX[\overline{\tx' = t'}]}}$}                                                                                                      \\[2mm]
-        $\interp{\langle X \rangle} $                            & = & $\interp{\langle M \rangle}$                                                                                                     & if $\Gammabot(X) = X : \langle M \rangle$                                                                       \\[1.5mm]
-        $\interp{\langle X \rangle} $                            & = & $\% \{ @l: \lnot \ulcorner\! X \!\urcorner \} \wedge \interp{t}$                                                                 & if $\Gammabot(X) = X : t$, $t \neq \langle M \rangle$                                                           \\[3mm]
-        $ \interp{\tx} $                                         & = & $\interp{t}$                                                                                                                     & if $\Gammabot(\tx) = \tx : [= t]$                                                                               \\
-        $ \interp{\tx} $                                         & = & $\alpha_\tx$                                                                                                                     & if $\Gammabot(\tx) = \tx : \star$                                                                               \\
-        $ \interp{\Elixir.P[\overline{\tx' = t}].\tx} $          & = & $\alpha_\tx(\Elixir.P[\overline{\tx' = \interp{t}}]) $                                                                           & if $\Elixir.P[\overline{\tx' = t}].\tx$ is opaque                                                               \\
-        $ \interp{X.\tx} $                                       & = & $\interp{M.\tx} $                                                                                                                & if $X.\tx$ is opaque and $\Gammabot(X) = X : \langle M \rangle$                                                 \\
+        \multicolumn{2}{l}{$\%\{ @s: \ulcorner\! P \!\urcorner, \overline{\ulcorner\!P.\tx\!\urcorner : \eq(\interp{t})}, @b : \toptype \} \wedge \bigwedge \overline{\interp{\BX[\overline{\tx' = t'}]}}$}                                                                  \\[2mm]
+        $\interp{\langle X \rangle} $                            & = & $\interp{\langle M \rangle}$                                                                                                     & if $\Gammabot(X) = X : \langle M \rangle$                          \\[1.5mm]
+        $\interp{\langle X \rangle} $                            & = & $\% \{ @l: \lnot \ulcorner\! X \!\urcorner \} \wedge \interp{t}$                                                                 & if $\Gammabot(X) = X : t$, $t \neq \langle M \rangle$              \\[3mm]
+        $ \interp{\tx} $                                         & = & $\interp{t}$                                                                                                                     & if $\Gammabot(\tx) = \tx : [= t]$                                  \\
+        $ \interp{\tx} $                                         & = & $\alpha_\tx$                                                                                                                     & if $\Gammabot(\tx) = \tx : \star$                                  \\
+        $ \interp{\Elixir.P[\overline{\tx' = t}].\tx} $          & = & $\alpha_\tx(\Elixir.P[\overline{\tx' = \interp{t}}]) $                                                                           & if $\Elixir.P[\overline{\tx' = t}].\tx$ is opaque                  \\
+        $ \interp{X.\tx} $                                       & = & $\interp{M.\tx} $                                                                                                                & if $X.\tx$ is opaque and $\Gammabot(X) = X : \langle M \rangle$    \\
         $ \interp{X.\tx} $                                       & = & $\alpha_\tx(X)  $                                                                                                                & if $X.\tx$ is opaque and $\Gammabot(X) \neq X : \langle M \rangle$
     \end{tabular}
 \end{center}
@@ -775,9 +775,9 @@ obtained via subtyping, after removing all the declarations that are not useful 
 We introduce meta-function $\wrap_{M, \overline{D}}(T)$, which qualifies with `$M.$` all the types declared in $\overline{D}$ appearing in $T$:
 
 \begin{align*}
-    \wrap_{M; \emptyenv}(T)                                                    & = T                                     \\
-    \wrap_{M; \left(\tx \;:\; \star,\; \overline{D}\right)}(T)                 & = \wrap_{M; \overline{D}}(T[M.\tx/\tx]) \\
-    \wrap_{M; \left(\tx \;:\; [= t],\;  \overline{D}\right)}(T)                & = \wrap_{M; \overline{D}}(T[M.\tx/\tx]) \\
+    \wrap_{M; \emptyenv}(T)                                                   & = T                                     \\
+    \wrap_{M; \left(\tx \;:\; \star,\; \overline{D}\right)}(T)                & = \wrap_{M; \overline{D}}(T[M.\tx/\tx]) \\
+    \wrap_{M; \left(\tx \;:\; [= t],\;  \overline{D}\right)}(T)               & = \wrap_{M; \overline{D}}(T[M.\tx/\tx]) \\
     \wrap_{M; \left(x \;:\; \bigcap \overline{T'},\;  \overline{D}\right)}(T) & = \wrap_{M; \overline{D}}(T)            \\
 \end{align*}
 
@@ -1381,5 +1381,31 @@ From now on we omit the $\Elixir.$ prefix for legibility purposes.
         \infer1{ \emptyenv \vdash A : \{ \tx : \star, B : \{\} \} }
     \end{prooftree}
 \] \\
+
+\section{A}
+
+\[
+    \mathfrak{t} ::= \atom \;|\; \mod \;|\; \fun \;|\;  (\overline{\mathbb{O}}) \rightarrow \toptype \;|\;
+    \%\{ \overline{k : \mathfrak{t}} \} \;|\; \mathfrak{t} \vee \mathfrak{t} \;|\; \lnot \mathfrak{t} \;|\; \mathbb{O} \;|\; \langle \Elixir.P[] \rangle
+\]
+
+- Should we add $\tx, M.\tx$ when they are transparent types and a $\mathfrak{t}$?
+
+\[
+    \begin{prooftree}[right label template=(\textnormal\inserttext)]
+        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash_\mathfrak{t} \mathfrak{t} }
+        \infer1[$\Gammabot(\tx) = \tx : [ = \mathfrak{t}]$]{ \Sigma; \Gammatop; \Gammabot \vdash_\mathfrak{t} \tx }
+    \end{prooftree}
+\]
+
+\[
+    \begin{prooftree}[right label template=(\textnormal\inserttext)]
+        \hypo{ \Sigma; \Gammatop; \Gammabot[\overline{\Next'/\Next}] \vdash  \langle M[\overline{\Next'/\Next}] \rangle \preceq \{ \overline{D}, \tx : [= \mathfrak{t}] \}}
+        \hypo{ \Sigma; \Gammatop; \Gammabot[\overline{\Next'/\Next}], \overline{D} \vdash_\mathfrak{t} \mathfrak{t}}
+        \infer2[$\Next'$ fresh] { \Sigma; \Gammatop; \Gammabot \vdash_\mathfrak{t} M.\tx }
+    \end{prooftree}
+\]
+
+- Should we add $\langle \Elixir.P[\overline{\tx = \alpha}] \rangle$ (and $\BX[\overline{\tx = \alpha}]$) (where $\overline{\alpha}$ fresh)?
 
 \end{document}

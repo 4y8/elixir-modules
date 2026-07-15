@@ -1408,4 +1408,65 @@ From now on we omit the $\Elixir.$ prefix for legibility purposes.
 
 - Should we add $\langle \Elixir.P[\overline{\tx = \alpha}] \rangle$ (and $\BX[\overline{\tx = \alpha}]$) (where $\overline{\alpha}$ fresh)?
 
+\section{Semantics}
+
+\[
+    \begin{prooftree}[right label template=(\textnormal\inserttext)]
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E : \toptype }
+        \hypo { \Gammabot(\tx) = \tx : [= t] }
+        \infer2 { \Sigma; \Gammatop; \Gammabot \vdash E \leadsto E[t/\tx] }
+    \end{prooftree}
+\]
+
+Same rule for $M.\tx$ with alpha renaming/capture-avoiding (TODO) \\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E (\overline{N}) : \toptype }
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E \leadsto E' }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash E (\overline{N}) \leadsto E' (\overline{N}) }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \text{let } N = E \text{ in } E': \toptype}
+        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \text{let } N = E \text{ in } E' \leadsto E'[E/N] }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E\right) (\overline{N}) : \toptype}
+        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E\right) (\overline{N}) \leadsto E[\overline{N/\tx}] }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E\right) (\overline{N'}) : \toptype}
+        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E\right) (\overline{N'}) \leadsto E[\overline{N'/N}] }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E : \fun}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash  E \leadsto E' }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E \leadsto \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E' }
+    \end{prooftree}
+\] \\
+
+\[
+    \begin{prooftree}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E : \fun}
+        \hypo { \Sigma; \Gammatop; \Gammabot \vdash  E \leadsto E' }
+        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E \leadsto \$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E' }
+    \end{prooftree}
+\] \\
+
+--> probably we will need rules for bindings, because here we have no way to look
+a the definition of functions (the environments only contain type signatures).
+
+
 \end{document}

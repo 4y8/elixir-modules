@@ -10,6 +10,7 @@
 \usepackage{changepage}
 \usepackage{listings}
 \usepackage{bbm}
+\usepackage{stmaryrd}
 
 \newcommand{\tx}{\text{\rm x}}
 \newcommand{\ty}{\text{\rm y}}
@@ -38,7 +39,7 @@
 \newcommand{\eq}{\texttt{eq}}
 
 \NewDocumentCommand{\interp}{m O{\Sigma, \Gammatop, \Gammabot}}{
-   \left[\!\left[#1\right]\!\right]_{#2}
+   \left\llbracket#1\right\rrbracket_{#2}
 }
 \NewDocumentCommand{\Moddecl}{O{\tx} O{\overline {\mathcal{D}}} O{\BX} O{\tx'} O{t} }{
    \Lambda (\overline{#1 : \star}) . \left\{ #2 \right\}_{\overline{#3 [\overline{#4 = #5}]}}
@@ -1382,91 +1383,55 @@ From now on we omit the $\Elixir.$ prefix for legibility purposes.
     \end{prooftree}
 \] \\
 
-\section{A}
+\section{Type checks}
 
 \[
     \mathfrak{t} ::= \atom \;|\; \mod \;|\; \fun \;|\;  (\overline{\mathbb{O}}) \rightarrow \toptype \;|\;
-    \%\{ \overline{k : \mathfrak{t}} \} \;|\; \mathfrak{t} \vee \mathfrak{t} \;|\; \lnot \mathfrak{t} \;|\; \mathbb{O} \;|\; \langle \Elixir.P[] \rangle
+    \%\{ \overline{k : \mathfrak{t}} \} \;|\; \mathfrak{t} \vee \mathfrak{t} \;|\; \lnot \mathfrak{t} \;|\; \mathbb{O}
 \]
 
-- Should we add $\tx, M.\tx$ when they are transparent types and a $\mathfrak{t}$?
-
-\[
-    \begin{prooftree}[right label template=(\textnormal\inserttext)]
-        \hypo{ \Sigma; \Gammatop; \Gammabot \vdash_\mathfrak{t} \mathfrak{t} }
-        \infer1[$\Gammabot(\tx) = \tx : [ = \mathfrak{t}]$]{ \Sigma; \Gammatop; \Gammabot \vdash_\mathfrak{t} \tx }
-    \end{prooftree}
-\]
-
-\[
-    \begin{prooftree}[right label template=(\textnormal\inserttext)]
-        \hypo{ \Sigma; \Gammatop; \Gammabot[\overline{\Next'/\Next}] \vdash  \langle M[\overline{\Next'/\Next}] \rangle \preceq \{ \overline{D}, \tx : [= \mathfrak{t}] \}}
-        \hypo{ \Sigma; \Gammatop; \Gammabot[\overline{\Next'/\Next}], \overline{D} \vdash_\mathfrak{t} \mathfrak{t}}
-        \infer2[$\Next'$ fresh] { \Sigma; \Gammatop; \Gammabot \vdash_\mathfrak{t} M.\tx }
-    \end{prooftree}
-\]
-
-- Should we add $\langle \Elixir.P[\overline{\tx = \alpha}] \rangle$ (and $\BX[\overline{\tx = \alpha}]$) (where $\overline{\alpha}$ fresh)?
+\begin{center}
+    \begin{tabular}{ll}
+        $\ulcorner \Elixir.P[\overline{\tx = t}] \urcorner$                                                                  & = $\mod$ (ou $\toptype$)                           \\
+        $\ulcorner k \urcorner$                                                                                              & = $k$                                              \\
+        $\ulcorner \$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E \urcorner$ & = $(\overline{\mathbb{O}}) \rightarrow \toptype $  \\
+        $\ulcorner \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E \urcorner$   & = $(\overline{\mathbb{O}}) \rightarrow \toptype$   \\
+        $\ulcorner \%\{ \overline{k = v} \} \urcorner$                                                                       & = $\% \{ \overline{k : \ulcorner v \urcorner } \}$
+    \end{tabular}
+\end{center}
 
 \section{Semantics}
 
-\[
-    \begin{prooftree}[right label template=(\textnormal\inserttext)]
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E : \toptype }
-        \hypo { \Gammabot(\tx) = \tx : [= t] }
-        \infer2 { \Sigma; \Gammatop; \Gammabot \vdash E \leadsto E[t/\tx] }
-    \end{prooftree}
-\]
+Runtime environment: $\Delta ::= \overline{\Pi.x = v}$.
+By abuse of notation we will write $x$ instead of $\epsilon.x$.
 
-Same rule for $M.\tx$ with alpha renaming/capture-avoiding (TODO) \\
+\paragraph{Contexts}:
 
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E (\overline{N}) : \toptype }
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash E \leadsto E' }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash E (\overline{N}) \leadsto E' (\overline{N}) }
-    \end{prooftree}
-\] \\
+$\mathcal{E} ::= []$ | $\text{let } N = \mathcal{E} \text{ in } E$ | $\mathcal{E}(\overline{N})$ | $\% \left\{ \overline{k_i = v_i}^{0..j}, k_j = \mathcal{E}, \overline{k_i = E_i}^{j+1..n} \right\}$ | $(N = \mathcal{E} \in \mathfrak{t}) ? E_1 : E_2$
 
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \text{let } N = E \text{ in } E': \toptype}
-        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \text{let } N = E \text{ in } E' \leadsto E'[E/N] }
-    \end{prooftree}
-\] \\
+\begin{center}
+    \begin{tabular}{lll}
+        $(\Delta; (\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E)(\overline{N'}))$ & $\leadsto (\Delta; E[\overline{N'/N}])$                                                                \\
+        $(\Delta; N)$                                                                                                               & $\leadsto (\Delta; \Delta(N))$                                                                         \\
+        $(\Delta; \%\{ \overline{k_i = v_i} \}.{k_i})$                                                                              & $\leadsto (\Delta; v_i)$                                                                               \\
+        $(\Delta; \Elixir.P [\overline{\tx = t}].x)$                                                                                & $\leadsto (\Delta; \Delta(P.x)[\overline{t/\tx}])$                                                       \\
+        $(\Delta; \text{let } N = v \text{ in } E)$                                                                                 & $\leadsto (\Delta, N = v; E)$                                                                          \\
+        $(\Delta; (N = v \in \mathfrak{t}) ? E_1 : E_2)$                                                                            & $\leadsto (\Delta, N = v; E_1)$                  & if $\ulcorner v \urcorner \preceq \mathfrak{t}$     \\
+        $(\Delta; (N = v \in \mathfrak{t}) ? E_1 : E_2)$                                                                            & $\leadsto (\Delta, N = v; E_2)$                  & if not $\ulcorner v \urcorner \preceq \mathfrak{t}$ \\
+        $(\Delta; X.x)$                                                                                                             & $\leadsto (\Delta'; M'.x )$                      & if $(\Delta; X) \leadsto (\Delta'; M')$             \\
+        $(\Delta; \mathcal{E}(E))$                                                                                                  & $\leadsto (\Delta'; \mathcal{E}(E') )$           & if $(\Delta; E) \leadsto (\Delta'; E')$
+    \end{tabular}
+\end{center}
 
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E\right) (\overline{N}) : \toptype}
-        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E\right) (\overline{N}) \leadsto E[\overline{N/\tx}] }
-    \end{prooftree}
-\] \\
-
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E\right) (\overline{N'}) : \toptype}
-        \infer1{ \Sigma; \Gammatop; \Gammabot \vdash \left(\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E\right) (\overline{N'}) \leadsto E[\overline{N'/N}] }
-    \end{prooftree}
-\] \\
-
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E : \fun}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash  E \leadsto E' }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E \leadsto \$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E' }
-    \end{prooftree}
-\] \\
-
-\[
-    \begin{prooftree}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash \$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E : \fun}
-        \hypo { \Sigma; \Gammatop; \Gammabot \vdash  E \leadsto E' }
-        \infer2{ \Sigma; \Gammatop; \Gammabot \vdash\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E \leadsto \$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E' }
-    \end{prooftree}
-\] \\
-
---> probably we will need rules for bindings, because here we have no way to look
-a the definition of functions (the environments only contain type signatures).
+\begin{center}
+    \begin{tabular}{lll}
+$(P; \Delta; x = v, \overline{B})$ & $\leadsto (P; \Delta, P.x = v, x = v; \overline{B})$ \\
+$(P; \Delta; \private x = v, \overline{B})$ & $\leadsto (P; \Delta, x = v; \overline{B})$ \\
+$(P; \Delta; \type \tx = t, \overline{B})$ & $\leadsto (P; \Delta; \overline{B})$ \\
+$(P; \Delta; \opaque \tx = t, \overline{B})$ & $\leadsto (P; \Delta; \overline{B})$ \\ 
+$(\Pi; \Delta; X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'})$ & $\leadsto (\Pi; \Delta'; \overline{B'})$ & if $(\Pi.X; \Delta; \overline{B}) \leadsto (\Pi.X; \Delta'; \emptyenv)$
+\end{tabular}
+\end{center}
 
 
 \end{document}

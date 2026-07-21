@@ -432,11 +432,12 @@ $M$         & ::= & $X$ | $\Elixir.P[\overline{\tx = t}]$                       
     & | & $E.k$ \\
     & | & $(E\in t)?E:E$ \\
     & | & {\color{OrangeRed}\text{$M.x$}} \\
-    & | & {\color{OrangeRed}\text{$M$}} \\
+    & | & {\color{OrangeRed}\text{$X$}} \\
     $v$ & ::= & $k$ \\
     & | & $\texttt{\%}\!\left\{\overline{k=v}\right\}$ \\
     & | & $\$\bigwedge \overline{(\,\overline{t}\,)\rightarrow t} \kwfn \overline{x} \rightarrow E$ \\
-    & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\[3mm]
+    & | & {\color{OrangeRed} \text{$\$\bigcap \overline{\left(\overline{N:T}\right)\rightarrow T} \kwfn \overline{N}\rightarrow E$}} &\color{OliveGreen} syntactic intersection\\
+    & | & {\color{OrangeRed}\text{$\Elixir.P[\overline{\tx = t}]$}} \\[3mm]
     $T$ & ::= & $t$ \\
     & | & $\left(\overline{N:T}\right)\rightarrow T$ \\
     & | & $\left\{\overline{D}\right\}_{\overline{\BX[\,\overline{\tx=t}\,]}}$ &{\color{OliveGreen} syntactic intersection: $\{\overline{D}\}\cap{\BX_1[\,\overline{\tx_1=t_1}\,]}\cap...\cap{\BX_n[\,\overline{\tx_n=t_n}\,]}$}: ($\BX$'s instantiations given in $\overline{D}$)\\

@@ -1411,27 +1411,44 @@ $\mathcal{E} ::= []$ | $\text{let } N = \mathcal{E} \text{ in } E$ | $\mathcal{E
 
 \begin{center}
     \begin{tabular}{lll}
-        $(\Delta; (\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E)(\overline{N'}))$ & $\leadsto (\Delta; E[\overline{N'/N}])$                                                                \\
-        $(\Delta; N)$                                                                                                               & $\leadsto (\Delta; \Delta(N))$                                                                         \\
-        $(\Delta; \%\{ \overline{k_i = v_i} \}.{k_i})$                                                                              & $\leadsto (\Delta; v_i)$                                                                               \\
-        $(\Delta; \Elixir.P [\overline{\tx = t}].x)$                                                                                & $\leadsto (\Delta; \Delta(P.x)[\overline{t/\tx}])$                                                       \\
-        $(\Delta; \text{let } N = v \text{ in } E)$                                                                                 & $\leadsto (\Delta, N = v; E)$                                                                          \\
-        $(\Delta; (N = v \in \mathfrak{t}) ? E_1 : E_2)$                                                                            & $\leadsto (\Delta, N = v; E_1)$                  & if $\ulcorner v \urcorner \preceq \mathfrak{t}$     \\
-        $(\Delta; (N = v \in \mathfrak{t}) ? E_1 : E_2)$                                                                            & $\leadsto (\Delta, N = v; E_2)$                  & if not $\ulcorner v \urcorner \preceq \mathfrak{t}$ \\
-        $(\Delta; X.x)$                                                                                                             & $\leadsto (\Delta'; M'.x )$                      & if $(\Delta; X) \leadsto (\Delta'; M')$             \\
-        $(\Delta; \mathcal{E}(E))$                                                                                                  & $\leadsto (\Delta'; \mathcal{E}(E') )$           & if $(\Delta; E) \leadsto (\Delta'; E')$
+        $\left(\Delta; (\$ \bigcap \overline{(\overline{N : T}) \rightarrow T'} \text{ fn } \overline{N} \rightarrow E)(\overline{N'})\right)$ & $\leadsto (\Delta; E[\overline{N'/N}])$                                                                  \\
+        $\left(\Delta; (\$ \bigwedge \overline{(\overline{t}) \rightarrow t'} \text{ fn } \overline{x} \rightarrow E)(\overline{N})\right)$    & $\leadsto (\Delta; E[\overline{N/x}])$                                                                   \\
+        $(\Delta; N)$                                                                                                                          & $\leadsto (\Delta; \Delta(N))$                                                                           \\
+        $(\Delta; X.x)$                                                                                                                        & $\leadsto (\Delta; \Delta(X).x )$                                                                        \\
+        $(\Delta; \%\{ \overline{k_i = v_i} \}.{k_j})$                                                                                         & $\leadsto (\Delta; v_j)$                                                                                 \\
+        $(\Delta; \Elixir.P [\overline{\tx = t}].x)$                                                                                           & $\leadsto (\Delta; \Delta(P.x)[\overline{t/\tx}])$                                                       \\
+        $(\Delta; \text{let } N = v \text{ in } E)$                                                                                            & $\leadsto (\Delta, N = v; E)$                                                                            \\
+        $(\Delta; (N = v \in \mathfrak{t}) ? E_1 : E_2)$                                                                                       & $\leadsto (\Delta, N = v; E_1)$                    & if $\ulcorner v \urcorner \preceq \mathfrak{t}$     \\
+        $(\Delta; (N = v \in \mathfrak{t}) ? E_1 : E_2)$                                                                                       & $\leadsto (\Delta, N = v; E_2)$                    & if not $\ulcorner v \urcorner \preceq \mathfrak{t}$ \\
+        $(\Delta; \mathcal{E}(E))$                                                                                                             & $\leadsto (\Delta'; \mathcal{E}(E') )$             & if $(\Delta; E) \leadsto (\Delta'; E')$
     \end{tabular}
 \end{center}
 
 \begin{center}
     \begin{tabular}{lll}
-$(P; \Delta; x = v, \overline{B})$ & $\leadsto (P; \Delta, P.x = v, x = v; \overline{B})$ \\
-$(P; \Delta; \private x = v, \overline{B})$ & $\leadsto (P; \Delta, x = v; \overline{B})$ \\
-$(P; \Delta; \type \tx = t, \overline{B})$ & $\leadsto (P; \Delta; \overline{B})$ \\
-$(P; \Delta; \opaque \tx = t, \overline{B})$ & $\leadsto (P; \Delta; \overline{B})$ \\ 
-$(\Pi; \Delta; X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'})$ & $\leadsto (\Pi; \Delta'; \overline{B'})$ & if $(\Pi.X; \Delta; \overline{B}) \leadsto (\Pi.X; \Delta'; \emptyenv)$
-\end{tabular}
+        $(P; \Delta; x = v, \overline{B})$                                                                                            & $\leadsto (P; \Delta, P.x = v, x' = v; \overline{B[x'/x]})$ & $x'$ fresh                                                              \\
+        $(P; \Delta; \private x = v, \overline{B})$                                                                                   & $\leadsto (P; \Delta, x' = v; \overline{B[x'/x]})$          & $x'$ fresh                                                              \\
+        $(P; \Delta; \type \tx = t, \overline{B})$                                                                                    & $\leadsto (P; \Delta; \overline{B})$                                                                                                  \\
+        $(P; \Delta; \opaque \tx = t, \overline{B})$                                                                                  & $\leadsto (P; \Delta; \overline{B})$                                                                                                  \\
+        $(\Pi; \Delta; X : \Lambda (\overline{\tx : \star}). \{\overline{B}\}_{\overline{\BX[\overline{\tx'  = t}]}}, \overline{B'})$ & $\leadsto (\Pi; \Delta'; \overline{B'})$                    & if $(\Pi.X; \Delta; \overline{B}) \leadsto (\Pi.X; \Delta'; \emptyenv)$
+    \end{tabular}
 \end{center}
+
+
+
+
+% lemme inversion lambda abs
+% lemme substitution
+
+% intro
+% Elixir
+% set theoretic types (and why)
+% adding modules (first class)
+
+% restriction type case / no mutual recursion
+% si manque de temps: cas sans type case
+
+% preservation types/progress
 
 
 \end{document}
